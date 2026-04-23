@@ -25,6 +25,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RiderTrackingMap } from "@/components/RiderTrackingMap";
 
 export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({
@@ -158,6 +159,16 @@ function OrderDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Live rider tracking */}
+      {["pickup", "ready"].includes(order.status) && (
+        <section className="px-5 mt-4">
+          <h3 className="font-bold mb-2 text-sm flex items-center gap-1.5">
+            <Truck size={14} /> Live rider
+          </h3>
+          <RiderTrackingMap orderId={order.id} />
+        </section>
+      )}
 
       {/* Service & items */}
       <section className="px-5 mt-4">
