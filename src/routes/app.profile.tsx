@@ -23,7 +23,7 @@ function ProfilePage() {
       items: [
         { icon: Wrench, label: "Services & pricing", to: "/app/services", hint: `${services.filter((s) => s.active).length} active` },
         { icon: Users, label: "Staff & branches", to: "/app/staff", hint: `${staff.length} members` },
-        { icon: Banknote, label: "Bank & MoMo accounts", to: "/app/bank", hint: "2 linked" },
+        { icon: Banknote, label: "Payout accounts", to: "/app/bank", hint: "2 linked" },
         { icon: Building2, label: "Business profile", to: "/app/profile" },
       ],
     },
@@ -71,7 +71,7 @@ function ProfilePage() {
       <section className="px-5 mt-4 grid grid-cols-3 gap-3">
         {[
           { v: "1,847", l: "Orders" },
-          { v: "GH₵142k", l: "Earned" },
+          { v: "$42k", l: "Earned" },
           { v: "98%", l: "On-time" },
         ].map((s) => (
           <div key={s.l} className="bg-card rounded-2xl border border-border shadow-card p-3 text-center">

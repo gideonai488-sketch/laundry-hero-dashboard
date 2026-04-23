@@ -25,7 +25,7 @@ function DashboardHome() {
           <div className="relative flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Today's earnings</div>
-              <div className="text-3xl font-bold mt-1">{formatGHS(1240)}</div>
+              <div className="text-3xl font-bold mt-1">{formatGHS(340)}</div>
               <div className="flex items-center gap-1 text-xs text-white/85 mt-1">
                 <ArrowUpRight size={12} /> +18% vs yesterday
               </div>
@@ -90,7 +90,7 @@ function DashboardHome() {
           <div className="flex items-center justify-between mb-1">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">This week</div>
-              <div className="text-2xl font-bold mt-0.5">{formatGHS(6330)}</div>
+              <div className="text-2xl font-bold mt-0.5">{formatGHS(1820)}</div>
             </div>
             <Link to="/app/earnings" className="text-xs font-semibold text-primary flex items-center gap-1">
               Details <ArrowUpRight size={12} />
@@ -163,9 +163,9 @@ function DashboardHome() {
         <div className="grid grid-cols-2 gap-3">
           {[
             { icon: Zap, title: "Express jobs", desc: "Earn 2× on 6hr orders", tone: "from-warning/20 to-warning/5" },
-            { icon: Star, title: "4.9★ rating", desc: "Top 5% in Accra", tone: "from-success/20 to-success/5" },
+            { icon: Star, title: "4.9★ rating", desc: "Top 5% in your city", tone: "from-success/20 to-success/5" },
             { icon: Truck, title: "Free pickups", desc: "12 today", tone: "from-primary/20 to-primary/5" },
-            { icon: Banknote, title: "Next payout", desc: "GH₵4,280 · Mon", tone: "from-accent to-accent/30" },
+            { icon: Banknote, title: "Next payout", desc: "$1,280 · Mon", tone: "from-accent to-accent/30" },
           ].map((h) => (
             <div key={h.title} className={`p-4 rounded-2xl bg-gradient-to-br ${h.tone} border border-border`}>
               <h.icon size={20} className="text-foreground" />

@@ -41,7 +41,7 @@ function Login() {
         >
           <div className="space-y-2">
             <Label htmlFor="email">Email or phone</Label>
-            <Input id="email" placeholder="daniel@highestwash.gh" defaultValue="daniel@highestwash.gh" className="h-12 rounded-xl" />
+            <Input id="email" placeholder="you@business.com" defaultValue="daniel@highestwash.com" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="pwd">Password</Label>
