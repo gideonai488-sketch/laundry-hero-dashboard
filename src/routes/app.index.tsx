@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
+import { AIDispatchPanel } from "@/components/AIDispatchPanel";
+import { AIInsights } from "@/components/AIInsights";
 import { orders, revenueData, formatGHS, statusMeta } from "@/lib/mock-data";
 import { ArrowUpRight, BarChart3, Banknote, Bike, ClipboardList, Power, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
@@ -84,6 +86,9 @@ function DashboardHome() {
         </div>
       </section>
 
+      {/* AI Dispatch */}
+      <AIDispatchPanel />
+
       {/* Revenue mini chart */}
       <section className="px-5 mt-6">
         <div className="bg-card rounded-3xl border border-border shadow-card p-5">
@@ -121,6 +126,9 @@ function DashboardHome() {
           </div>
         </div>
       </section>
+
+      {/* AI insights */}
+      <AIInsights limit={2} />
 
       {/* Live activity */}
       <section className="px-5 mt-6">

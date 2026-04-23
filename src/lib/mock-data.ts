@@ -369,6 +369,135 @@ export const faqs: { q: string; a: string; category: string }[] = [
   { q: "Can I pause my shop temporarily?", a: "Yes. Go to Shop settings and toggle Online status off, or set vacation mode with a return date.", category: "Account" },
 ];
 
+// ============= AI customer trust / background check =============
+export interface CustomerTrust {
+  customerId: string; // matches Order.customer
+  verified: boolean;
+  riskScore: "low" | "medium" | "high";
+  priorOrders: number;
+  paymentValid: boolean;
+  fraudFlags: number;
+  summary: string;
+}
+
+export const customerTrust: Record<string, CustomerTrust> = {
+  "Sofia Martinez": { customerId: "Sofia Martinez", verified: true, riskScore: "low", priorOrders: 18, paymentValid: true, fraudFlags: 0, summary: "VIP · 18 prior orders · 100% on-time payment" },
+  "Liam O'Connor": { customerId: "Liam O'Connor", verified: false, riskScore: "medium", priorOrders: 3, paymentValid: true, fraudFlags: 0, summary: "New customer · 3 prior orders · payment verified" },
+  "Ayaka Tanaka": { customerId: "Ayaka Tanaka", verified: true, riskScore: "low", priorOrders: 24, paymentValid: true, fraudFlags: 0, summary: "VIP · 24 prior orders · 5★ avg rating" },
+  "Marcus Bennett": { customerId: "Marcus Bennett", verified: true, riskScore: "low", priorOrders: 9, paymentValid: true, fraudFlags: 0, summary: "Regular · 9 prior orders · low risk" },
+  "Priya Sharma": { customerId: "Priya Sharma", verified: true, riskScore: "low", priorOrders: 12, paymentValid: true, fraudFlags: 0, summary: "Regular · 12 prior orders · 4.8★ avg" },
+  "Noah Williams": { customerId: "Noah Williams", verified: true, riskScore: "low", priorOrders: 6, paymentValid: true, fraudFlags: 0, summary: "Regular · 6 prior orders · low risk" },
+};
+
+// ============= AI dispatch feed =============
+export interface DispatchAssignment {
+  id: string;
+  orderId: string;
+  customer: string;
+  service: string;
+  amount: number;
+  distance: string;
+  riderName: string;
+  riderEta: string;
+  aiConfidence: number; // 0–100
+  reason: string;
+  expiresInSec: number;
+  trustSummary: string;
+}
+
+export const dispatchAssignments: DispatchAssignment[] = [
+  {
+    id: "AD-9921",
+    orderId: "HW-2842",
+    customer: "Emma Larsson",
+    service: "Express Wash",
+    amount: 32,
+    distance: "1.2 km",
+    riderName: "Diego A.",
+    riderEta: "6 min",
+    aiConfidence: 94,
+    reason: "Verified customer · within radius · capacity OK",
+    expiresInSec: 45,
+    trustSummary: "Regular · 7 orders · low risk",
+  },
+  {
+    id: "AD-9920",
+    orderId: "HW-2843",
+    customer: "Hiro Nakamura",
+    service: "Wash & Fold",
+    amount: 24,
+    distance: "2.8 km",
+    riderName: "Amelia C.",
+    riderEta: "11 min",
+    aiConfidence: 88,
+    reason: "Returning customer · matches your peak hours",
+    expiresInSec: 90,
+    trustSummary: "VIP · 21 orders · 5★ avg",
+  },
+];
+
+// ============= AI insights =============
+export interface AIInsight {
+  id: string;
+  title: string;
+  body: string;
+  trend: "up" | "down" | "neutral";
+  metric?: string;
+}
+
+export const aiInsights: AIInsight[] = [
+  { id: "in1", title: "Revenue up 12% this week", body: "Driven by Wash & Fold weekday spikes. Consider adding 1 staff member on Thu–Fri.", trend: "up", metric: "+$240" },
+  { id: "in2", title: "3 customers at churn risk", body: "Sofia, Marcus & Priya haven't ordered in 9+ days. Send a 15% comeback offer.", trend: "down" },
+  { id: "in3", title: "Sneaker cleaning is trending", body: "Bookings up 28% in your area. Enable the service to capture demand.", trend: "up", metric: "+28%" },
+];
+
+// ============= AI Copilot starter prompts =============
+export const copilotSuggestions = [
+  "What's my revenue today?",
+  "Which orders are running late?",
+  "Accept all verified pending orders",
+  "Draft a reply to Sofia's review",
+  "Show me my top 3 customers",
+  "When should I add staff?",
+];
+
+// Mock AI responses keyed by intent keyword
+export const copilotMockResponses: { match: RegExp; reply: string }[] = [
+  { match: /revenue|earning|today/i, reply: "You've earned **$340** today across 8 completed orders — up **18%** vs yesterday. Wash & Fold drove 62% of that. Want me to break it down by service?" },
+  { match: /late|overdue|delay/i, reply: "**2 orders are running late:**\n\n• HW-2838 (Marcus Bennett) — washing stage, 45 min over SLA\n• HW-2839 (Ayaka Tanaka) — pickup pending, rider 8 min away\n\nShall I notify both customers with an apology + ETA?" },
+  { match: /accept.*pending|accept.*all/i, reply: "Found **2 pending orders** matching your auto-accept rules (verified · under $50 · within 5km). Accepting now… ✅ Done. HW-2841 and HW-2840 are now in your queue." },
+  { match: /reply|review|sofia/i, reply: "Here's a draft reply to Sofia's 5★ review:\n\n> *\"Thanks so much, Sofia! Scent-free is always our pleasure 💙 See you next pickup!\"*\n\nWant me to post it or tweak the tone?" },
+  { match: /top.*customer|best.*customer|vip/i, reply: "**Your top 3 customers this month:**\n\n1. Ayaka Tanaka — $312 · 8 orders\n2. Sofia Martinez — $284 · 6 orders\n3. Priya Sharma — $196 · 4 orders\n\nWant me to send them each a thank-you voucher?" },
+  { match: /staff|hire|add.*person/i, reply: "Based on your 4-week trend, you're hitting **92% capacity Thu–Sat**. Adding one washer for those 3 days would unlock ~$420/week in extra revenue. Want me to draft a job post?" },
+];
+
+// ============= Voice intents =============
+export interface VoiceIntent {
+  pattern: RegExp;
+  action: string;
+  feedback: string;
+}
+
+export const voiceIntents: VoiceIntent[] = [
+  { pattern: /accept.*all|accept.*pending/i, action: "accept_all", feedback: "Accepting all 2 verified pending orders" },
+  { pattern: /next.*stage|move.*next|advance/i, action: "next_stage", feedback: "Moving active orders to next stage" },
+  { pattern: /revenue|earning|how much/i, action: "show_revenue", feedback: "Today: $340 · This week: $1,820" },
+  { pattern: /pause|vacation|stop.*orders/i, action: "vacation", feedback: "Vacation mode enabled · all incoming orders paused" },
+  { pattern: /resume|come back|online/i, action: "resume", feedback: "You're back online · accepting orders" },
+  { pattern: /call.*rider|call.*driver/i, action: "call_rider", feedback: "Calling Diego A. now…" },
+  { pattern: /late|overdue/i, action: "show_late", feedback: "2 orders are running late — HW-2838 and HW-2839" },
+];
+
+// Sample mock voice transcriptions for demo
+export const sampleVoicePrompts = [
+  "Accept all pending orders",
+  "How much have I made today?",
+  "Move all active orders to next stage",
+  "Are any orders late?",
+  "Call the rider for the latest order",
+  "Pause my shop for tonight",
+];
+
 export const statusMeta: Record<OrderStatus, { label: string; tone: string }> = {
   pending: { label: "Pending", tone: "bg-warning/15 text-warning-foreground" },
   accepted: { label: "Accepted", tone: "bg-primary/15 text-primary" },
