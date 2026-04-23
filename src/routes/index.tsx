@@ -11,10 +11,10 @@ import qualityImg from "@/assets/feature-quality.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Highest Wash Merchant — Grow your laundry business" },
-      { name: "description", content: "Accept jobs, manage orders, get paid fast. The all-in-one platform for laundry merchants in Ghana." },
+      { title: "Highest Wash Merchant — Grow your laundry business worldwide" },
+      { name: "description", content: "The all-in-one operating system for laundry merchants. Accept jobs, manage staff, track every dollar, and get paid in 30+ countries." },
       { property: "og:title", content: "Highest Wash Merchant — Grow your laundry business" },
-      { property: "og:description", content: "Accept jobs, manage orders, get paid fast. Built for laundry merchants in Ghana." },
+      { property: "og:description", content: "Accept jobs, manage your shop, get paid fast. Trusted by thousands of laundry merchants around the world." },
     ],
   }),
   component: Landing,
@@ -49,13 +49,13 @@ function Landing() {
         <div className="relative mx-auto max-w-6xl px-5 py-20 md:py-28 text-primary-foreground">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-xs font-semibold mb-6">
             <Star size={12} fill="currentColor" />
-            Trusted by 2,400+ laundry merchants in Ghana
+            Trusted by 12,000+ laundry merchants in 30+ countries
           </div>
           <h1 className="text-4xl md:text-6xl font-bold leading-tight max-w-3xl">
             Run your laundry business <span className="text-white/80">like a fintech</span>
           </h1>
           <p className="mt-5 text-lg md:text-xl text-white/85 max-w-2xl">
-            Accept orders, manage staff, track every cedi, and get paid to your MoMo or bank — all from one beautiful app.
+            Accept the orders customers send you, manage your staff, track every dollar, and get paid weekly to your bank or mobile wallet — all from one beautiful app.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/auth/signup">
@@ -71,8 +71,8 @@ function Landing() {
           </div>
           <div className="mt-10 grid grid-cols-3 gap-6 max-w-xl">
             {[
-              { v: "2.4k+", l: "Active merchants" },
-              { v: "GH₵18M", l: "Paid out" },
+              { v: "12k+", l: "Active merchants" },
+              { v: "$84M", l: "Paid out" },
               { v: "4.9★", l: "Avg rating" },
             ].map((s) => (
               <div key={s.l}>
@@ -96,13 +96,13 @@ function Landing() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-3">Everything in one place</div>
           <h2 className="text-3xl md:text-4xl font-bold">A complete operating system for laundry merchants</h2>
-          <p className="mt-4 text-muted-foreground">From the moment a customer taps "Book" to the second your payout hits MoMo — we handle it all.</p>
+          <p className="mt-4 text-muted-foreground">From the moment a customer places a booking to the second your payout lands — we handle it all. You just focus on great laundry.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[
-            { icon: ClipboardList, title: "Smart order inbox", desc: "Accept or reject jobs in one tap. Live status pipeline from pickup to delivery." },
+            { icon: ClipboardList, title: "Smart order inbox", desc: "Customers book, we route the job to you. Accept or reject in one tap and follow a live pipeline from pickup to delivery." },
             { icon: BarChart3, title: "Earnings analytics", desc: "Daily, weekly, monthly revenue charts. Know exactly where your money is coming from." },
-            { icon: Banknote, title: "MoMo & bank payouts", desc: "Auto-payout to MTN, Vodafone, AirtelTigo, GCB, Ecobank and more." },
+            { icon: Banknote, title: "Global payouts", desc: "Get paid to your bank or mobile wallet — Stripe, Wise, MTN MoMo, M-Pesa, PayPal and more." },
             { icon: Users, title: "Staff & branches", desc: "Invite washers, drivers, managers. Assign roles and track performance." },
             { icon: Zap, title: "Express jobs", desc: "Surge pricing for 6-hour express orders. Earn up to 2× per load." },
             { icon: Shield, title: "Insured & secure", desc: "Every order is insured. Your customer data and payouts are bank-grade safe." },
@@ -122,9 +122,9 @@ function Landing() {
       <section className="bg-gradient-brand-soft py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5 space-y-20">
           {[
-            { img: pickupImg, title: "Free pickup, fast delivery", desc: "Our driver network handles every pickup and drop-off. You focus on washing — we handle logistics.", tag: "Logistics", reverse: false },
-            { img: payoutsImg, title: "Get paid to your MoMo, every week", desc: "Choose daily, weekly, or instant payouts. Funds land in MTN MoMo, Vodafone Cash or your bank account.", tag: "Payouts", reverse: true },
-            { img: qualityImg, title: "Build a 5-star reputation", desc: "Customers rate every order. Reply to reviews, win loyalty, and climb the rankings in your area.", tag: "Reviews", reverse: false },
+            { img: pickupImg, title: "Free pickup, fast delivery", desc: "Our global driver network handles every pickup and drop-off. You focus on washing — we handle logistics.", tag: "Logistics", reverse: false },
+            { img: payoutsImg, title: "Get paid to your bank or wallet", desc: "Choose daily, weekly, or instant payouts. Funds land in your bank, Stripe, Wise, PayPal, MTN MoMo, M-Pesa and more.", tag: "Payouts", reverse: true },
+            { img: qualityImg, title: "Build a 5-star reputation", desc: "Customers rate every order. Reply to reviews, win loyalty, and climb the rankings in your city.", tag: "Reviews", reverse: false },
           ].map((f) => (
             <div key={f.title} className={`grid md:grid-cols-2 gap-10 items-center ${f.reverse ? "md:[&>div:first-child]:order-2" : ""}`}>
               <div className="rounded-3xl overflow-hidden shadow-card aspect-[4/3]">
@@ -135,7 +135,7 @@ function Landing() {
                 <h3 className="text-3xl font-bold">{f.title}</h3>
                 <p className="mt-4 text-muted-foreground leading-relaxed">{f.desc}</p>
                 <ul className="mt-5 space-y-2">
-                  {["Built for Ghana", "No setup fees", "Cancel anytime"].map((b) => (
+                  {["Available worldwide", "No setup fees", "Cancel anytime"].map((b) => (
                     <li key={b} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 size={16} className="text-success" />
                       {b}
