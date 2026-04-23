@@ -17,10 +17,14 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalMerchantRouteImport } from './routes/legal.merchant'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppVoiceHistoryRouteImport } from './routes/app.voice-history'
+import { Route as AppSuppliesRouteImport } from './routes/app.supplies'
 import { Route as AppStaffRouteImport } from './routes/app.staff'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppServicesRouteImport } from './routes/app.services'
 import { Route as AppSearchRouteImport } from './routes/app.search'
+import { Route as AppScorecardRouteImport } from './routes/app.scorecard'
+import { Route as AppSchedulingRouteImport } from './routes/app.scheduling'
 import { Route as AppReviewsRouteImport } from './routes/app.reviews'
 import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppPromotionsRouteImport } from './routes/app.promotions'
@@ -35,6 +39,8 @@ import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppCustomersRouteImport } from './routes/app.customers'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBankRouteImport } from './routes/app.bank'
+import { Route as AppAiPricingRouteImport } from './routes/app.ai-pricing'
+import { Route as AppAiGuardRouteImport } from './routes/app.ai-guard'
 import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
 import { Route as AppMessageChatIdRouteImport } from './routes/app.message.$chatId'
 
@@ -78,6 +84,16 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppVoiceHistoryRoute = AppVoiceHistoryRouteImport.update({
+  id: '/voice-history',
+  path: '/voice-history',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSuppliesRoute = AppSuppliesRouteImport.update({
+  id: '/supplies',
+  path: '/supplies',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppStaffRoute = AppStaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -96,6 +112,16 @@ const AppServicesRoute = AppServicesRouteImport.update({
 const AppSearchRoute = AppSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScorecardRoute = AppScorecardRouteImport.update({
+  id: '/scorecard',
+  path: '/scorecard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSchedulingRoute = AppSchedulingRouteImport.update({
+  id: '/scheduling',
+  path: '/scheduling',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReviewsRoute = AppReviewsRouteImport.update({
@@ -168,6 +194,16 @@ const AppBankRoute = AppBankRouteImport.update({
   path: '/bank',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAiPricingRoute = AppAiPricingRouteImport.update({
+  id: '/ai-pricing',
+  path: '/ai-pricing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAiGuardRoute = AppAiGuardRouteImport.update({
+  id: '/ai-guard',
+  path: '/ai-guard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOrderOrderIdRoute = AppOrderOrderIdRouteImport.update({
   id: '/order/$orderId',
   path: '/order/$orderId',
@@ -182,6 +218,8 @@ const AppMessageChatIdRoute = AppMessageChatIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/ai-guard': typeof AppAiGuardRoute
+  '/app/ai-pricing': typeof AppAiPricingRoute
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/customers': typeof AppCustomersRoute
@@ -196,10 +234,14 @@ export interface FileRoutesByFullPath {
   '/app/promotions': typeof AppPromotionsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
+  '/app/scheduling': typeof AppSchedulingRoute
+  '/app/scorecard': typeof AppScorecardRoute
   '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
+  '/app/supplies': typeof AppSuppliesRoute
+  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
@@ -211,6 +253,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/ai-guard': typeof AppAiGuardRoute
+  '/app/ai-pricing': typeof AppAiPricingRoute
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/customers': typeof AppCustomersRoute
@@ -225,10 +269,14 @@ export interface FileRoutesByTo {
   '/app/promotions': typeof AppPromotionsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
+  '/app/scheduling': typeof AppSchedulingRoute
+  '/app/scorecard': typeof AppScorecardRoute
   '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
+  '/app/supplies': typeof AppSuppliesRoute
+  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
@@ -242,6 +290,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/ai-guard': typeof AppAiGuardRoute
+  '/app/ai-pricing': typeof AppAiPricingRoute
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/customers': typeof AppCustomersRoute
@@ -256,10 +306,14 @@ export interface FileRoutesById {
   '/app/promotions': typeof AppPromotionsRoute
   '/app/reports': typeof AppReportsRoute
   '/app/reviews': typeof AppReviewsRoute
+  '/app/scheduling': typeof AppSchedulingRoute
+  '/app/scorecard': typeof AppScorecardRoute
   '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
+  '/app/supplies': typeof AppSuppliesRoute
+  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
@@ -274,6 +328,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/ai-guard'
+    | '/app/ai-pricing'
     | '/app/bank'
     | '/app/chat'
     | '/app/customers'
@@ -288,10 +344,14 @@ export interface FileRouteTypes {
     | '/app/promotions'
     | '/app/reports'
     | '/app/reviews'
+    | '/app/scheduling'
+    | '/app/scorecard'
     | '/app/search'
     | '/app/services'
     | '/app/settings'
     | '/app/staff'
+    | '/app/supplies'
+    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
@@ -303,6 +363,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app/ai-guard'
+    | '/app/ai-pricing'
     | '/app/bank'
     | '/app/chat'
     | '/app/customers'
@@ -317,10 +379,14 @@ export interface FileRouteTypes {
     | '/app/promotions'
     | '/app/reports'
     | '/app/reviews'
+    | '/app/scheduling'
+    | '/app/scorecard'
     | '/app/search'
     | '/app/services'
     | '/app/settings'
     | '/app/staff'
+    | '/app/supplies'
+    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
@@ -333,6 +399,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/app/ai-guard'
+    | '/app/ai-pricing'
     | '/app/bank'
     | '/app/chat'
     | '/app/customers'
@@ -347,10 +415,14 @@ export interface FileRouteTypes {
     | '/app/promotions'
     | '/app/reports'
     | '/app/reviews'
+    | '/app/scheduling'
+    | '/app/scorecard'
     | '/app/search'
     | '/app/services'
     | '/app/settings'
     | '/app/staff'
+    | '/app/supplies'
+    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
@@ -429,6 +501,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/voice-history': {
+      id: '/app/voice-history'
+      path: '/voice-history'
+      fullPath: '/app/voice-history'
+      preLoaderRoute: typeof AppVoiceHistoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/supplies': {
+      id: '/app/supplies'
+      path: '/supplies'
+      fullPath: '/app/supplies'
+      preLoaderRoute: typeof AppSuppliesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/staff': {
       id: '/app/staff'
       path: '/staff'
@@ -455,6 +541,20 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/app/search'
       preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/scorecard': {
+      id: '/app/scorecard'
+      path: '/scorecard'
+      fullPath: '/app/scorecard'
+      preLoaderRoute: typeof AppScorecardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/scheduling': {
+      id: '/app/scheduling'
+      path: '/scheduling'
+      fullPath: '/app/scheduling'
+      preLoaderRoute: typeof AppSchedulingRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/reviews': {
@@ -555,6 +655,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBankRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/ai-pricing': {
+      id: '/app/ai-pricing'
+      path: '/ai-pricing'
+      fullPath: '/app/ai-pricing'
+      preLoaderRoute: typeof AppAiPricingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/ai-guard': {
+      id: '/app/ai-guard'
+      path: '/ai-guard'
+      fullPath: '/app/ai-guard'
+      preLoaderRoute: typeof AppAiGuardRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/order/$orderId': {
       id: '/app/order/$orderId'
       path: '/order/$orderId'
@@ -573,6 +687,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAiGuardRoute: typeof AppAiGuardRoute
+  AppAiPricingRoute: typeof AppAiPricingRoute
   AppBankRoute: typeof AppBankRoute
   AppChatRoute: typeof AppChatRoute
   AppCustomersRoute: typeof AppCustomersRoute
@@ -587,16 +703,22 @@ interface AppRouteChildren {
   AppPromotionsRoute: typeof AppPromotionsRoute
   AppReportsRoute: typeof AppReportsRoute
   AppReviewsRoute: typeof AppReviewsRoute
+  AppSchedulingRoute: typeof AppSchedulingRoute
+  AppScorecardRoute: typeof AppScorecardRoute
   AppSearchRoute: typeof AppSearchRoute
   AppServicesRoute: typeof AppServicesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStaffRoute: typeof AppStaffRoute
+  AppSuppliesRoute: typeof AppSuppliesRoute
+  AppVoiceHistoryRoute: typeof AppVoiceHistoryRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMessageChatIdRoute: typeof AppMessageChatIdRoute
   AppOrderOrderIdRoute: typeof AppOrderOrderIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAiGuardRoute: AppAiGuardRoute,
+  AppAiPricingRoute: AppAiPricingRoute,
   AppBankRoute: AppBankRoute,
   AppChatRoute: AppChatRoute,
   AppCustomersRoute: AppCustomersRoute,
@@ -611,10 +733,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppPromotionsRoute: AppPromotionsRoute,
   AppReportsRoute: AppReportsRoute,
   AppReviewsRoute: AppReviewsRoute,
+  AppSchedulingRoute: AppSchedulingRoute,
+  AppScorecardRoute: AppScorecardRoute,
   AppSearchRoute: AppSearchRoute,
   AppServicesRoute: AppServicesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStaffRoute: AppStaffRoute,
+  AppSuppliesRoute: AppSuppliesRoute,
+  AppVoiceHistoryRoute: AppVoiceHistoryRoute,
   AppIndexRoute: AppIndexRoute,
   AppMessageChatIdRoute: AppMessageChatIdRoute,
   AppOrderOrderIdRoute: AppOrderOrderIdRoute,

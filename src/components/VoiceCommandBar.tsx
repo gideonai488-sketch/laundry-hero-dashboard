@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mic } from "lucide-react";
 import { sampleVoicePrompts, voiceIntents } from "@/lib/mock-data";
+import { logVoiceCommand } from "@/lib/voice-history";
 import { toast } from "sonner";
 
 export function VoiceCommandBar() {
@@ -22,8 +23,22 @@ export function VoiceCommandBar() {
           const intent = voiceIntents.find((v) => v.pattern.test(sample));
           if (intent) {
             toast.success(intent.feedback, { icon: "🎤", duration: 3500 });
+            logVoiceCommand({
+              transcript: sample,
+              intent: intent.action,
+              result: intent.feedback,
+              source: "push-to-talk",
+              success: true,
+            });
           } else {
             toast(`Heard: "${sample}"`, { icon: "🎤" });
+            logVoiceCommand({
+              transcript: sample,
+              intent: "unknown",
+              result: "No matching intent",
+              source: "push-to-talk",
+              success: false,
+            });
           }
           setListening(false);
           setTranscript("");

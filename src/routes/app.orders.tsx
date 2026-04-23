@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
-import { orders as initialOrders, customerTrust, formatGHS, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
+import { orders as initialOrders, customerTrust, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { Check, ChevronRight, MapPin, Package, Shield, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ const tabs: { key: "all" | "pending" | "active" | "done"; label: string }[] = [
 ];
 
 function OrdersPage() {
+  const { format } = useLocale();
   const [data, setData] = useState<Order[]>(initialOrders);
   const [tab, setTab] = useState<"all" | "pending" | "active" | "done">("pending");
 
@@ -107,7 +109,7 @@ function OrdersPage() {
                   </div>
                   <div className="bg-muted rounded-lg p-2">
                     <div className="text-muted-foreground">Amount</div>
-                    <div className="font-semibold mt-0.5 text-primary">{formatGHS(o.amount)}</div>
+                    <div className="font-semibold mt-0.5 text-primary">{format(o.amount)}</div>
                   </div>
                 </div>
 

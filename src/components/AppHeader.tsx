@@ -2,6 +2,8 @@ import { Bell, MapPin, Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { merchantProfile } from "@/lib/mock-data";
 import { VoiceCommandBar } from "./VoiceCommandBar";
+import { LocaleBadge } from "./LocaleBadge";
+import { useLocale } from "@/lib/locale";
 
 interface AppHeaderProps {
   title?: string;
@@ -10,13 +12,17 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ title, subtitle, showLocation }: AppHeaderProps) {
+  const { t } = useLocale();
   return (
     <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="px-5 py-4 flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           {showLocation ? (
             <>
-              <div className="text-xs text-muted-foreground font-medium">Welcome back</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-muted-foreground font-medium">{t("welcomeBack")}</div>
+                <LocaleBadge />
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <MapPin size={14} className="text-primary shrink-0" />
                 <div className="text-sm font-bold truncate">{merchantProfile.businessName}</div>

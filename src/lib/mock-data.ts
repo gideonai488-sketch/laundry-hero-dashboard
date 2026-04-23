@@ -507,3 +507,338 @@ export const statusMeta: Record<OrderStatus, { label: string; tone: string }> = 
   delivered: { label: "Delivered", tone: "bg-muted text-muted-foreground" },
   cancelled: { label: "Cancelled", tone: "bg-destructive/15 text-destructive" },
 };
+
+// ============= Rider tracking =============
+export interface RiderTrack {
+  orderId: string;
+  riderName: string;
+  riderAvatar: string;
+  riderPhone: string;
+  vehicle: string;
+  rating: number;
+  etaMin: number;
+  // Position is normalized 0–100 across a mock map
+  position: { x: number; y: number };
+  destination: { x: number; y: number };
+  origin: { x: number; y: number };
+  stage: "en-route-pickup" | "at-pickup" | "en-route-delivery" | "at-delivery";
+  trail: { x: number; y: number }[];
+}
+
+export const riderTracks: Record<string, RiderTrack> = {
+  "HW-2839": {
+    orderId: "HW-2839",
+    riderName: "Diego Alvarez",
+    riderAvatar: "DA",
+    riderPhone: "+34 6 ••• 3320",
+    vehicle: "Yamaha NMax · GHA-2241",
+    rating: 4.9,
+    etaMin: 8,
+    origin: { x: 18, y: 78 },
+    position: { x: 42, y: 56 },
+    destination: { x: 78, y: 24 },
+    stage: "en-route-pickup",
+    trail: [
+      { x: 18, y: 78 }, { x: 24, y: 72 }, { x: 30, y: 66 }, { x: 36, y: 60 }, { x: 42, y: 56 },
+    ],
+  },
+  "HW-2838": {
+    orderId: "HW-2838",
+    riderName: "Amelia Chen",
+    riderAvatar: "AC",
+    riderPhone: "+44 20 ••• 8841",
+    vehicle: "Honda PCX · LDN-7715",
+    rating: 4.8,
+    etaMin: 14,
+    origin: { x: 80, y: 20 },
+    position: { x: 55, y: 45 },
+    destination: { x: 22, y: 80 },
+    stage: "en-route-delivery",
+    trail: [
+      { x: 80, y: 20 }, { x: 72, y: 28 }, { x: 64, y: 36 }, { x: 55, y: 45 },
+    ],
+  },
+};
+
+// ============= Voice command audit history =============
+export interface VoiceCommandLog {
+  id: string;
+  transcript: string;
+  intent: string;
+  result: string;
+  source: "wake-word" | "push-to-talk" | "copilot";
+  at: string;
+  success: boolean;
+}
+
+export const voiceHistorySeed: VoiceCommandLog[] = [
+  { id: "vh1", transcript: "Accept all pending orders", intent: "accept_all", result: "Accepted 2 orders (HW-2841, HW-2840)", source: "push-to-talk", at: "2 min ago", success: true },
+  { id: "vh2", transcript: "How much have I made today?", intent: "show_revenue", result: "Reported today: $340 · week: $1,820", source: "wake-word", at: "18 min ago", success: true },
+  { id: "vh3", transcript: "Call the rider for HW-2839", intent: "call_rider", result: "Dialed Diego A.", source: "copilot", at: "1 hr ago", success: true },
+  { id: "vh4", transcript: "Move all active orders to next stage", intent: "next_stage", result: "Advanced 3 orders", source: "wake-word", at: "2 hr ago", success: true },
+  { id: "vh5", transcript: "Pause my shop until Monday", intent: "vacation", result: "Could not parse end date — asked for clarification", source: "push-to-talk", at: "Yesterday", success: false },
+];
+
+// ============= AI suggested replies (chat) =============
+export const aiReplyDrafts: Record<string, string[]> = {
+  c1: [
+    "Got it Sofia 🙏 We'll use scent-free detergent on your order. Driver is on the way!",
+    "Noted — scent-free only. Your order is queued and will be ready in 24 hrs.",
+    "Of course! No fragrance added. We'll text you once it's ready for delivery.",
+  ],
+  c2: [
+    "Perfect — driver is at the entrance now in a black scooter 🛵",
+    "Great! Heading down to meet them. Order confirmed.",
+    "Awesome, sending the driver up to apartment 4B.",
+  ],
+  c3: [
+    "Thanks so much Ayaka! 💙 See you on the next pickup.",
+    "So glad you loved it! A 5★ review would mean the world.",
+    "Thank you! Always our pleasure caring for your wardrobe.",
+  ],
+  c4: [
+    "Yes — checked all whites, no stains found. Photos coming in 5 min.",
+    "On it! Inspecting the white shirts now and will report back.",
+    "Will double-check those shirts before we fold and send a photo.",
+  ],
+};
+
+// ============= Smart notification grouping =============
+export interface NotificationGroup {
+  id: string;
+  title: string;
+  summary: string;
+  count: number;
+  priority: "high" | "medium" | "low";
+  type: "order" | "payment" | "review" | "system";
+  items: string[];
+  actionLabel?: string;
+}
+
+export const notificationGroups: NotificationGroup[] = [
+  {
+    id: "g1",
+    title: "3 orders need attention",
+    summary: "AI grouped pending + late + at-risk orders so you can review in one tap.",
+    count: 3,
+    priority: "high",
+    type: "order",
+    items: ["HW-2841 pending 2m", "HW-2838 late 45m over SLA", "HW-2839 rider arriving"],
+    actionLabel: "Review all",
+  },
+  {
+    id: "g2",
+    title: "Payout arriving Monday",
+    summary: "$1,280 will land in Stripe •••821 in 3 days.",
+    count: 1,
+    priority: "medium",
+    type: "payment",
+    items: ["PO-105 — $1,280 scheduled"],
+    actionLabel: "View payout",
+  },
+  {
+    id: "g3",
+    title: "2 new 5-star reviews ⭐",
+    summary: "Customers loved your recent dry cleaning work.",
+    count: 2,
+    priority: "low",
+    type: "review",
+    items: ["Ayaka Tanaka · 5★", "Priya Sharma · 5★"],
+    actionLabel: "Reply with AI",
+  },
+  {
+    id: "g4",
+    title: "Weekly report ready",
+    summary: "You earned $1,820 this week — 12% up vs last week.",
+    count: 1,
+    priority: "low",
+    type: "system",
+    items: ["Wk 17 summary"],
+    actionLabel: "Open report",
+  },
+];
+
+// ============= AI pricing suggestions =============
+export interface PricingSuggestion {
+  id: string;
+  service: string;
+  current: number;
+  suggested: number;
+  reason: string;
+  uplift: string;       // e.g. "+$120/wk"
+  confidence: number;   // 0–100
+  applies: string;      // e.g. "Weekends only"
+}
+
+export const pricingSuggestions: PricingSuggestion[] = [
+  { id: "ps1", service: "Wash & Fold", current: 18, suggested: 20, reason: "Weekend demand 40% above weekday baseline. Customers paying premium nearby.", uplift: "+$120/wk", confidence: 92, applies: "Sat–Sun" },
+  { id: "ps2", service: "Express Wash", current: 28, suggested: 32, reason: "You consistently sell out 6hr slots by 11am. Raise to manage demand.", uplift: "+$84/wk", confidence: 88, applies: "All days" },
+  { id: "ps3", service: "Sneaker Cleaning", current: 24, suggested: 22, reason: "Lower than competitors but bookings stalled. Slight cut to drive volume.", uplift: "+$40/wk", confidence: 71, applies: "Weekdays" },
+];
+
+// ============= Demand forecast (next 7 days) =============
+export interface DemandDay {
+  date: string;     // "Wed Apr 23"
+  short: string;    // "Wed"
+  forecast: number; // expected orders
+  baseline: number; // your usual
+  weather: string;  // emoji
+  note: string;
+  load: "low" | "med" | "high" | "peak";
+}
+
+export const demandForecast: DemandDay[] = [
+  { date: "Wed Apr 23", short: "Wed", forecast: 14, baseline: 12, weather: "☀️", note: "Normal weekday", load: "med" },
+  { date: "Thu Apr 24", short: "Thu", forecast: 18, baseline: 14, weather: "☀️", note: "Promo boost expected", load: "high" },
+  { date: "Fri Apr 25", short: "Fri", forecast: 22, baseline: 18, weather: "🌧️", note: "Rain — demand up", load: "high" },
+  { date: "Sat Apr 26", short: "Sat", forecast: 28, baseline: 22, weather: "☀️", note: "Peak day · add staff", load: "peak" },
+  { date: "Sun Apr 27", short: "Sun", forecast: 16, baseline: 14, weather: "⛅", note: "Steady", load: "med" },
+  { date: "Mon Apr 28", short: "Mon", forecast: 10, baseline: 12, weather: "🌧️", note: "Slow start", load: "low" },
+  { date: "Tue Apr 29", short: "Tue", forecast: 13, baseline: 12, weather: "☀️", note: "Normal", load: "med" },
+];
+
+// ============= Anomaly alerts =============
+export interface AnomalyAlert {
+  id: string;
+  orderId?: string;
+  title: string;
+  detail: string;
+  severity: "info" | "warn" | "critical";
+  category: "fraud" | "pricing" | "delay" | "duplicate";
+  at: string;
+}
+
+export const anomalyAlerts: AnomalyAlert[] = [
+  { id: "an1", orderId: "HW-2842", title: "Order amount unusual", detail: "$180 vs your shop average $45. Items: 3 — verify with customer before accepting.", severity: "warn", category: "pricing", at: "5 min ago" },
+  { id: "an2", orderId: "HW-2841", title: "Possible duplicate", detail: "Sofia Martinez placed identical order 18 min ago. Confirm or auto-merge.", severity: "info", category: "duplicate", at: "12 min ago" },
+  { id: "an3", title: "New device login", detail: "Sign-in from Chrome · Lagos · 14 min ago. If this wasn't you, secure account.", severity: "critical", category: "fraud", at: "14 min ago" },
+];
+
+// ============= Disputes =============
+export interface Dispute {
+  id: string;
+  orderId: string;
+  customer: string;
+  avatar: string;
+  reason: string;
+  amount: number;
+  openedAt: string;
+  status: "open" | "resolved" | "escalated";
+  aiResolution: { action: string; rationale: string; cost: number };
+}
+
+export const disputes: Dispute[] = [
+  {
+    id: "d1", orderId: "HW-2790", customer: "Liam O'Connor", avatar: "LO",
+    reason: "Button missing from white shirt after wash",
+    amount: 22, openedAt: "1 hr ago", status: "open",
+    aiResolution: {
+      action: "Refund $8 + offer 1 free wash voucher",
+      rationale: "Liam is a 3-order customer. Partial refund preserves LTV ($142 expected). Cost: $8 cash + $14 voucher cost.",
+      cost: 8,
+    },
+  },
+  {
+    id: "d2", orderId: "HW-2802", customer: "Priya Sharma", avatar: "PS",
+    reason: "Bulk order arrived 4 hrs late, requested 25% discount",
+    amount: 56, openedAt: "3 hr ago", status: "open",
+    aiResolution: {
+      action: "Approve 15% discount ($8.40) — offer free pickup next time",
+      rationale: "Priya is VIP (12 orders, $540 LTV). 15% is below her ask but matches your dispute policy. Recovery rate: 96%.",
+      cost: 8,
+    },
+  },
+];
+
+// ============= Performance scorecard =============
+export interface ScorecardMetric {
+  label: string;
+  value: string;
+  delta: string;
+  positive: boolean;
+  benchmark: string; // vs nearby merchants
+}
+
+export const scorecard = {
+  weekOf: "Apr 14 – Apr 20, 2026",
+  overallGrade: "A",
+  overallScore: 92,
+  metrics: [
+    { label: "Acceptance rate", value: "96%", delta: "+2%", positive: true, benchmark: "Top 10% nearby" } as ScorecardMetric,
+    { label: "Avg turnaround", value: "21 hrs", delta: "-1.5 hrs", positive: true, benchmark: "Avg nearby: 28 hrs" },
+    { label: "Customer rating", value: "4.9★", delta: "+0.1", positive: true, benchmark: "Avg nearby: 4.6★" },
+    { label: "Cancel rate", value: "1.2%", delta: "-0.4%", positive: true, benchmark: "Avg nearby: 3.8%" },
+    { label: "On-time delivery", value: "94%", delta: "+3%", positive: true, benchmark: "Top 15% nearby" },
+    { label: "Repeat customers", value: "62%", delta: "+5%", positive: true, benchmark: "Avg nearby: 48%" },
+  ],
+  highlights: [
+    "You're outperforming 87% of laundries in your city.",
+    "Consider raising Wash & Fold weekend price by $2 — demand supports it.",
+    "Add 1 staff Thu–Sat to capture lost capacity (~$180/wk).",
+  ],
+};
+
+// ============= Staff scheduling / shifts =============
+export interface Shift {
+  staffId: string;
+  staffName: string;
+  avatar: string;
+  role: string;
+  day: string;       // "Mon"
+  start: string;     // "08:00"
+  end: string;       // "16:00"
+  aiSuggested?: boolean;
+}
+
+export const shiftWeek: Shift[] = [
+  { staffId: "s1", staffName: "Carlos Rivera", avatar: "CR", role: "Manager", day: "Mon", start: "08:00", end: "17:00" },
+  { staffId: "s1", staffName: "Carlos Rivera", avatar: "CR", role: "Manager", day: "Tue", start: "08:00", end: "17:00" },
+  { staffId: "s1", staffName: "Carlos Rivera", avatar: "CR", role: "Manager", day: "Wed", start: "08:00", end: "17:00" },
+  { staffId: "s1", staffName: "Carlos Rivera", avatar: "CR", role: "Manager", day: "Thu", start: "08:00", end: "17:00" },
+  { staffId: "s1", staffName: "Carlos Rivera", avatar: "CR", role: "Manager", day: "Fri", start: "08:00", end: "20:00" },
+  { staffId: "s2", staffName: "Amelia Chen", avatar: "AC", role: "Washer", day: "Mon", start: "09:00", end: "16:00" },
+  { staffId: "s2", staffName: "Amelia Chen", avatar: "AC", role: "Washer", day: "Wed", start: "09:00", end: "16:00" },
+  { staffId: "s2", staffName: "Amelia Chen", avatar: "AC", role: "Washer", day: "Fri", start: "09:00", end: "18:00" },
+  { staffId: "s2", staffName: "Amelia Chen", avatar: "AC", role: "Washer", day: "Sat", start: "10:00", end: "18:00" },
+  { staffId: "s3", staffName: "Diego Alvarez", avatar: "DA", role: "Driver", day: "Tue", start: "10:00", end: "18:00" },
+  { staffId: "s3", staffName: "Diego Alvarez", avatar: "DA", role: "Driver", day: "Thu", start: "10:00", end: "20:00" },
+  { staffId: "s3", staffName: "Diego Alvarez", avatar: "DA", role: "Driver", day: "Sat", start: "11:00", end: "19:00" },
+];
+
+export const aiShiftSuggestions: Shift[] = [
+  { staffId: "s4", staffName: "Fatima Hassan", avatar: "FH", role: "Washer", day: "Thu", start: "12:00", end: "20:00", aiSuggested: true },
+  { staffId: "s4", staffName: "Fatima Hassan", avatar: "FH", role: "Washer", day: "Sat", start: "10:00", end: "18:00", aiSuggested: true },
+];
+
+// ============= Supplies auto-reorder =============
+export interface SupplyOrder {
+  id: string;
+  itemName: string;
+  qty: string;
+  supplier: string;
+  amount: number;
+  status: "auto-placed" | "pending-approval" | "delivered";
+  eta: string;
+}
+
+export const supplyOrders: SupplyOrder[] = [
+  { id: "so1", itemName: "Premium detergent", qty: "20 L", supplier: "EcoClean Wholesale", amount: 84, status: "auto-placed", eta: "Tue Apr 29" },
+  { id: "so2", itemName: "Paper laundry bags", qty: "500 pcs", supplier: "PackPro", amount: 38, status: "pending-approval", eta: "Wed Apr 30" },
+  { id: "so3", itemName: "Fabric softener", qty: "10 L", supplier: "EcoClean Wholesale", amount: 42, status: "delivered", eta: "Apr 18" },
+];
+
+// ============= Onboarding tour steps =============
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  body: string;
+  icon: string;
+}
+
+export const onboardingSteps: OnboardingStep[] = [
+  { id: "o1", title: "AI runs your shop", body: "Background checks, dispatch, pricing, scheduling — all handled automatically. You stay in control with one-tap overrides.", icon: "✨" },
+  { id: "o2", title: "Voice-first by design", body: "Tap the mic in the header or say \"Hey Wash\" anywhere. Accept orders, check revenue, call riders — hands-free.", icon: "🎤" },
+  { id: "o3", title: "Live order & rider tracking", body: "Every job gets a real-time timeline and a mini-map showing exactly where your rider is.", icon: "🛵" },
+  { id: "o4", title: "Insights that earn you more", body: "AI suggests pricing tweaks, demand forecasts, and customer reactivation campaigns straight from your dashboard.", icon: "📈" },
+  { id: "o5", title: "You're ready to go", body: "Tap \"Done\" to enter your dashboard. You can replay this tour anytime from Profile → Help.", icon: "🚀" },
+];

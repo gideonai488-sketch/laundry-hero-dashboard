@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { AIInsights } from "@/components/AIInsights";
-import { revenueData, monthlyData, serviceShare, formatGHS, payouts } from "@/lib/mock-data";
+import { revenueData, monthlyData, serviceShare, payouts } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/app/earnings")({
 const ranges = ["7D", "30D", "6M", "1Y"] as const;
 
 function EarningsPage() {
+  const { format: formatGHS } = useLocale();
   const [range, setRange] = useState<(typeof ranges)[number]>("7D");
 
   return (

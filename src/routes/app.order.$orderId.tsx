@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   orders as initialOrders,
-  formatGHS,
   statusMeta,
   type Order,
   type OrderStatus,
 } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import {
   ArrowLeft,
   Check,
@@ -25,6 +25,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RiderTrackingMap } from "@/components/RiderTrackingMap";
 
 export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({
@@ -53,6 +54,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const initial = initialOrders.find((o) => o.id === orderId) ?? initialOrders[0];
   const navigate = useNavigate();
+  const { format: formatGHS } = useLocale();
   const [order, setOrder] = useState<Order>(initial);
 
   const meta = statusMeta[order.status];
@@ -157,6 +159,16 @@ function OrderDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Live rider tracking */}
+      {["pickup", "ready"].includes(order.status) && (
+        <section className="px-5 mt-4">
+          <h3 className="font-bold mb-2 text-sm flex items-center gap-1.5">
+            <Truck size={14} /> Live rider
+          </h3>
+          <RiderTrackingMap orderId={order.id} />
+        </section>
+      )}
 
       {/* Service & items */}
       <section className="px-5 mt-4">

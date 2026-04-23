@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
-import { payouts, formatGHS } from "@/lib/mock-data";
+import { payouts } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { Wallet, ArrowDownToLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/app/payouts")({
 });
 
 function PayoutsPage() {
+  const { format: formatGHS } = useLocale();
   return (
     <div>
       <AppHeader title="Payouts" subtitle="Withdraw your earnings" />
