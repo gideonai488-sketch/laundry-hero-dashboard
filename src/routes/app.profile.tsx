@@ -131,22 +131,33 @@ function ProfilePage() {
         <section key={sec.title} className="px-5 mt-6">
           <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-2">{sec.title}</div>
           <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
-            {sec.items.map((item, i) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={`flex items-center gap-3 p-4 hover:bg-accent transition-smooth ${
-                  i < sec.items.length - 1 ? "border-b border-border" : ""
-                }`}
-              >
-                <div className="h-9 w-9 rounded-xl bg-gradient-brand-soft flex items-center justify-center">
-                  <item.icon size={16} className="text-primary" />
-                </div>
-                <div className="flex-1 font-medium text-sm">{item.label}</div>
-                {item.hint && <div className="text-xs text-muted-foreground">{item.hint}</div>}
-                <ChevronRight size={16} className="text-muted-foreground" />
-              </Link>
-            ))}
+            {sec.items.map((item, i) => {
+              const inner = (
+                <>
+                  <div className="h-9 w-9 rounded-xl bg-gradient-brand-soft flex items-center justify-center">
+                    <item.icon size={16} className="text-primary" />
+                  </div>
+                  <div className="flex-1 font-medium text-sm text-left">{item.label}</div>
+                  {item.hint && <div className="text-xs text-muted-foreground">{item.hint}</div>}
+                  <ChevronRight size={16} className="text-muted-foreground" />
+                </>
+              );
+              const cls = `w-full flex items-center gap-3 p-4 hover:bg-accent transition-smooth ${
+                i < sec.items.length - 1 ? "border-b border-border" : ""
+              }`;
+              if (item.onClick) {
+                return (
+                  <button key={item.label} onClick={item.onClick} className={cls}>
+                    {inner}
+                  </button>
+                );
+              }
+              return (
+                <Link key={item.label} to={item.to} className={cls}>
+                  {inner}
+                </Link>
+              );
+            })}
           </div>
         </section>
       ))}
