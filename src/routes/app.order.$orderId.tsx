@@ -50,7 +50,8 @@ const nextStage: Partial<Record<OrderStatus, { status: OrderStatus; toast: strin
 };
 
 function OrderDetailPage() {
-  const { order: initial } = Route.useLoaderData();
+  const { orderId } = Route.useParams();
+  const initial = initialOrders.find((o) => o.id === orderId) ?? initialOrders[0];
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order>(initial);
 
