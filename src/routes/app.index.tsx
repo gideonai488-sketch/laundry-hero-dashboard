@@ -4,7 +4,7 @@ import { AIDispatchPanel } from "@/components/AIDispatchPanel";
 import { AIInsights } from "@/components/AIInsights";
 import { orders, revenueData, statusMeta } from "@/lib/mock-data";
 import { useLocale } from "@/lib/locale";
-import { ArrowUpRight, BarChart3, Banknote, Bike, ClipboardList, Power, Star, Truck, Users, Wallet, Zap } from "lucide-react";
+import { ArrowUpRight, Award, BarChart3, Banknote, Bike, Bot, Calendar, ClipboardList, History, Package, Power, Shield, Sparkles, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useState } from "react";
 
