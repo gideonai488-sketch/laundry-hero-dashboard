@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
-import { orders as initialOrders, formatGHS, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
-import { Check, ChevronRight, MapPin, Package, X } from "lucide-react";
+import { orders as initialOrders, customerTrust, formatGHS, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
+import { Check, ChevronRight, MapPin, Package, Shield, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -62,6 +62,13 @@ function OrdersPage() {
         )}
         {filtered.map((o) => {
           const meta = statusMeta[o.status];
+          const trust = customerTrust[o.customer];
+          const trustTone =
+            trust?.riskScore === "low"
+              ? "bg-success/10 text-success border-success/20"
+              : trust?.riskScore === "medium"
+                ? "bg-warning/10 text-warning border-warning/30"
+                : "bg-destructive/10 text-destructive border-destructive/20";
           return (
             <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
               <Link
@@ -81,6 +88,13 @@ function OrdersPage() {
                     <div className="text-xs text-muted-foreground mt-0.5">{o.id} · {o.createdAt}</div>
                   </div>
                 </div>
+
+                {trust && (
+                  <div className={`mt-3 flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border ${trustTone}`}>
+                    <Shield size={11} className="shrink-0" />
+                    <span className="truncate">AI background check · {trust.summary}</span>
+                  </div>
+                )}
 
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   <div className="bg-muted rounded-lg p-2">
