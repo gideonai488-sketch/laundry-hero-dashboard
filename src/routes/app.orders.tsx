@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { orders as initialOrders, formatGHS, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
-import { Check, MapPin, Package, X } from "lucide-react";
+import { Check, ChevronRight, MapPin, Package, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -64,7 +64,11 @@ function OrdersPage() {
           const meta = statusMeta[o.status];
           return (
             <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
-              <div className="p-4">
+              <Link
+                to="/app/order/$orderId"
+                params={{ orderId: o.id }}
+                className="block p-4 hover:bg-accent/40 transition-smooth"
+              >
                 <div className="flex items-start gap-3">
                   <div className="h-12 w-12 rounded-xl bg-gradient-brand-soft text-primary font-bold flex items-center justify-center shrink-0">
                     {o.avatar}
@@ -93,9 +97,14 @@ function OrdersPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <MapPin size={12} className="text-primary" />
-                  <span className="truncate">{o.address} · {o.distance}</span>
+                <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <MapPin size={12} className="text-primary shrink-0" />
+                    <span className="truncate">{o.address} · {o.distance}</span>
+                  </div>
+                  <span className="text-primary font-semibold flex items-center gap-0.5 shrink-0">
+                    Details <ChevronRight size={12} />
+                  </span>
                 </div>
 
                 {o.notes && (
@@ -103,7 +112,7 @@ function OrdersPage() {
                     <span className="font-semibold">Note: </span>{o.notes}
                   </div>
                 )}
-              </div>
+              </Link>
 
               {/* Action bar */}
               {o.status === "pending" && (
