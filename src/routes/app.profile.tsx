@@ -11,24 +11,30 @@ export const Route = createFileRoute("/app/profile")({
 function ProfilePage() {
   const navigate = useNavigate();
 
-  const sections = [
+  type MenuItem = {
+    icon: typeof Wrench;
+    label: string;
+    to: "/app/services" | "/app/staff" | "/app/bank" | "/app/profile" | "/app/notifications";
+    hint?: string;
+  };
+  const sections: { title: string; items: MenuItem[] }[] = [
     {
       title: "Business",
       items: [
-        { icon: Wrench, label: "Services & pricing", to: "/app/services" as const, hint: `${services.filter((s) => s.active).length} active` },
-        { icon: Users, label: "Staff & branches", to: "/app/staff" as const, hint: `${staff.length} members` },
-        { icon: Banknote, label: "Bank & MoMo accounts", to: "/app/bank" as const, hint: "2 linked" },
-        { icon: Building2, label: "Business profile", to: "/app/profile" as const },
+        { icon: Wrench, label: "Services & pricing", to: "/app/services", hint: `${services.filter((s) => s.active).length} active` },
+        { icon: Users, label: "Staff & branches", to: "/app/staff", hint: `${staff.length} members` },
+        { icon: Banknote, label: "Bank & MoMo accounts", to: "/app/bank", hint: "2 linked" },
+        { icon: Building2, label: "Business profile", to: "/app/profile" },
       ],
     },
     {
       title: "Account",
       items: [
-        { icon: BellRing, label: "Notifications", to: "/app/notifications" as const },
-        { icon: Shield, label: "Security", to: "/app/profile" as const },
-        { icon: Globe, label: "Language & region", to: "/app/profile" as const },
-        { icon: Settings, label: "Preferences", to: "/app/profile" as const },
-        { icon: HelpCircle, label: "Help center", to: "/app/profile" as const },
+        { icon: BellRing, label: "Notifications", to: "/app/notifications" },
+        { icon: Shield, label: "Security", to: "/app/profile" },
+        { icon: Globe, label: "Language & region", to: "/app/profile" },
+        { icon: Settings, label: "Preferences", to: "/app/profile" },
+        { icon: HelpCircle, label: "Help center", to: "/app/profile" },
       ],
     },
   ];
