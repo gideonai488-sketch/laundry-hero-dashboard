@@ -14,10 +14,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AppStaffRouteImport } from './routes/app.staff'
+import { Route as AppServicesRouteImport } from './routes/app.services'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppPayoutsRouteImport } from './routes/app.payouts'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
+import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppChatRouteImport } from './routes/app.chat'
+import { Route as AppBankRouteImport } from './routes/app.bank'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -44,14 +49,34 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppStaffRoute = AppStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppServicesRoute = AppServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPayoutsRoute = AppPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOrdersRoute = AppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => AppRoute,
 } as any)
 const AppEarningsRoute = AppEarningsRouteImport.update({
@@ -64,24 +89,39 @@ const AppChatRoute = AppChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBankRoute = AppBankRouteImport.update({
+  id: '/bank',
+  path: '/bank',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/services': typeof AppServicesRoute
+  '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/services': typeof AppServicesRoute
+  '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexRoute
@@ -90,10 +130,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/services': typeof AppServicesRoute
+  '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
@@ -103,20 +148,30 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/app/bank'
     | '/app/chat'
     | '/app/earnings'
+    | '/app/notifications'
     | '/app/orders'
+    | '/app/payouts'
     | '/app/profile'
+    | '/app/services'
+    | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/app/bank'
     | '/app/chat'
     | '/app/earnings'
+    | '/app/notifications'
     | '/app/orders'
+    | '/app/payouts'
     | '/app/profile'
+    | '/app/services'
+    | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
     | '/app'
@@ -124,10 +179,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/app/bank'
     | '/app/chat'
     | '/app/earnings'
+    | '/app/notifications'
     | '/app/orders'
+    | '/app/payouts'
     | '/app/profile'
+    | '/app/services'
+    | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
@@ -177,6 +237,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/staff': {
+      id: '/app/staff'
+      path: '/staff'
+      fullPath: '/app/staff'
+      preLoaderRoute: typeof AppStaffRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/services': {
+      id: '/app/services'
+      path: '/services'
+      fullPath: '/app/services'
+      preLoaderRoute: typeof AppServicesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/profile': {
       id: '/app/profile'
       path: '/profile'
@@ -184,11 +258,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/payouts': {
+      id: '/app/payouts'
+      path: '/payouts'
+      fullPath: '/app/payouts'
+      preLoaderRoute: typeof AppPayoutsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/orders': {
       id: '/app/orders'
       path: '/orders'
       fullPath: '/app/orders'
       preLoaderRoute: typeof AppOrdersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notifications': {
+      id: '/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/earnings': {
@@ -205,22 +293,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/bank': {
+      id: '/app/bank'
+      path: '/bank'
+      fullPath: '/app/bank'
+      preLoaderRoute: typeof AppBankRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppBankRoute: typeof AppBankRoute
   AppChatRoute: typeof AppChatRoute
   AppEarningsRoute: typeof AppEarningsRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
   AppOrdersRoute: typeof AppOrdersRoute
+  AppPayoutsRoute: typeof AppPayoutsRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppServicesRoute: typeof AppServicesRoute
+  AppStaffRoute: typeof AppStaffRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBankRoute: AppBankRoute,
   AppChatRoute: AppChatRoute,
   AppEarningsRoute: AppEarningsRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
   AppOrdersRoute: AppOrdersRoute,
+  AppPayoutsRoute: AppPayoutsRoute,
   AppProfileRoute: AppProfileRoute,
+  AppServicesRoute: AppServicesRoute,
+  AppStaffRoute: AppStaffRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
