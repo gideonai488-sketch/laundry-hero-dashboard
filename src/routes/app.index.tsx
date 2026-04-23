@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
+import { AIDispatchPanel } from "@/components/AIDispatchPanel";
+import { AIInsights } from "@/components/AIInsights";
 import { orders, revenueData, formatGHS, statusMeta } from "@/lib/mock-data";
 import { ArrowUpRight, BarChart3, Banknote, Bike, ClipboardList, Power, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
