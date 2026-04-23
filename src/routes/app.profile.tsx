@@ -11,6 +11,7 @@ export const Route = createFileRoute("/app/profile")({
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const [localeOpen, setLocaleOpen] = useState(false);
 
   type MenuItem = {
     icon: typeof Wrench;
@@ -28,10 +29,28 @@ function ProfilePage() {
       | "/app/promotions"
       | "/app/reports"
       | "/app/help"
-      | "/app/kyc";
+      | "/app/kyc"
+      | "/app/ai-pricing"
+      | "/app/ai-guard"
+      | "/app/scorecard"
+      | "/app/scheduling"
+      | "/app/supplies"
+      | "/app/voice-history";
     hint?: string;
+    onClick?: () => void;
   };
   const sections: { title: string; items: MenuItem[] }[] = [
+    {
+      title: "AI & Automation",
+      items: [
+        { icon: Sparkles, label: "AI pricing & forecast", to: "/app/ai-pricing", hint: "Smart" },
+        { icon: Shield, label: "AI guard & disputes", to: "/app/ai-guard" },
+        { icon: Award, label: "Performance scorecard", to: "/app/scorecard" },
+        { icon: Calendar, label: "Scheduling", to: "/app/scheduling" },
+        { icon: Package, label: "Supplies auto-reorder", to: "/app/supplies" },
+        { icon: History, label: "Voice command history", to: "/app/voice-history" },
+      ],
+    },
     {
       title: "Business",
       items: [
@@ -58,7 +77,7 @@ function ProfilePage() {
         { icon: BellRing, label: "Notifications", to: "/app/notifications" },
         { icon: Building2, label: "Business profile", to: "/app/profile" },
         { icon: Shield, label: "Security", to: "/app/profile" },
-        { icon: Globe, label: "Language & region", to: "/app/profile" },
+        { icon: Globe, label: "Language & region", to: "/app/profile", onClick: () => setLocaleOpen(true) },
         { icon: HelpCircle, label: "Help & support", to: "/app/help" },
       ],
     },
