@@ -68,7 +68,7 @@ function ChatThreadPage() {
           <div className="flex-1 min-w-0">
             <div className="font-bold text-sm truncate">{chat.customer}</div>
             <Link
-              to="/app/orders/$orderId"
+              to="/app/order/$orderId"
               params={{ orderId: chat.orderId }}
               className="text-[11px] text-primary font-semibold"
             >
