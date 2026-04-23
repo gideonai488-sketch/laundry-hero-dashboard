@@ -23,8 +23,8 @@ import { Route as AppNotificationsRouteImport } from './routes/app.notifications
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBankRouteImport } from './routes/app.bank'
-import { Route as AppOrdersOrderIdRouteImport } from './routes/app.orders.$orderId'
-import { Route as AppChatChatIdRouteImport } from './routes/app.chat.$chatId'
+import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
+import { Route as AppMessageChatIdRouteImport } from './routes/app.message.$chatId'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -96,25 +96,25 @@ const AppBankRoute = AppBankRouteImport.update({
   path: '/bank',
   getParentRoute: () => AppRoute,
 } as any)
-const AppOrdersOrderIdRoute = AppOrdersOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => AppOrdersRoute,
+const AppOrderOrderIdRoute = AppOrderOrderIdRouteImport.update({
+  id: '/order/$orderId',
+  path: '/order/$orderId',
+  getParentRoute: () => AppRoute,
 } as any)
-const AppChatChatIdRoute = AppChatChatIdRouteImport.update({
-  id: '/$chatId',
-  path: '/$chatId',
-  getParentRoute: () => AppChatRoute,
+const AppMessageChatIdRoute = AppMessageChatIdRouteImport.update({
+  id: '/message/$chatId',
+  path: '/message/$chatId',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRouteWithChildren
+  '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
   '/app/notifications': typeof AppNotificationsRoute
-  '/app/orders': typeof AppOrdersRouteWithChildren
+  '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
   '/app/services': typeof AppServicesRoute
@@ -122,16 +122,16 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
-  '/app/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRouteWithChildren
+  '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
   '/app/notifications': typeof AppNotificationsRoute
-  '/app/orders': typeof AppOrdersRouteWithChildren
+  '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
   '/app/services': typeof AppServicesRoute
@@ -139,18 +139,18 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
-  '/app/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRouteWithChildren
+  '/app/chat': typeof AppChatRoute
   '/app/earnings': typeof AppEarningsRoute
   '/app/notifications': typeof AppNotificationsRoute
-  '/app/orders': typeof AppOrdersRouteWithChildren
+  '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
   '/app/services': typeof AppServicesRoute
@@ -158,8 +158,8 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
-  '/app/chat/$chatId': typeof AppChatChatIdRoute
-  '/app/orders/$orderId': typeof AppOrdersOrderIdRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -178,8 +178,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
-    | '/app/chat/$chatId'
-    | '/app/orders/$orderId'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -195,8 +195,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app'
-    | '/app/chat/$chatId'
-    | '/app/orders/$orderId'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   id:
     | '__root__'
     | '/'
@@ -213,8 +213,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
-    | '/app/chat/$chatId'
-    | '/app/orders/$orderId'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -324,70 +324,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBankRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/orders/$orderId': {
-      id: '/app/orders/$orderId'
-      path: '/$orderId'
-      fullPath: '/app/orders/$orderId'
-      preLoaderRoute: typeof AppOrdersOrderIdRouteImport
-      parentRoute: typeof AppOrdersRoute
+    '/app/order/$orderId': {
+      id: '/app/order/$orderId'
+      path: '/order/$orderId'
+      fullPath: '/app/order/$orderId'
+      preLoaderRoute: typeof AppOrderOrderIdRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/app/chat/$chatId': {
-      id: '/app/chat/$chatId'
-      path: '/$chatId'
-      fullPath: '/app/chat/$chatId'
-      preLoaderRoute: typeof AppChatChatIdRouteImport
-      parentRoute: typeof AppChatRoute
+    '/app/message/$chatId': {
+      id: '/app/message/$chatId'
+      path: '/message/$chatId'
+      fullPath: '/app/message/$chatId'
+      preLoaderRoute: typeof AppMessageChatIdRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
-interface AppChatRouteChildren {
-  AppChatChatIdRoute: typeof AppChatChatIdRoute
-}
-
-const AppChatRouteChildren: AppChatRouteChildren = {
-  AppChatChatIdRoute: AppChatChatIdRoute,
-}
-
-const AppChatRouteWithChildren =
-  AppChatRoute._addFileChildren(AppChatRouteChildren)
-
-interface AppOrdersRouteChildren {
-  AppOrdersOrderIdRoute: typeof AppOrdersOrderIdRoute
-}
-
-const AppOrdersRouteChildren: AppOrdersRouteChildren = {
-  AppOrdersOrderIdRoute: AppOrdersOrderIdRoute,
-}
-
-const AppOrdersRouteWithChildren = AppOrdersRoute._addFileChildren(
-  AppOrdersRouteChildren,
-)
-
 interface AppRouteChildren {
   AppBankRoute: typeof AppBankRoute
-  AppChatRoute: typeof AppChatRouteWithChildren
+  AppChatRoute: typeof AppChatRoute
   AppEarningsRoute: typeof AppEarningsRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
-  AppOrdersRoute: typeof AppOrdersRouteWithChildren
+  AppOrdersRoute: typeof AppOrdersRoute
   AppPayoutsRoute: typeof AppPayoutsRoute
   AppProfileRoute: typeof AppProfileRoute
   AppServicesRoute: typeof AppServicesRoute
   AppStaffRoute: typeof AppStaffRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppMessageChatIdRoute: typeof AppMessageChatIdRoute
+  AppOrderOrderIdRoute: typeof AppOrderOrderIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppBankRoute: AppBankRoute,
-  AppChatRoute: AppChatRouteWithChildren,
+  AppChatRoute: AppChatRoute,
   AppEarningsRoute: AppEarningsRoute,
   AppNotificationsRoute: AppNotificationsRoute,
-  AppOrdersRoute: AppOrdersRouteWithChildren,
+  AppOrdersRoute: AppOrdersRoute,
   AppPayoutsRoute: AppPayoutsRoute,
   AppProfileRoute: AppProfileRoute,
   AppServicesRoute: AppServicesRoute,
   AppStaffRoute: AppStaffRoute,
   AppIndexRoute: AppIndexRoute,
+  AppMessageChatIdRoute: AppMessageChatIdRoute,
+  AppOrderOrderIdRoute: AppOrderOrderIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

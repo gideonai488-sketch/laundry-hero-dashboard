@@ -27,7 +27,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/app/orders/$orderId")({
+export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({
     meta: [{ title: `Order ${params.orderId} — Highest Wash Merchant` }],
   }),

@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Phone, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/app/chat/$chatId")({
+export const Route = createFileRoute("/app/message/$chatId")({
   head: ({ params }) => ({
     meta: [{ title: `Chat ${params.chatId} — Highest Wash Merchant` }],
   }),
