@@ -171,6 +171,8 @@ function ProfilePage() {
         </button>
         <p className="text-center text-xs text-muted-foreground mt-4">Member since {merchantProfile.joinedAt}</p>
       </div>
+
+      {localeOpen && <LocalePicker onClose={() => setLocaleOpen(false)} />}
     </div>
   );
 }
