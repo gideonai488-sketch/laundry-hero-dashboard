@@ -25,8 +25,10 @@ function ChatPage() {
 
       <div className="mt-4 px-2">
         {chats.map((c) => (
-          <button
+          <Link
             key={c.id}
+            to="/app/message/$chatId"
+            params={{ chatId: c.id }}
             className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-accent transition-smooth text-left"
           >
             <div className="relative shrink-0">
@@ -49,7 +51,7 @@ function ChatPage() {
                 <div className="text-xs text-muted-foreground truncate flex-1">{c.lastMessage}</div>
               </div>
             </div>
-          </button>
+          </Link>
         ))}
       </div>
 

@@ -23,6 +23,8 @@ import { Route as AppNotificationsRouteImport } from './routes/app.notifications
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBankRouteImport } from './routes/app.bank'
+import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
+import { Route as AppMessageChatIdRouteImport } from './routes/app.message.$chatId'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -94,6 +96,16 @@ const AppBankRoute = AppBankRouteImport.update({
   path: '/bank',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOrderOrderIdRoute = AppOrderOrderIdRouteImport.update({
+  id: '/order/$orderId',
+  path: '/order/$orderId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMessageChatIdRoute = AppMessageChatIdRouteImport.update({
+  id: '/message/$chatId',
+  path: '/message/$chatId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +122,8 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -125,6 +139,8 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app': typeof AppIndexRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,6 +158,8 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/app/': typeof AppIndexRoute
+  '/app/message/$chatId': typeof AppMessageChatIdRoute
+  '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,6 +178,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -175,6 +195,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   id:
     | '__root__'
     | '/'
@@ -191,6 +213,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/signup'
     | '/app/'
+    | '/app/message/$chatId'
+    | '/app/order/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -300,6 +324,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBankRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/order/$orderId': {
+      id: '/app/order/$orderId'
+      path: '/order/$orderId'
+      fullPath: '/app/order/$orderId'
+      preLoaderRoute: typeof AppOrderOrderIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/message/$chatId': {
+      id: '/app/message/$chatId'
+      path: '/message/$chatId'
+      fullPath: '/app/message/$chatId'
+      preLoaderRoute: typeof AppMessageChatIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -314,6 +352,8 @@ interface AppRouteChildren {
   AppServicesRoute: typeof AppServicesRoute
   AppStaffRoute: typeof AppStaffRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppMessageChatIdRoute: typeof AppMessageChatIdRoute
+  AppOrderOrderIdRoute: typeof AppOrderOrderIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -327,6 +367,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppServicesRoute: AppServicesRoute,
   AppStaffRoute: AppStaffRoute,
   AppIndexRoute: AppIndexRoute,
+  AppMessageChatIdRoute: AppMessageChatIdRoute,
+  AppOrderOrderIdRoute: AppOrderOrderIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -340,3 +382,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
