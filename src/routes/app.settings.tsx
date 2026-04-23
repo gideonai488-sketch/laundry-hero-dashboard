@@ -16,7 +16,10 @@ export const Route = createFileRoute("/app/settings")({
 
 function SettingsPage() {
   const [hours, setHours] = useState<OperatingHours[]>(defaultHours);
-  const [autoAccept, setAutoAccept] = useState(false);
+  const [autoAccept, setAutoAccept] = useState(true);
+  const [autoMax, setAutoMax] = useState(60);
+  const [autoRadius, setAutoRadius] = useState(5);
+  const [voice, setVoice] = useState(false);
   const [vacation, setVacation] = useState(false);
   const [radius, setRadius] = useState([5]);
   const [capacity, setCapacity] = useState(20);
@@ -97,17 +100,52 @@ function SettingsPage() {
         </div>
       </section>
 
-      {/* Rules */}
+      {/* AI Auto-accept rules */}
       <section className="px-5 mt-6">
-        <SectionTitle icon={<Zap size={14} />}>Order rules</SectionTitle>
+        <SectionTitle icon={<Zap size={14} />}>AI auto-accept rules</SectionTitle>
         <div className="bg-card rounded-2xl border border-border shadow-card divide-y divide-border">
           <ToggleRow
-            title="Auto-accept new orders"
-            desc="Skip manual approval for verified customers"
+            title="Let AI auto-accept orders"
+            desc="AI confirms matching jobs in 5s if you don't override"
             checked={autoAccept}
             onChange={(v) => {
               setAutoAccept(v);
-              toast.success(v ? "Auto-accept enabled" : "Auto-accept disabled");
+              toast.success(v ? "AI auto-accept enabled" : "AI auto-accept disabled");
+            }}
+          />
+          {autoAccept && (
+            <>
+              <div className="p-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">Verified customers only</div>
+                  <Switch checked disabled />
+                </div>
+                <div className="text-xs text-muted-foreground">AI runs background check before accepting</div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <div className="text-sm font-semibold">Max order amount</div>
+                  <div className="text-lg font-bold text-primary">${autoMax}</div>
+                </div>
+                <Slider value={[autoMax]} onValueChange={(v) => setAutoMax(v[0])} min={10} max={200} step={5} />
+                <div className="text-xs text-muted-foreground">Larger orders go to manual review</div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <div className="text-sm font-semibold">Max distance</div>
+                  <div className="text-lg font-bold text-primary">{autoRadius} km</div>
+                </div>
+                <Slider value={[autoRadius]} onValueChange={(v) => setAutoRadius(v[0])} min={1} max={15} step={1} />
+              </div>
+            </>
+          )}
+          <ToggleRow
+            title="Voice command always-on"
+            desc="Wake-word listening (\"Hey Wash\") for hands-free control"
+            checked={voice}
+            onChange={(v) => {
+              setVoice(v);
+              toast.success(v ? "Voice wake-word enabled" : "Voice wake-word disabled");
             }}
           />
           <ToggleRow
