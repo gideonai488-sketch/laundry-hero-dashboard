@@ -1,0 +1,85 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+
+export const Route = createFileRoute("/auth/login")({
+  head: () => ({ meta: [{ title: "Log in — Highest Wash Merchant" }] }),
+  component: Login,
+});
+
+function Login() {
+  const navigate = useNavigate();
+  const [showPwd, setShowPwd] = useState(false);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Top brand panel */}
+      <div className="bg-gradient-hero text-primary-foreground px-6 pt-6 pb-12 relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-white/85 hover:text-white">
+          <ArrowLeft size={16} /> Back
+        </Link>
+        <div className="mt-10">
+          <Logo size="lg" variant="light" />
+        </div>
+        <h1 className="mt-8 text-3xl font-bold">Welcome back 👋</h1>
+        <p className="mt-2 text-white/85">Log in to manage your laundry business.</p>
+      </div>
+
+      {/* Form */}
+      <div className="flex-1 -mt-6 bg-background rounded-t-3xl px-6 pt-8 pb-10">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate({ to: "/app" });
+          }}
+          className="space-y-5 max-w-md mx-auto"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="email">Email or phone</Label>
+            <Input id="email" placeholder="daniel@highestwash.gh" defaultValue="daniel@highestwash.gh" className="h-12 rounded-xl" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pwd">Password</Label>
+            <div className="relative">
+              <Input
+                id="pwd"
+                type={showPwd ? "text" : "password"}
+                placeholder="••••••••"
+                defaultValue="demo1234"
+                className="h-12 rounded-xl pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                aria-label="Toggle password"
+              >
+                {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 text-muted-foreground">
+              <input type="checkbox" className="accent-primary" defaultChecked /> Remember me
+            </label>
+            <a className="font-semibold text-primary">Forgot?</a>
+          </div>
+          <Button type="submit" className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
+            Log in
+          </Button>
+          <div className="text-center text-sm text-muted-foreground">
+            New here?{" "}
+            <Link to="/auth/signup" className="font-semibold text-primary">
+              Create merchant account
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
