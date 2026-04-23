@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { LocalePicker } from "@/components/LocalePicker";
 import { merchantProfile, staff, services } from "@/lib/mock-data";
