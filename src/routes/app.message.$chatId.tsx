@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { chats } from "@/lib/mock-data";
 import { ArrowLeft, Send, Phone, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
@@ -8,19 +8,6 @@ export const Route = createFileRoute("/app/message/$chatId")({
   head: ({ params }) => ({
     meta: [{ title: `Chat ${params.chatId} — Highest Wash Merchant` }],
   }),
-  loader: ({ params }) => {
-    const chat = chats.find((c) => c.id === params.chatId);
-    if (!chat) throw notFound();
-    return { chat };
-  },
-  notFoundComponent: () => (
-    <div className="p-8 text-center">
-      <p className="text-sm text-muted-foreground mb-4">Conversation not found.</p>
-      <Link to="/app/chat" className="text-primary font-semibold text-sm">
-        ← Back to messages
-      </Link>
-    </div>
-  ),
   component: ChatThreadPage,
 });
 
@@ -32,7 +19,8 @@ interface Msg {
 }
 
 function ChatThreadPage() {
-  const { chat } = Route.useLoaderData();
+  const { chatId } = Route.useParams();
+  const chat = chats.find((c) => c.id === chatId) ?? chats[0];
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<Msg[]>([

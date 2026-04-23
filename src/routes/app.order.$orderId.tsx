@@ -1,5 +1,4 @@
-import { createFileRoute, Link, useNavigate, useRouter, notFound } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   orders as initialOrders,
   formatGHS,
@@ -31,37 +30,6 @@ export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({
     meta: [{ title: `Order ${params.orderId} — Highest Wash Merchant` }],
   }),
-  loader: ({ params }) => {
-    const order = initialOrders.find((o) => o.id === params.orderId);
-    if (!order) throw notFound();
-    return { order };
-  },
-  notFoundComponent: () => (
-    <div className="p-8 text-center">
-      <Package className="mx-auto mb-3 opacity-40" size={36} />
-      <p className="text-sm text-muted-foreground mb-4">Order not found.</p>
-      <Link to="/app/orders" className="text-primary font-semibold text-sm">
-        ← Back to orders
-      </Link>
-    </div>
-  ),
-  errorComponent: ({ error, reset }) => {
-    const router = useRouter();
-    return (
-      <div className="p-8 text-center">
-        <p className="text-sm text-destructive mb-4">{error.message}</p>
-        <button
-          onClick={() => {
-            router.invalidate();
-            reset();
-          }}
-          className="text-primary font-semibold text-sm"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  },
   component: OrderDetailPage,
 });
 
