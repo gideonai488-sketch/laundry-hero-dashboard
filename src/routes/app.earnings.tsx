@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
+import { AIInsights } from "@/components/AIInsights";
 import { revenueData, monthlyData, serviceShare, formatGHS, payouts } from "@/lib/mock-data";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
@@ -98,6 +99,9 @@ function EarningsPage() {
           </div>
         </div>
       </section>
+
+      {/* AI insights */}
+      <AIInsights />
 
       {/* Service split */}
       <section className="px-5 mt-5">

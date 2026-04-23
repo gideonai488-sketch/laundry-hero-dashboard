@@ -86,6 +86,9 @@ function DashboardHome() {
         </div>
       </section>
 
+      {/* AI Dispatch */}
+      <AIDispatchPanel />
+
       {/* Revenue mini chart */}
       <section className="px-5 mt-6">
         <div className="bg-card rounded-3xl border border-border shadow-card p-5">
@@ -123,6 +126,9 @@ function DashboardHome() {
           </div>
         </div>
       </section>
+
+      {/* AI insights */}
+      <AIInsights limit={2} />
 
       {/* Live activity */}
       <section className="px-5 mt-6">
