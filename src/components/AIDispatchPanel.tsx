@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { dispatchAssignments, formatGHS, type DispatchAssignment } from "@/lib/mock-data";
+import { dispatchAssignments, type DispatchAssignment } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { Bot, Check, MapPin, Shield, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function AIDispatchPanel() {
+  const { format } = useLocale();
   const [items, setItems] = useState<DispatchAssignment[]>(dispatchAssignments);
   const [tick, setTick] = useState(0);
 
@@ -79,7 +81,7 @@ export function AIDispatchPanel() {
                     </div>
                     <div className="font-bold mt-1 truncate">{a.customer}</div>
                     <div className="text-xs text-muted-foreground">
-                      {a.orderId} · {a.service} · {formatGHS(a.amount)}
+                      {a.orderId} · {a.service} · {format(a.amount)}
                     </div>
                   </div>
                   <div className={`text-right shrink-0 ${urgent ? "text-destructive" : "text-foreground"}`}>

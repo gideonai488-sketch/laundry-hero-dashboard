@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { AIInsights } from "@/components/AIInsights";
-import { revenueData, monthlyData, serviceShare, formatGHS, payouts } from "@/lib/mock-data";
+import { revenueData, monthlyData, serviceShare, payouts } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useState } from "react";
