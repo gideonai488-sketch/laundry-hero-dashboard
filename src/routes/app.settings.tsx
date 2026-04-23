@@ -141,7 +141,7 @@ function SettingsPage() {
           )}
           <ToggleRow
             title="Voice command always-on"
-            desc="Wake-word listening (\"Hey Wash\") for hands-free control"
+            desc={'Wake-word listening ("Hey Wash") for hands-free control'}
             checked={voice}
             onChange={(v) => {
               setVoice(v);
