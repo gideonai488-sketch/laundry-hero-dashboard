@@ -4,7 +4,7 @@ import { AIDispatchPanel } from "@/components/AIDispatchPanel";
 import { AIInsights } from "@/components/AIInsights";
 import { orders, revenueData, statusMeta } from "@/lib/mock-data";
 import { useLocale } from "@/lib/locale";
-import { ArrowUpRight, BarChart3, Banknote, Bike, ClipboardList, Power, Star, Truck, Users, Wallet, Zap } from "lucide-react";
+import { ArrowUpRight, Award, BarChart3, Banknote, Bike, Bot, Calendar, ClipboardList, History, Package, Power, Shield, Sparkles, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useState } from "react";
 
@@ -126,6 +126,35 @@ function DashboardHome() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </section>
+
+      {/* AI command center */}
+      <section className="px-5 mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="h-7 w-7 rounded-lg bg-gradient-brand text-primary-foreground flex items-center justify-center">
+            <Bot size={14} />
+          </div>
+          <h2 className="text-lg font-bold">AI command center</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: Sparkles, label: "AI pricing", to: "/app/ai-pricing" as const, tone: "from-primary/20 to-primary/5" },
+            { icon: Shield, label: "AI guard", to: "/app/ai-guard" as const, tone: "from-destructive/20 to-destructive/5" },
+            { icon: Award, label: "Scorecard", to: "/app/scorecard" as const, tone: "from-success/20 to-success/5" },
+            { icon: Calendar, label: "Schedule", to: "/app/scheduling" as const, tone: "from-warning/20 to-warning/5" },
+            { icon: Package, label: "Supplies", to: "/app/supplies" as const, tone: "from-accent to-accent/30" },
+            { icon: History, label: "Voice log", to: "/app/voice-history" as const, tone: "from-primary/15 to-primary/5" },
+          ].map((a) => (
+            <Link
+              key={a.label}
+              to={a.to}
+              className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-gradient-to-br ${a.tone} border border-border hover:scale-[1.02] transition-smooth`}
+            >
+              <a.icon size={18} className="text-foreground" />
+              <span className="text-[11px] font-semibold text-center">{a.label}</span>
+            </Link>
+          ))}
         </div>
       </section>
 

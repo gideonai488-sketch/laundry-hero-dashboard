@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
+import { LocalePicker } from "@/components/LocalePicker";
 import { merchantProfile, staff, services } from "@/lib/mock-data";
-import { Banknote, BellRing, Building2, ChevronRight, FileText, Globe, HelpCircle, LogOut, Megaphone, Package, Settings, Shield, ShieldCheck, Star, Users, Wrench } from "lucide-react";
+import { Award, Banknote, BellRing, Building2, Calendar, ChevronRight, FileText, Globe, HelpCircle, History, LogOut, Megaphone, Package, Settings, Shield, ShieldCheck, Sparkles, Star, Users, Wrench } from "lucide-react";
 
 export const Route = createFileRoute("/app/profile")({
   head: () => ({ meta: [{ title: "Profile — Highest Wash Merchant" }] }),
@@ -10,6 +12,7 @@ export const Route = createFileRoute("/app/profile")({
 
 function ProfilePage() {
   const navigate = useNavigate();
+  const [localeOpen, setLocaleOpen] = useState(false);
 
   type MenuItem = {
     icon: typeof Wrench;
@@ -27,10 +30,28 @@ function ProfilePage() {
       | "/app/promotions"
       | "/app/reports"
       | "/app/help"
-      | "/app/kyc";
+      | "/app/kyc"
+      | "/app/ai-pricing"
+      | "/app/ai-guard"
+      | "/app/scorecard"
+      | "/app/scheduling"
+      | "/app/supplies"
+      | "/app/voice-history";
     hint?: string;
+    onClick?: () => void;
   };
   const sections: { title: string; items: MenuItem[] }[] = [
+    {
+      title: "AI & Automation",
+      items: [
+        { icon: Sparkles, label: "AI pricing & forecast", to: "/app/ai-pricing", hint: "Smart" },
+        { icon: Shield, label: "AI guard & disputes", to: "/app/ai-guard" },
+        { icon: Award, label: "Performance scorecard", to: "/app/scorecard" },
+        { icon: Calendar, label: "Scheduling", to: "/app/scheduling" },
+        { icon: Package, label: "Supplies auto-reorder", to: "/app/supplies" },
+        { icon: History, label: "Voice command history", to: "/app/voice-history" },
+      ],
+    },
     {
       title: "Business",
       items: [
@@ -57,7 +78,7 @@ function ProfilePage() {
         { icon: BellRing, label: "Notifications", to: "/app/notifications" },
         { icon: Building2, label: "Business profile", to: "/app/profile" },
         { icon: Shield, label: "Security", to: "/app/profile" },
-        { icon: Globe, label: "Language & region", to: "/app/profile" },
+        { icon: Globe, label: "Language & region", to: "/app/profile", onClick: () => setLocaleOpen(true) },
         { icon: HelpCircle, label: "Help & support", to: "/app/help" },
       ],
     },
@@ -110,22 +131,33 @@ function ProfilePage() {
         <section key={sec.title} className="px-5 mt-6">
           <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-2">{sec.title}</div>
           <div className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
-            {sec.items.map((item, i) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={`flex items-center gap-3 p-4 hover:bg-accent transition-smooth ${
-                  i < sec.items.length - 1 ? "border-b border-border" : ""
-                }`}
-              >
-                <div className="h-9 w-9 rounded-xl bg-gradient-brand-soft flex items-center justify-center">
-                  <item.icon size={16} className="text-primary" />
-                </div>
-                <div className="flex-1 font-medium text-sm">{item.label}</div>
-                {item.hint && <div className="text-xs text-muted-foreground">{item.hint}</div>}
-                <ChevronRight size={16} className="text-muted-foreground" />
-              </Link>
-            ))}
+            {sec.items.map((item, i) => {
+              const inner = (
+                <>
+                  <div className="h-9 w-9 rounded-xl bg-gradient-brand-soft flex items-center justify-center">
+                    <item.icon size={16} className="text-primary" />
+                  </div>
+                  <div className="flex-1 font-medium text-sm text-left">{item.label}</div>
+                  {item.hint && <div className="text-xs text-muted-foreground">{item.hint}</div>}
+                  <ChevronRight size={16} className="text-muted-foreground" />
+                </>
+              );
+              const cls = `w-full flex items-center gap-3 p-4 hover:bg-accent transition-smooth ${
+                i < sec.items.length - 1 ? "border-b border-border" : ""
+              }`;
+              if (item.onClick) {
+                return (
+                  <button key={item.label} onClick={item.onClick} className={cls}>
+                    {inner}
+                  </button>
+                );
+              }
+              return (
+                <Link key={item.label} to={item.to} className={cls}>
+                  {inner}
+                </Link>
+              );
+            })}
           </div>
         </section>
       ))}
@@ -139,6 +171,8 @@ function ProfilePage() {
         </button>
         <p className="text-center text-xs text-muted-foreground mt-4">Member since {merchantProfile.joinedAt}</p>
       </div>
+
+      {localeOpen && <LocalePicker onClose={() => setLocaleOpen(false)} />}
     </div>
   );
 }
