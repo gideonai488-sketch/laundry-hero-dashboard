@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
+import { LocalePicker } from "@/components/LocalePicker";
 import { merchantProfile, staff, services } from "@/lib/mock-data";
-import { Banknote, BellRing, Building2, ChevronRight, FileText, Globe, HelpCircle, LogOut, Megaphone, Package, Settings, Shield, ShieldCheck, Star, Users, Wrench } from "lucide-react";
+import { Award, Banknote, BellRing, Building2, Calendar, ChevronRight, FileText, Globe, HelpCircle, History, LogOut, Megaphone, Package, Settings, Shield, ShieldCheck, Sparkles, Star, Users, Wrench } from "lucide-react";
 
 export const Route = createFileRoute("/app/profile")({
   head: () => ({ meta: [{ title: "Profile — Highest Wash Merchant" }] }),
