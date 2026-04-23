@@ -12,15 +12,27 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as LegalTermsRouteImport } from './routes/legal.terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalMerchantRouteImport } from './routes/legal.merchant'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppStaffRouteImport } from './routes/app.staff'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppServicesRouteImport } from './routes/app.services'
+import { Route as AppSearchRouteImport } from './routes/app.search'
+import { Route as AppReviewsRouteImport } from './routes/app.reviews'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
+import { Route as AppPromotionsRouteImport } from './routes/app.promotions'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppPayoutsRouteImport } from './routes/app.payouts'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppKycRouteImport } from './routes/app.kyc'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
+import { Route as AppHelpRouteImport } from './routes/app.help'
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
+import { Route as AppCustomersRouteImport } from './routes/app.customers'
 import { Route as AppChatRouteImport } from './routes/app.chat'
 import { Route as AppBankRouteImport } from './routes/app.bank'
 import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
@@ -41,6 +53,21 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalMerchantRoute = LegalMerchantRouteImport.update({
+  id: '/legal/merchant',
+  path: '/legal/merchant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
   id: '/auth/signup',
   path: '/auth/signup',
@@ -56,9 +83,34 @@ const AppStaffRoute = AppStaffRouteImport.update({
   path: '/staff',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppServicesRoute = AppServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReviewsRoute = AppReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPromotionsRoute = AppPromotionsRouteImport.update({
+  id: '/promotions',
+  path: '/promotions',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProfileRoute = AppProfileRouteImport.update({
@@ -81,9 +133,29 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => AppRoute,
 } as any)
+const AppKycRoute = AppKycRouteImport.update({
+  id: '/kyc',
+  path: '/kyc',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHelpRoute = AppHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEarningsRoute = AppEarningsRouteImport.update({
   id: '/earnings',
   path: '/earnings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCustomersRoute = AppCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
   getParentRoute: () => AppRoute,
 } as any)
 const AppChatRoute = AppChatRouteImport.update({
@@ -112,15 +184,27 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/help': typeof AppHelpRoute
+  '/app/inventory': typeof AppInventoryRoute
+  '/app/kyc': typeof AppKycRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/promotions': typeof AppPromotionsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/reviews': typeof AppReviewsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/legal/merchant': typeof LegalMerchantRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
   '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
@@ -129,15 +213,27 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/help': typeof AppHelpRoute
+  '/app/inventory': typeof AppInventoryRoute
+  '/app/kyc': typeof AppKycRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/promotions': typeof AppPromotionsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/reviews': typeof AppReviewsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/legal/merchant': typeof LegalMerchantRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/app': typeof AppIndexRoute
   '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
@@ -148,15 +244,27 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/bank': typeof AppBankRoute
   '/app/chat': typeof AppChatRoute
+  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/help': typeof AppHelpRoute
+  '/app/inventory': typeof AppInventoryRoute
+  '/app/kyc': typeof AppKycRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/payouts': typeof AppPayoutsRoute
   '/app/profile': typeof AppProfileRoute
+  '/app/promotions': typeof AppPromotionsRoute
+  '/app/reports': typeof AppReportsRoute
+  '/app/reviews': typeof AppReviewsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/services': typeof AppServicesRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/staff': typeof AppStaffRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
+  '/legal/merchant': typeof LegalMerchantRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
   '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
@@ -168,15 +276,27 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/bank'
     | '/app/chat'
+    | '/app/customers'
     | '/app/earnings'
+    | '/app/help'
+    | '/app/inventory'
+    | '/app/kyc'
     | '/app/notifications'
     | '/app/orders'
     | '/app/payouts'
     | '/app/profile'
+    | '/app/promotions'
+    | '/app/reports'
+    | '/app/reviews'
+    | '/app/search'
     | '/app/services'
+    | '/app/settings'
     | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
+    | '/legal/merchant'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/app/'
     | '/app/message/$chatId'
     | '/app/order/$orderId'
@@ -185,15 +305,27 @@ export interface FileRouteTypes {
     | '/'
     | '/app/bank'
     | '/app/chat'
+    | '/app/customers'
     | '/app/earnings'
+    | '/app/help'
+    | '/app/inventory'
+    | '/app/kyc'
     | '/app/notifications'
     | '/app/orders'
     | '/app/payouts'
     | '/app/profile'
+    | '/app/promotions'
+    | '/app/reports'
+    | '/app/reviews'
+    | '/app/search'
     | '/app/services'
+    | '/app/settings'
     | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
+    | '/legal/merchant'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/app'
     | '/app/message/$chatId'
     | '/app/order/$orderId'
@@ -203,15 +335,27 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/bank'
     | '/app/chat'
+    | '/app/customers'
     | '/app/earnings'
+    | '/app/help'
+    | '/app/inventory'
+    | '/app/kyc'
     | '/app/notifications'
     | '/app/orders'
     | '/app/payouts'
     | '/app/profile'
+    | '/app/promotions'
+    | '/app/reports'
+    | '/app/reviews'
+    | '/app/search'
     | '/app/services'
+    | '/app/settings'
     | '/app/staff'
     | '/auth/login'
     | '/auth/signup'
+    | '/legal/merchant'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/app/'
     | '/app/message/$chatId'
     | '/app/order/$orderId'
@@ -222,6 +366,9 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  LegalMerchantRoute: typeof LegalMerchantRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -247,6 +394,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/merchant': {
+      id: '/legal/merchant'
+      path: '/legal/merchant'
+      fullPath: '/legal/merchant'
+      preLoaderRoute: typeof LegalMerchantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/signup': {
       id: '/auth/signup'
       path: '/auth/signup'
@@ -268,11 +436,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStaffRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/services': {
       id: '/app/services'
       path: '/services'
       fullPath: '/app/services'
       preLoaderRoute: typeof AppServicesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/search': {
+      id: '/app/search'
+      path: '/search'
+      fullPath: '/app/search'
+      preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reviews': {
+      id: '/app/reviews'
+      path: '/reviews'
+      fullPath: '/app/reviews'
+      preLoaderRoute: typeof AppReviewsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/promotions': {
+      id: '/app/promotions'
+      path: '/promotions'
+      fullPath: '/app/promotions'
+      preLoaderRoute: typeof AppPromotionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/profile': {
@@ -303,11 +506,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/kyc': {
+      id: '/app/kyc'
+      path: '/kyc'
+      fullPath: '/app/kyc'
+      preLoaderRoute: typeof AppKycRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/help': {
+      id: '/app/help'
+      path: '/help'
+      fullPath: '/app/help'
+      preLoaderRoute: typeof AppHelpRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/earnings': {
       id: '/app/earnings'
       path: '/earnings'
       fullPath: '/app/earnings'
       preLoaderRoute: typeof AppEarningsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/customers': {
+      id: '/app/customers'
+      path: '/customers'
+      fullPath: '/app/customers'
+      preLoaderRoute: typeof AppCustomersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/chat': {
@@ -344,12 +575,21 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppBankRoute: typeof AppBankRoute
   AppChatRoute: typeof AppChatRoute
+  AppCustomersRoute: typeof AppCustomersRoute
   AppEarningsRoute: typeof AppEarningsRoute
+  AppHelpRoute: typeof AppHelpRoute
+  AppInventoryRoute: typeof AppInventoryRoute
+  AppKycRoute: typeof AppKycRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppPayoutsRoute: typeof AppPayoutsRoute
   AppProfileRoute: typeof AppProfileRoute
+  AppPromotionsRoute: typeof AppPromotionsRoute
+  AppReportsRoute: typeof AppReportsRoute
+  AppReviewsRoute: typeof AppReviewsRoute
+  AppSearchRoute: typeof AppSearchRoute
   AppServicesRoute: typeof AppServicesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppStaffRoute: typeof AppStaffRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMessageChatIdRoute: typeof AppMessageChatIdRoute
@@ -359,12 +599,21 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBankRoute: AppBankRoute,
   AppChatRoute: AppChatRoute,
+  AppCustomersRoute: AppCustomersRoute,
   AppEarningsRoute: AppEarningsRoute,
+  AppHelpRoute: AppHelpRoute,
+  AppInventoryRoute: AppInventoryRoute,
+  AppKycRoute: AppKycRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppPayoutsRoute: AppPayoutsRoute,
   AppProfileRoute: AppProfileRoute,
+  AppPromotionsRoute: AppPromotionsRoute,
+  AppReportsRoute: AppReportsRoute,
+  AppReviewsRoute: AppReviewsRoute,
+  AppSearchRoute: AppSearchRoute,
   AppServicesRoute: AppServicesRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppStaffRoute: AppStaffRoute,
   AppIndexRoute: AppIndexRoute,
   AppMessageChatIdRoute: AppMessageChatIdRoute,
@@ -378,6 +627,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  LegalMerchantRoute: LegalMerchantRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

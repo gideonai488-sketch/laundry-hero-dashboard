@@ -243,6 +243,132 @@ export const formatMoney = (n: number, currency = "$") =>
 // Backwards-compat alias — kept so existing imports keep working.
 export const formatGHS = formatMoney;
 
+// ============= Reviews =============
+export interface Review {
+  id: string;
+  customer: string;
+  avatar: string;
+  rating: number; // 1-5
+  comment: string;
+  service: string;
+  orderId: string;
+  date: string;
+  reply?: string;
+}
+
+export const reviews: Review[] = [
+  { id: "r1", customer: "Ayaka Tanaka", avatar: "AT", rating: 5, comment: "Best laundry service ever! Came back perfectly folded.", service: "Dry Cleaning", orderId: "HW-2839", date: "2 days ago" },
+  { id: "r2", customer: "Sofia Martinez", avatar: "SM", rating: 5, comment: "Loved that they used scent-free detergent as requested 🙏", service: "Wash & Fold", orderId: "HW-2820", date: "5 days ago", reply: "Thanks Sofia! Always happy to accommodate." },
+  { id: "r3", customer: "Marcus Bennett", avatar: "MB", rating: 4, comment: "Sneakers look great. Pickup was 20 min late though.", service: "Sneaker Cleaning", orderId: "HW-2811", date: "1 week ago" },
+  { id: "r4", customer: "Priya Sharma", avatar: "PS", rating: 5, comment: "Bulk order handled flawlessly. Will book again.", service: "Bulk Laundry", orderId: "HW-2802", date: "1 week ago" },
+  { id: "r5", customer: "Liam O'Connor", avatar: "LO", rating: 3, comment: "Service was OK but a button came loose on my shirt.", service: "Wash & Fold", orderId: "HW-2790", date: "2 weeks ago" },
+];
+
+// ============= Customers / CRM =============
+export interface Customer {
+  id: string;
+  name: string;
+  avatar: string;
+  email: string;
+  phone: string;
+  totalOrders: number;
+  lifetimeValue: number;
+  lastOrder: string;
+  tier: "new" | "regular" | "vip";
+}
+
+export const customers: Customer[] = [
+  { id: "cu1", name: "Sofia Martinez", avatar: "SM", email: "sofia.m@mail.com", phone: "+44 20 ••• 4421", totalOrders: 18, lifetimeValue: 612, lastOrder: "Today", tier: "vip" },
+  { id: "cu2", name: "Ayaka Tanaka", avatar: "AT", email: "ayaka.t@mail.com", phone: "+81 90 ••• 7711", totalOrders: 24, lifetimeValue: 980, lastOrder: "2 days ago", tier: "vip" },
+  { id: "cu3", name: "Marcus Bennett", avatar: "MB", email: "marcus.b@mail.com", phone: "+61 4 ••• 2210", totalOrders: 9, lifetimeValue: 284, lastOrder: "1 hr ago", tier: "regular" },
+  { id: "cu4", name: "Priya Sharma", avatar: "PS", email: "priya.s@mail.com", phone: "+91 98 ••• 1102", totalOrders: 12, lifetimeValue: 540, lastOrder: "2 hr ago", tier: "regular" },
+  { id: "cu5", name: "Liam O'Connor", avatar: "LO", email: "liam.o@mail.com", phone: "+33 6 ••• 8820", totalOrders: 3, lifetimeValue: 64, lastOrder: "12 min ago", tier: "new" },
+  { id: "cu6", name: "Noah Williams", avatar: "NW", email: "noah.w@mail.com", phone: "+1 718 ••• 1199", totalOrders: 6, lifetimeValue: 142, lastOrder: "5 hr ago", tier: "regular" },
+];
+
+// ============= Inventory & supplies =============
+export interface InventoryItem {
+  id: string;
+  name: string;
+  icon: string;
+  unit: string;
+  inStock: number;
+  threshold: number;
+  category: "detergent" | "softener" | "packaging" | "tools";
+}
+
+export const inventory: InventoryItem[] = [
+  { id: "i1", name: "Premium detergent", icon: "🧴", unit: "L", inStock: 24, threshold: 10, category: "detergent" },
+  { id: "i2", name: "Fabric softener", icon: "💧", unit: "L", inStock: 8, threshold: 10, category: "softener" },
+  { id: "i3", name: "Stain remover", icon: "🧪", unit: "bottles", inStock: 12, threshold: 6, category: "detergent" },
+  { id: "i4", name: "Wooden hangers", icon: "🪝", unit: "pcs", inStock: 142, threshold: 50, category: "tools" },
+  { id: "i5", name: "Paper laundry bags", icon: "🛍️", unit: "pcs", inStock: 38, threshold: 100, category: "packaging" },
+  { id: "i6", name: "Garment covers", icon: "👔", unit: "pcs", inStock: 64, threshold: 30, category: "packaging" },
+];
+
+// ============= Promotions =============
+export interface Promotion {
+  id: string;
+  name: string;
+  description: string;
+  discount: string;
+  validUntil: string;
+  optedIn: boolean;
+  badge: "new" | "featured" | "seasonal";
+}
+
+export const promotions: Promotion[] = [
+  { id: "p1", name: "Spring Refresh −20%", description: "Platform-wide spring campaign. Customers see your shop in featured carousel.", discount: "20% off Wash & Fold", validUntil: "May 31, 2026", optedIn: true, badge: "seasonal" },
+  { id: "p2", name: "First-order welcome", description: "New customers get free pickup on first order. Platform absorbs the fee.", discount: "Free pickup", validUntil: "Ongoing", optedIn: true, badge: "featured" },
+  { id: "p3", name: "Bulk laundry weekend", description: "Boost weekend bulk bookings with 15% off promotion.", discount: "15% off Bulk", validUntil: "Apr 30, 2026", optedIn: false, badge: "new" },
+  { id: "p4", name: "Sneaker cleaning launch", description: "Highlight sneaker service to local customers.", discount: "$5 off Sneakers", validUntil: "Jun 15, 2026", optedIn: false, badge: "new" },
+];
+
+// ============= Shop settings =============
+export interface OperatingHours {
+  day: string;
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+export const defaultHours: OperatingHours[] = [
+  { day: "Mon", open: "08:00", close: "20:00", closed: false },
+  { day: "Tue", open: "08:00", close: "20:00", closed: false },
+  { day: "Wed", open: "08:00", close: "20:00", closed: false },
+  { day: "Thu", open: "08:00", close: "20:00", closed: false },
+  { day: "Fri", open: "08:00", close: "21:00", closed: false },
+  { day: "Sat", open: "09:00", close: "18:00", closed: false },
+  { day: "Sun", open: "10:00", close: "16:00", closed: true },
+];
+
+// ============= Reports =============
+export interface Report {
+  id: string;
+  name: string;
+  period: string;
+  type: "statement" | "tax-invoice" | "order-export";
+  size: string;
+  generatedAt: string;
+}
+
+export const reports: Report[] = [
+  { id: "rp1", name: "Monthly statement — March 2026", period: "Mar 2026", type: "statement", size: "284 KB", generatedAt: "Apr 01, 2026" },
+  { id: "rp2", name: "Tax invoice — Q1 2026", period: "Q1 2026", type: "tax-invoice", size: "412 KB", generatedAt: "Apr 02, 2026" },
+  { id: "rp3", name: "Order export — March 2026", period: "Mar 2026", type: "order-export", size: "98 KB", generatedAt: "Apr 01, 2026" },
+  { id: "rp4", name: "Monthly statement — February 2026", period: "Feb 2026", type: "statement", size: "276 KB", generatedAt: "Mar 01, 2026" },
+];
+
+// ============= FAQ =============
+export const faqs: { q: string; a: string; category: string }[] = [
+  { q: "How do payouts work?", a: "Payouts run weekly every Monday. Funds settle to your primary account within 24 hours. You can switch your primary account anytime in Payouts.", category: "Payments" },
+  { q: "Why can't I change service prices?", a: "Highest Wash sets prices platform-wide to keep quality and customer trust consistent everywhere. You choose which services your shop accepts.", category: "Services" },
+  { q: "What if a customer disputes an order?", a: "Open the order, tap Report Issue, and our team will mediate within 24 hours. Funds are held until resolution.", category: "Orders" },
+  { q: "How do I add staff?", a: "Go to Profile → Staff & branches → Add member. Each staff member gets their own login with limited permissions.", category: "Account" },
+  { q: "Is there a monthly fee?", a: "No. Highest Wash takes a small commission (12%) on each completed order. No setup, monthly, or hidden fees.", category: "Payments" },
+  { q: "Can I pause my shop temporarily?", a: "Yes. Go to Shop settings and toggle Online status off, or set vacation mode with a return date.", category: "Account" },
+];
+
 export const statusMeta: Record<OrderStatus, { label: string; tone: string }> = {
   pending: { label: "Pending", tone: "bg-warning/15 text-warning-foreground" },
   accepted: { label: "Accepted", tone: "bg-primary/15 text-primary" },

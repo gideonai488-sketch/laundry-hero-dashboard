@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { merchantProfile, staff, services } from "@/lib/mock-data";
-import { Banknote, BellRing, Building2, ChevronRight, Globe, HelpCircle, LogOut, Settings, Shield, Star, Users, Wrench } from "lucide-react";
+import { Banknote, BellRing, Building2, ChevronRight, FileText, Globe, HelpCircle, LogOut, Megaphone, Package, Settings, Shield, ShieldCheck, Star, Users, Wrench } from "lucide-react";
 
 export const Route = createFileRoute("/app/profile")({
   head: () => ({ meta: [{ title: "Profile — Highest Wash Merchant" }] }),
@@ -14,27 +14,51 @@ function ProfilePage() {
   type MenuItem = {
     icon: typeof Wrench;
     label: string;
-    to: "/app/services" | "/app/staff" | "/app/bank" | "/app/profile" | "/app/notifications";
+    to:
+      | "/app/services"
+      | "/app/staff"
+      | "/app/bank"
+      | "/app/profile"
+      | "/app/notifications"
+      | "/app/settings"
+      | "/app/reviews"
+      | "/app/customers"
+      | "/app/inventory"
+      | "/app/promotions"
+      | "/app/reports"
+      | "/app/help"
+      | "/app/kyc";
     hint?: string;
   };
   const sections: { title: string; items: MenuItem[] }[] = [
     {
       title: "Business",
       items: [
-        { icon: Wrench, label: "Services & pricing", to: "/app/services", hint: `${services.filter((s) => s.active).length} active` },
+        { icon: Settings, label: "Shop settings & hours", to: "/app/settings" },
+        { icon: Wrench, label: "Services", to: "/app/services", hint: `${services.filter((s) => s.active).length} active` },
+        { icon: Star, label: "Reviews", to: "/app/reviews" },
+        { icon: Users, label: "Customers", to: "/app/customers" },
+        { icon: Package, label: "Inventory", to: "/app/inventory" },
+        { icon: Megaphone, label: "Promotions", to: "/app/promotions" },
         { icon: Users, label: "Staff & branches", to: "/app/staff", hint: `${staff.length} members` },
+      ],
+    },
+    {
+      title: "Money",
+      items: [
         { icon: Banknote, label: "Payout accounts", to: "/app/bank", hint: "2 linked" },
-        { icon: Building2, label: "Business profile", to: "/app/profile" },
+        { icon: FileText, label: "Reports & exports", to: "/app/reports" },
       ],
     },
     {
       title: "Account",
       items: [
+        { icon: ShieldCheck, label: "Verify business (KYC)", to: "/app/kyc", hint: "Required" },
         { icon: BellRing, label: "Notifications", to: "/app/notifications" },
+        { icon: Building2, label: "Business profile", to: "/app/profile" },
         { icon: Shield, label: "Security", to: "/app/profile" },
         { icon: Globe, label: "Language & region", to: "/app/profile" },
-        { icon: Settings, label: "Preferences", to: "/app/profile" },
-        { icon: HelpCircle, label: "Help center", to: "/app/profile" },
+        { icon: HelpCircle, label: "Help & support", to: "/app/help" },
       ],
     },
   ];

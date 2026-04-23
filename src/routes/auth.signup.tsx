@@ -103,6 +103,12 @@ function Signup() {
           <Button type="submit" className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
             Create account
           </Button>
+          <p className="text-center text-[11px] text-muted-foreground">
+            By signing up you agree to our{" "}
+            <Link to="/legal/terms" className="underline">Terms</Link>,{" "}
+            <Link to="/legal/privacy" className="underline">Privacy Policy</Link> and{" "}
+            <Link to="/legal/merchant" className="underline">Merchant Agreement</Link>.
+          </p>
           <div className="text-center text-sm text-muted-foreground">
             Already a merchant?{" "}
             <Link to="/auth/login" className="font-semibold text-primary">
