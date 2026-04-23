@@ -1,6 +1,7 @@
 import { Bell, MapPin, Search } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { merchantProfile } from "@/lib/mock-data";
+import { VoiceCommandBar } from "./VoiceCommandBar";
 
 interface AppHeaderProps {
   title?: string;
@@ -29,6 +30,7 @@ export function AppHeader({ title, subtitle, showLocation }: AppHeaderProps) {
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <VoiceCommandBar />
           <Link
             to="/app/search"
             className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center hover:bg-accent transition-smooth"

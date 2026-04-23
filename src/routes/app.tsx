@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
+import { AICopilot } from "@/components/AICopilot";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -11,6 +12,7 @@ function AppLayout() {
       <div className="mx-auto w-full max-w-md min-h-screen pb-28 relative">
         <Outlet />
       </div>
+      <AICopilot />
       <BottomNav />
     </div>
   );
