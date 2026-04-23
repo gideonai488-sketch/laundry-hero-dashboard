@@ -24,7 +24,7 @@ function Signup() {
           <Logo size="lg" variant="light" />
         </div>
         <h1 className="mt-8 text-3xl font-bold">Become a merchant</h1>
-        <p className="mt-2 text-white/85">Start accepting jobs in 5 minutes — no setup fees.</p>
+        <p className="mt-2 text-white/85">Start accepting jobs in 5 minutes — available in 30+ countries.</p>
       </div>
 
       <div className="flex-1 -mt-6 bg-background rounded-t-3xl px-6 pt-8 pb-10">
@@ -37,21 +37,51 @@ function Signup() {
         >
           <div className="space-y-2">
             <Label htmlFor="biz">Business name</Label>
-            <Input id="biz" placeholder="Highest Wash Laundry" className="h-12 rounded-xl" />
+            <Input id="biz" placeholder="Your laundry shop" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="owner">Your name</Label>
-            <Input id="owner" placeholder="Daniel Owusu" className="h-12 rounded-xl" />
+            <Input id="owner" placeholder="Full name" className="h-12 rounded-xl" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="024 555 0188" className="h-12 rounded-xl" />
+              <Input id="phone" placeholder="+1 555 123 4567" className="h-12 rounded-xl" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" placeholder="Accra" className="h-12 rounded-xl" />
+              <Label htmlFor="country">Country</Label>
+              <select
+                id="country"
+                className="w-full h-12 rounded-xl px-3 bg-background border border-input text-sm"
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  Select…
+                </option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+                <option>Canada</option>
+                <option>Australia</option>
+                <option>Germany</option>
+                <option>France</option>
+                <option>Spain</option>
+                <option>India</option>
+                <option>Brazil</option>
+                <option>Mexico</option>
+                <option>Nigeria</option>
+                <option>Kenya</option>
+                <option>Ghana</option>
+                <option>South Africa</option>
+                <option>UAE</option>
+                <option>Singapore</option>
+                <option>Japan</option>
+                <option>Other</option>
+              </select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="city">City</Label>
+            <Input id="city" placeholder="e.g. London, Lagos, Tokyo" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -63,7 +93,7 @@ function Signup() {
           </div>
 
           <div className="rounded-xl bg-gradient-brand-soft p-4 space-y-2">
-            {["Free to start, no monthly fees", "Get paid weekly to MoMo or bank", "Insurance on every order"].map((b) => (
+            {["Free to start, no monthly fees", "Get paid weekly to bank or mobile wallet", "Insurance on every order"].map((b) => (
               <div key={b} className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <CheckCircle2 size={16} className="text-success" /> {b}
               </div>

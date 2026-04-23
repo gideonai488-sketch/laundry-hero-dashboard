@@ -17,13 +17,13 @@ function EarningsPage() {
 
   return (
     <div>
-      <AppHeader title="Earnings" subtitle="Track every cedi" />
+      <AppHeader title="Earnings" subtitle="Track every dollar" />
 
       {/* Hero card */}
       <section className="px-5">
         <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-5 shadow-brand">
           <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Available balance</div>
-          <div className="text-4xl font-bold mt-1">{formatGHS(8420)}</div>
+          <div className="text-4xl font-bold mt-1">{formatGHS(2420)}</div>
           <div className="flex items-center gap-1 text-sm text-white/85 mt-1">
             <ArrowUpRight size={14} /> +12.4% this month
           </div>
@@ -32,7 +32,7 @@ function EarningsPage() {
               Withdraw
             </Link>
             <Link to="/app/bank" className="flex-1 bg-white/15 backdrop-blur border border-white/20 text-white font-semibold text-sm py-2.5 rounded-xl text-center">
-              Bank accounts
+              Payout accounts
             </Link>
           </div>
         </div>
@@ -41,10 +41,10 @@ function EarningsPage() {
       {/* KPIs */}
       <section className="px-5 mt-5 grid grid-cols-2 gap-3">
         {[
-          { label: "Today", v: formatGHS(1240), c: "+18%", up: true },
-          { label: "This week", v: formatGHS(6330), c: "+12%", up: true },
-          { label: "Avg order", v: formatGHS(98), c: "+4%", up: true },
-          { label: "Refunds", v: formatGHS(120), c: "-2%", up: false },
+          { label: "Today", v: formatGHS(340), c: "+18%", up: true },
+          { label: "This week", v: formatGHS(1820), c: "+12%", up: true },
+          { label: "Avg order", v: formatGHS(28), c: "+4%", up: true },
+          { label: "Refunds", v: formatGHS(34), c: "-2%", up: false },
         ].map((k) => (
           <div key={k.label} className="bg-card rounded-2xl border border-border shadow-card p-4">
             <div className="text-xs text-muted-foreground font-medium">{k.label}</div>

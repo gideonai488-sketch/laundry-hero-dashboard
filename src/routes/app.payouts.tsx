@@ -18,10 +18,10 @@ function PayoutsPage() {
       <section className="px-5">
         <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-5 shadow-brand">
           <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Available to withdraw</div>
-          <div className="text-4xl font-bold mt-1">{formatGHS(8420)}</div>
-          <div className="text-xs text-white/80 mt-1">Next auto-payout: Mon, Apr 29 · MTN MoMo •••821</div>
+          <div className="text-4xl font-bold mt-1">{formatGHS(2420)}</div>
+          <div className="text-xs text-white/80 mt-1">Next auto-payout: Mon, Apr 29 · Stripe •••821</div>
           <Button
-            onClick={() => toast.success("Withdrawal request sent · GH₵8,420")}
+            onClick={() => toast.success("Withdrawal request sent · $2,420")}
             className="w-full mt-4 h-11 rounded-xl bg-white text-primary hover:bg-white/95 font-semibold border-0"
           >
             <ArrowDownToLine size={16} className="mr-1.5" /> Withdraw now
