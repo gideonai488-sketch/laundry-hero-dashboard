@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   orders as initialOrders,
-  formatGHS,
   statusMeta,
   type Order,
   type OrderStatus,
 } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import {
   ArrowLeft,
   Check,
@@ -53,6 +53,7 @@ function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const initial = initialOrders.find((o) => o.id === orderId) ?? initialOrders[0];
   const navigate = useNavigate();
+  const { format: formatGHS } = useLocale();
   const [order, setOrder] = useState<Order>(initial);
 
   const meta = statusMeta[order.status];

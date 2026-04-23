@@ -15,6 +15,7 @@ export const Route = createFileRoute("/app/earnings")({
 const ranges = ["7D", "30D", "6M", "1Y"] as const;
 
 function EarningsPage() {
+  const { format: formatGHS } = useLocale();
   const [range, setRange] = useState<(typeof ranges)[number]>("7D");
 
   return (

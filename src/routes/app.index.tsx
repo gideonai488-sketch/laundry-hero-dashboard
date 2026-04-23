@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { AIDispatchPanel } from "@/components/AIDispatchPanel";
 import { AIInsights } from "@/components/AIInsights";
-import { orders, revenueData, formatGHS, statusMeta } from "@/lib/mock-data";
+import { orders, revenueData, statusMeta } from "@/lib/mock-data";
+import { useLocale } from "@/lib/locale";
 import { ArrowUpRight, BarChart3, Banknote, Bike, ClipboardList, Power, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useState } from "react";
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/app/")({
 });
 
 function DashboardHome() {
+  const { format: formatGHS, t } = useLocale();
   const [online, setOnline] = useState(true);
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const activeOrders = orders.filter((o) => ["accepted", "pickup", "washing", "ready"].includes(o.status));
