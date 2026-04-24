@@ -1,40 +1,43 @@
 import { useEffect, useState } from "react";
-import { dispatchAssignments, type DispatchAssignment } from "@/lib/mock-data";
 import { useLocale } from "@/lib/locale";
+import { useAuth } from "@/lib/auth";
+import { useDispatchOffers, useRespondOffer, type DispatchOffer } from "@/lib/queries";
 import { Bot, Check, MapPin, Shield, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 export function AIDispatchPanel() {
   const { format } = useLocale();
-  const [items, setItems] = useState<DispatchAssignment[]>(dispatchAssignments);
-  const [tick, setTick] = useState(0);
+  const { merchant } = useAuth();
+  const { data: offers = [] } = useDispatchOffers(merchant?.id);
+  const respond = useRespondOffer(merchant?.id);
 
+  // Tick once per second so countdowns animate without re-fetching.
+  const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // decrement countdowns
-  useEffect(() => {
-    setItems((prev) =>
-      prev
-        .map((a) => ({ ...a, expiresInSec: Math.max(0, a.expiresInSec - 1) }))
-        .filter((a) => a.expiresInSec > 0)
+  const accept = (o: DispatchOffer) => {
+    respond.mutate(
+      { id: o.id, decision: "accepted" },
+      {
+        onSuccess: () => toast.success(`Offer accepted · order ${o.order_id.slice(0, 8)}…`),
+        onError: (e) => toast.error((e as Error).message),
+      }
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick]);
-
-  const accept = (a: DispatchAssignment) => {
-    setItems((prev) => prev.filter((x) => x.id !== a.id));
-    toast.success(`Order ${a.orderId} accepted · rider ${a.riderName} dispatched`);
+  };
+  const reject = (o: DispatchOffer) => {
+    respond.mutate(
+      { id: o.id, decision: "declined" },
+      {
+        onSuccess: () => toast(`Declined · AI will reassign`, { icon: "🤖" }),
+        onError: (e) => toast.error((e as Error).message),
+      }
+    );
   };
 
-  const reject = (a: DispatchAssignment) => {
-    setItems((prev) => prev.filter((x) => x.id !== a.id));
-    toast(`Order ${a.orderId} declined · AI will reassign`, { icon: "🤖" });
-  };
-
-  if (items.length === 0) return null;
+  if (offers.length === 0) return null;
 
   return (
     <section className="px-5 mt-6">
@@ -49,25 +52,27 @@ export function AIDispatchPanel() {
           </div>
         </div>
         <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-1 rounded-full">
-          {items.length} live
+          {offers.length} live
         </span>
       </div>
 
       <div className="space-y-3">
-        {items.map((a) => {
-          const pct = Math.max(0, Math.min(100, (a.expiresInSec / 90) * 100));
-          const urgent = a.expiresInSec < 20;
+        {offers.map((o) => {
+          const expiresInSec = Math.max(0, Math.round((new Date(o.expires_at).getTime() - Date.now()) / 1000));
+          const pct = Math.max(0, Math.min(100, (expiresInSec / 90) * 100));
+          const urgent = expiresInSec < 20;
+          const payload = (o.payload ?? {}) as {
+            customer_name?: string;
+            service?: string;
+            amount_local?: number;
+            distance?: string;
+            rider_name?: string;
+            rider_eta?: string;
+          };
           return (
-            <div
-              key={a.id}
-              className="bg-card rounded-2xl border border-border shadow-card overflow-hidden"
-            >
-              {/* countdown bar */}
+            <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
               <div className="h-1 bg-muted">
-                <div
-                  className={`h-full transition-all ${urgent ? "bg-destructive" : "bg-gradient-brand"}`}
-                  style={{ width: `${pct}%` }}
-                />
+                <div className={`h-full transition-all ${urgent ? "bg-destructive" : "bg-gradient-brand"}`} style={{ width: `${pct}%` }} />
               </div>
 
               <div className="p-4">
@@ -76,48 +81,52 @@ export function AIDispatchPanel() {
                     <div className="flex items-center gap-1.5">
                       <Bot size={12} className="text-primary" />
                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                        AI assigned · {a.aiConfidence}% match
+                        AI assigned · {o.ai_confidence ?? 92}% match
                       </span>
                     </div>
-                    <div className="font-bold mt-1 truncate">{a.customer}</div>
+                    <div className="font-bold mt-1 truncate">{payload.customer_name ?? "Customer"}</div>
                     <div className="text-xs text-muted-foreground">
-                      {a.orderId} · {a.service} · {format(a.amount)}
+                      {o.order_id.slice(0, 8)} · {payload.service ?? "Wash & Fold"} · {format(payload.amount_local ?? 0)}
                     </div>
                   </div>
                   <div className={`text-right shrink-0 ${urgent ? "text-destructive" : "text-foreground"}`}>
-                    <div className="text-2xl font-bold tabular-nums">{a.expiresInSec}s</div>
+                    <div className="text-2xl font-bold tabular-nums">{expiresInSec}s</div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground">to confirm</div>
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-[11px] bg-success/10 border border-success/20 rounded-lg p-2">
-                  <Shield size={12} className="text-success shrink-0" />
-                  <span className="text-foreground/80">{a.trustSummary}</span>
-                </div>
+                {o.trust_summary && (
+                  <div className="mt-3 flex items-center gap-2 text-[11px] bg-success/10 border border-success/20 rounded-lg p-2">
+                    <Shield size={12} className="text-success shrink-0" />
+                    <span className="text-foreground/80">{o.trust_summary}</span>
+                  </div>
+                )}
 
                 <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
                   <div className="bg-muted rounded-lg p-2 flex items-center gap-1.5">
                     <MapPin size={11} className="text-primary" />
-                    <span className="font-semibold">{a.distance}</span>
+                    <span className="font-semibold">{payload.distance ?? "—"}</span>
                   </div>
                   <div className="bg-muted rounded-lg p-2 flex items-center gap-1.5">
                     <span>🛵</span>
-                    <span className="font-semibold truncate">{a.riderName} · {a.riderEta}</span>
+                    <span className="font-semibold truncate">{payload.rider_name ?? "Rider TBD"} · {payload.rider_eta ?? ""}</span>
                   </div>
                 </div>
 
-                <div className="mt-3 text-[11px] text-muted-foreground italic">{a.reason}</div>
+                {o.ai_reason && <div className="mt-3 text-[11px] text-muted-foreground italic">{o.ai_reason}</div>}
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => reject(a)}
-                    className="py-2.5 text-xs font-semibold rounded-xl border border-border hover:bg-destructive/5 hover:text-destructive transition-smooth flex items-center justify-center gap-1.5"
+                    onClick={() => reject(o)}
+                    disabled={respond.isPending}
+                    className="py-2.5 text-xs font-semibold rounded-xl border border-border hover:bg-destructive/5 hover:text-destructive transition-smooth flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     <X size={14} /> Decline
                   </button>
                   <button
-                    onClick={() => accept(a)}
-                    className="py-2.5 text-xs font-bold rounded-xl bg-gradient-brand text-primary-foreground shadow-brand hover:opacity-95 transition-smooth flex items-center justify-center gap-1.5"
+                    onClick={() => accept(o)}
+                    disabled={respond.isPending}
+                    className="py-2.5 text-xs font-bold rounded-xl bg-gradient-brand text-primary-foreground shadow-brand hover:opacity-95 transition-smooth flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     <Check size={14} /> Accept
                   </button>

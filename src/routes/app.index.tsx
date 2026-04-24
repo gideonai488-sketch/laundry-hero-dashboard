@@ -2,43 +2,68 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { AIDispatchPanel } from "@/components/AIDispatchPanel";
 import { AIInsights } from "@/components/AIInsights";
-import { orders, revenueData, statusMeta } from "@/lib/mock-data";
+import { revenueData, statusMeta } from "@/lib/mock-data";
 import { useLocale } from "@/lib/locale";
+import { useAuth } from "@/lib/auth";
+import { useOrders, useUpdateMerchant } from "@/lib/queries";
 import { ArrowUpRight, Award, BarChart3, Banknote, Bike, Bot, Calendar, ClipboardList, History, Package, Power, Shield, Sparkles, Star, Truck, Users, Wallet, Zap } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardHome,
 });
 
 function DashboardHome() {
-  const { format: formatGHS, t } = useLocale();
-  const [online, setOnline] = useState(true);
-  const pendingCount = orders.filter((o) => o.status === "pending").length;
-  const activeOrders = orders.filter((o) => ["accepted", "pickup", "washing", "ready"].includes(o.status));
+  const { format: formatGHS } = useLocale();
+  const { merchant } = useAuth();
+  const { data: orders = [] } = useOrders(merchant?.id);
+  const updateMerchant = useUpdateMerchant();
+  const online = !!merchant?.is_online;
+  const pendingCount = orders.filter((o) => o.status === "pending" || o.status === "ai_dispatching").length;
+  const activeOrders = orders.filter((o) => ["accepted", "pickup", "washing", "ready", "out_for_delivery"].includes(o.status));
+  const doneToday = orders.filter((o) => {
+    if (o.status !== "delivered") return false;
+    const d = new Date(o.created_at);
+    const today = new Date();
+    return d.toDateString() === today.toDateString();
+  }).length;
+  const todayEarnings = orders
+    .filter((o) => o.status === "delivered" && new Date(o.created_at).toDateString() === new Date().toDateString())
+    .reduce((sum, o) => sum + (o.total_local ?? 0), 0);
+
+  const toggleOnline = () => {
+    if (!merchant) return;
+    updateMerchant.mutate(
+      { id: merchant.id, patch: { is_online: !online } },
+      {
+        onSuccess: () => toast.success(online ? "You're now offline" : "You're online — receiving jobs"),
+        onError: (e) => toast.error((e as Error).message),
+      }
+    );
+  };
 
   return (
     <div>
       <AppHeader showLocation />
 
-      {/* Online toggle hero */}
       <section className="px-5">
         <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-5 shadow-brand relative overflow-hidden">
           <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
           <div className="relative flex items-center justify-between">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Today's earnings</div>
-              <div className="text-3xl font-bold mt-1">{formatGHS(340)}</div>
+              <div className="text-3xl font-bold mt-1">{formatGHS(todayEarnings)}</div>
               <div className="flex items-center gap-1 text-xs text-white/85 mt-1">
-                <ArrowUpRight size={12} /> +18% vs yesterday
+                <ArrowUpRight size={12} /> {merchant?.business_name ?? "Your shop"}
               </div>
             </div>
             <button
-              onClick={() => setOnline((v) => !v)}
+              onClick={toggleOnline}
+              disabled={updateMerchant.isPending}
               className={`flex flex-col items-center gap-1 px-4 py-3 rounded-2xl backdrop-blur border ${
                 online ? "bg-success/20 border-success/40" : "bg-white/10 border-white/20"
-              }`}
+              } disabled:opacity-60`}
               aria-label="Toggle availability"
             >
               <Power size={20} />
@@ -49,7 +74,7 @@ function DashboardHome() {
             {[
               { label: "Pending", value: pendingCount },
               { label: "Active", value: activeOrders.length },
-              { label: "Done today", value: 8 },
+              { label: "Done today", value: doneToday },
             ].map((s) => (
               <div key={s.label} className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/15">
                 <div className="text-xl font-bold">{s.value}</div>
@@ -60,7 +85,6 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* Quick actions */}
       <section className="px-5 mt-6">
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -88,10 +112,8 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* AI Dispatch */}
       <AIDispatchPanel />
 
-      {/* Revenue mini chart */}
       <section className="px-5 mt-6">
         <div className="bg-card rounded-3xl border border-border shadow-card p-5">
           <div className="flex items-center justify-between mb-1">
@@ -114,12 +136,7 @@ function DashboardHome() {
                 </defs>
                 <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip
-                  contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
+                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
                   formatter={(v: number) => [formatGHS(v), "Revenue"]}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={2.5} fill="url(#rev)" />
@@ -129,7 +146,6 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* AI command center */}
       <section className="px-5 mt-6">
         <div className="flex items-center gap-2 mb-3">
           <div className="h-7 w-7 rounded-lg bg-gradient-brand text-primary-foreground flex items-center justify-center">
@@ -158,18 +174,21 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* AI insights */}
       <AIInsights limit={2} />
 
-      {/* Live activity */}
       <section className="px-5 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Live activity</h2>
           <Link to="/app/orders" className="text-xs font-semibold text-primary">See all</Link>
         </div>
         <div className="space-y-2">
+          {activeOrders.length === 0 && (
+            <div className="text-center text-sm text-muted-foreground py-6 bg-card border border-border rounded-2xl">
+              No active orders right now.
+            </div>
+          )}
           {activeOrders.slice(0, 3).map((o) => {
-            const meta = statusMeta[o.status];
+            const meta = statusMeta[(o.status as keyof typeof statusMeta)] ?? statusMeta.pending;
             return (
               <Link
                 key={o.id}
@@ -177,18 +196,18 @@ function DashboardHome() {
                 className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border shadow-card hover:bg-accent transition-smooth"
               >
                 <div className="h-11 w-11 rounded-xl bg-gradient-brand-soft text-primary font-bold flex items-center justify-center">
-                  {o.avatar}
+                  {(o.customer_name ?? "?").slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="font-semibold text-sm truncate">{o.customer}</div>
+                    <div className="font-semibold text-sm truncate">{o.customer_name ?? "Customer"}</div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.tone}`}>{meta.label}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{o.service} · {o.items} items</div>
+                  <div className="text-xs text-muted-foreground truncate">{o.service_summary} · {o.item_count ?? 0} items</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-sm">{formatGHS(o.amount)}</div>
-                  <div className="text-[10px] text-muted-foreground">{o.createdAt}</div>
+                  <div className="font-bold text-sm">{formatGHS(o.total_local ?? 0)}</div>
+                  <div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                 </div>
               </Link>
             );
@@ -196,15 +215,14 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* Highlights */}
       <section className="px-5 mt-6">
         <h2 className="text-lg font-bold mb-3">Boosters</h2>
         <div className="grid grid-cols-2 gap-3">
           {[
             { icon: Zap, title: "Express jobs", desc: "Earn 2× on 6hr orders", tone: "from-warning/20 to-warning/5" },
-            { icon: Star, title: "4.9★ rating", desc: "Top 5% in your city", tone: "from-success/20 to-success/5" },
-            { icon: Truck, title: "Free pickups", desc: "12 today", tone: "from-primary/20 to-primary/5" },
-            { icon: Banknote, title: "Next payout", desc: "$1,280 · Mon", tone: "from-accent to-accent/30" },
+            { icon: Star, title: `${(merchant?.rating_avg ?? 4.9).toFixed(1)}★ rating`, desc: "Top 5% in your city", tone: "from-success/20 to-success/5" },
+            { icon: Truck, title: "Free pickups", desc: `${activeOrders.length} active`, tone: "from-primary/20 to-primary/5" },
+            { icon: Banknote, title: "Next payout", desc: "Mon", tone: "from-accent to-accent/30" },
           ].map((h) => (
             <div key={h.title} className={`p-4 rounded-2xl bg-gradient-to-br ${h.tone} border border-border`}>
               <h.icon size={20} className="text-foreground" />
@@ -215,17 +233,16 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* Drivers nearby */}
       <section className="px-5 mt-6">
         <div className="rounded-2xl bg-card border border-border shadow-card p-4 flex items-center gap-3">
           <div className="h-11 w-11 rounded-xl bg-gradient-brand text-primary-foreground flex items-center justify-center">
             <Bike size={20} />
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-sm">3 drivers nearby</div>
-            <div className="text-xs text-muted-foreground">Average pickup time: 8 min</div>
+            <div className="font-semibold text-sm">Riders nearby</div>
+            <div className="text-xs text-muted-foreground">Average pickup time: ~8 min</div>
           </div>
-          <button className="text-xs font-semibold text-primary">Request</button>
+          <button onClick={() => toast.info("Rider request sent (awaiting backend fn)")} className="text-xs font-semibold text-primary">Request</button>
         </div>
       </section>
     </div>
