@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
-import { orders as initialOrders, customerTrust, statusMeta, type Order, type OrderStatus } from "@/lib/mock-data";
+import { statusMeta } from "@/lib/mock-data";
 import { useLocale } from "@/lib/locale";
-import { Check, ChevronRight, MapPin, Package, Shield, X } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useOrders, useUpdateOrderStatus, type LiveOrderStatus } from "@/lib/queries";
+import { Check, ChevronRight, MapPin, Package, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,28 +20,37 @@ const tabs: { key: "all" | "pending" | "active" | "done"; label: string }[] = [
   { key: "all", label: "All" },
 ];
 
+const ACTIVE: LiveOrderStatus[] = ["accepted", "pickup", "washing", "ready", "out_for_delivery"];
+const DONE: LiveOrderStatus[] = ["delivered", "cancelled"];
+
 function OrdersPage() {
   const { format } = useLocale();
-  const [data, setData] = useState<Order[]>(initialOrders);
+  const { merchant } = useAuth();
+  const { data = [], isLoading, error } = useOrders(merchant?.id);
+  const updateStatus = useUpdateOrderStatus(merchant?.id);
   const [tab, setTab] = useState<"all" | "pending" | "active" | "done">("pending");
 
   const filtered = data.filter((o) => {
-    if (tab === "pending") return o.status === "pending";
-    if (tab === "active") return ["accepted", "pickup", "washing", "ready"].includes(o.status);
-    if (tab === "done") return ["delivered", "cancelled"].includes(o.status);
+    if (tab === "pending") return o.status === "pending" || o.status === "ai_dispatching";
+    if (tab === "active") return ACTIVE.includes(o.status);
+    if (tab === "done") return DONE.includes(o.status);
     return true;
   });
 
-  const update = (id: string, status: OrderStatus, msg: string) => {
-    setData((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    toast.success(msg);
+  const update = (id: string, status: LiveOrderStatus, msg: string) => {
+    updateStatus.mutate({ id, status }, {
+      onSuccess: () => toast.success(msg),
+      onError: (e) => toast.error((e as Error).message),
+    });
   };
+
+  const pendingCount = data.filter((o) => o.status === "pending" || o.status === "ai_dispatching").length;
+  const activeCount = data.filter((o) => ACTIVE.includes(o.status)).length;
 
   return (
     <div>
-      <AppHeader title="Orders" subtitle={`${data.filter((o) => o.status === "pending").length} new · ${data.filter((o) => ["accepted","pickup","washing","ready"].includes(o.status)).length} active`} />
+      <AppHeader title="Orders" subtitle={`${pendingCount} new · ${activeCount} active`} />
 
-      {/* Tabs */}
       <div className="px-5 mt-2 flex gap-2 overflow-x-auto pb-1 -mx-1">
         {tabs.map((t) => (
           <button
@@ -54,23 +65,29 @@ function OrdersPage() {
         ))}
       </div>
 
-      {/* Orders */}
       <div className="px-5 mt-4 space-y-3">
-        {filtered.length === 0 && (
+        {isLoading && (
+          <div className="text-center py-16 text-muted-foreground">
+            <Loader2 className="animate-spin mx-auto mb-2" />
+            <p className="text-sm">Loading orders…</p>
+          </div>
+        )}
+        {error && (
+          <div className="text-center py-8 text-destructive bg-destructive/5 border border-destructive/20 rounded-2xl">
+            <p className="text-sm font-semibold">Failed to load orders</p>
+            <p className="text-xs mt-1">{(error as Error).message}</p>
+          </div>
+        )}
+        {!isLoading && filtered.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
             <Package className="mx-auto mb-3 opacity-40" size={36} />
             <p className="text-sm">No orders here yet.</p>
           </div>
         )}
         {filtered.map((o) => {
-          const meta = statusMeta[o.status];
-          const trust = customerTrust[o.customer];
-          const trustTone =
-            trust?.riskScore === "low"
-              ? "bg-success/10 text-success border-success/20"
-              : trust?.riskScore === "medium"
-                ? "bg-warning/10 text-warning border-warning/30"
-                : "bg-destructive/10 text-destructive border-destructive/20";
+          const meta = statusMeta[(o.status as keyof typeof statusMeta)] ?? statusMeta.pending;
+          const avatar = (o.customer_name ?? "?").slice(0, 2).toUpperCase();
+          const shortId = o.id.slice(0, 8);
           return (
             <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
               <Link
@@ -80,43 +97,36 @@ function OrdersPage() {
               >
                 <div className="flex items-start gap-3">
                   <div className="h-12 w-12 rounded-xl bg-gradient-brand-soft text-primary font-bold flex items-center justify-center shrink-0">
-                    {o.avatar}
+                    {avatar}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-bold truncate">{o.customer}</div>
+                      <div className="font-bold truncate">{o.customer_name ?? "Customer"}</div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.tone}`}>{meta.label}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{o.id} · {o.createdAt}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{shortId} · {new Date(o.created_at).toLocaleString()}</div>
                   </div>
                 </div>
-
-                {trust && (
-                  <div className={`mt-3 flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border ${trustTone}`}>
-                    <Shield size={11} className="shrink-0" />
-                    <span className="truncate">AI background check · {trust.summary}</span>
-                  </div>
-                )}
 
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   <div className="bg-muted rounded-lg p-2">
                     <div className="text-muted-foreground">Service</div>
-                    <div className="font-semibold mt-0.5 truncate">{o.service}</div>
+                    <div className="font-semibold mt-0.5 truncate">{o.service_summary ?? "—"}</div>
                   </div>
                   <div className="bg-muted rounded-lg p-2">
                     <div className="text-muted-foreground">Items</div>
-                    <div className="font-semibold mt-0.5">{o.items}</div>
+                    <div className="font-semibold mt-0.5">{o.item_count ?? 0}</div>
                   </div>
                   <div className="bg-muted rounded-lg p-2">
                     <div className="text-muted-foreground">Amount</div>
-                    <div className="font-semibold mt-0.5 text-primary">{format(o.amount)}</div>
+                    <div className="font-semibold mt-0.5 text-primary">{format(o.total_local ?? 0)}</div>
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <MapPin size={12} className="text-primary shrink-0" />
-                    <span className="truncate">{o.address} · {o.distance}</span>
+                    <span className="truncate">{o.pickup_address ?? "—"}{o.distance_km ? ` · ${o.distance_km.toFixed(1)} km` : ""}</span>
                   </div>
                   <span className="text-primary font-semibold flex items-center gap-0.5 shrink-0">
                     Details <ChevronRight size={12} />
@@ -130,33 +140,27 @@ function OrdersPage() {
                 )}
               </Link>
 
-              {/* Action bar */}
-              {o.status === "pending" && (
+              {(o.status === "pending" || o.status === "ai_dispatching") && (
                 <div className="border-t border-border grid grid-cols-2">
-                  <button
-                    onClick={() => update(o.id, "cancelled", `Order ${o.id} declined`)}
-                    className="py-3 text-sm font-semibold text-destructive hover:bg-destructive/5 transition-smooth flex items-center justify-center gap-1.5"
-                  >
+                  <button onClick={() => update(o.id, "cancelled", `Order ${shortId} declined`)} className="py-3 text-sm font-semibold text-destructive hover:bg-destructive/5 transition-smooth flex items-center justify-center gap-1.5">
                     <X size={16} /> Decline
                   </button>
-                  <button
-                    onClick={() => update(o.id, "accepted", `Order ${o.id} accepted`)}
-                    className="py-3 text-sm font-bold text-primary-foreground bg-gradient-brand hover:opacity-95 transition-smooth flex items-center justify-center gap-1.5"
-                  >
+                  <button onClick={() => update(o.id, "accepted", `Order ${shortId} accepted`)} className="py-3 text-sm font-bold text-primary-foreground bg-gradient-brand hover:opacity-95 transition-smooth flex items-center justify-center gap-1.5">
                     <Check size={16} /> Accept job
                   </button>
                 </div>
               )}
-              {["accepted", "pickup", "washing", "ready"].includes(o.status) && (
+              {ACTIVE.includes(o.status) && (
                 <div className="border-t border-border p-3 flex items-center gap-2">
                   <div className="text-xs text-muted-foreground flex-1">Move to next stage:</div>
                   <button
                     onClick={() => {
-                      const next: Record<string, { status: OrderStatus; label: string }> = {
+                      const next: Partial<Record<LiveOrderStatus, { status: LiveOrderStatus; label: string }>> = {
                         accepted: { status: "pickup", label: "Picked up" },
                         pickup: { status: "washing", label: "Washing started" },
                         washing: { status: "ready", label: "Ready for delivery" },
-                        ready: { status: "delivered", label: "Delivered" },
+                        ready: { status: "out_for_delivery", label: "Out for delivery" },
+                        out_for_delivery: { status: "delivered", label: "Delivered" },
                       };
                       const n = next[o.status];
                       if (n) update(o.id, n.status, n.label);
