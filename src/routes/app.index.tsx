@@ -19,23 +19,19 @@ function DashboardHome() {
   const { merchant } = useAuth();
   const { data: orders = [] } = useOrders(merchant?.id);
   const updateMerchant = useUpdateMerchant();
-  const online = !!merchant?.is_online;
+  const online = !!merchant?.online;
   const pendingCount = orders.filter((o) => o.status === "pending" || o.status === "ai_dispatching").length;
   const activeOrders = orders.filter((o) => ["accepted", "pickup", "washing", "ready", "out_for_delivery"].includes(o.status));
-  const doneToday = orders.filter((o) => {
-    if (o.status !== "delivered") return false;
-    const d = new Date(o.created_at);
-    const today = new Date();
-    return d.toDateString() === today.toDateString();
-  }).length;
-  const todayEarnings = orders
-    .filter((o) => o.status === "delivered" && new Date(o.created_at).toDateString() === new Date().toDateString())
-    .reduce((sum, o) => sum + (o.total_local ?? 0), 0);
+  const todayOrders = orders.filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString());
+  const doneToday = todayOrders.filter((o) => o.status === "delivered").length;
+  const todayEarnings = todayOrders
+    .filter((o) => o.status === "delivered")
+    .reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0);
 
   const toggleOnline = () => {
     if (!merchant) return;
     updateMerchant.mutate(
-      { id: merchant.id, patch: { is_online: !online } },
+      { id: merchant.id, patch: { online: !online } },
       {
         onSuccess: () => toast.success(online ? "You're now offline" : "You're online — receiving jobs"),
         onError: (e) => toast.error((e as Error).message),
@@ -119,7 +115,7 @@ function DashboardHome() {
           <div className="flex items-center justify-between mb-1">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">This week</div>
-              <div className="text-2xl font-bold mt-0.5">{formatGHS(1820)}</div>
+              <div className="text-2xl font-bold mt-0.5">{formatGHS(orders.filter((o) => o.status === "delivered").reduce((s, o) => s + Number(o.amount_usd ?? 0), 0))}</div>
             </div>
             <Link to="/app/earnings" className="text-xs font-semibold text-primary flex items-center gap-1">
               Details <ArrowUpRight size={12} />
@@ -189,6 +185,8 @@ function DashboardHome() {
           )}
           {activeOrders.slice(0, 3).map((o) => {
             const meta = statusMeta[(o.status as keyof typeof statusMeta)] ?? statusMeta.pending;
+            const name = o.customer?.full_name ?? "Customer";
+            const items = Array.isArray(o.items) ? o.items.length : 0;
             return (
               <Link
                 key={o.id}
@@ -196,17 +194,17 @@ function DashboardHome() {
                 className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border shadow-card hover:bg-accent transition-smooth"
               >
                 <div className="h-11 w-11 rounded-xl bg-gradient-brand-soft text-primary font-bold flex items-center justify-center">
-                  {(o.customer_name ?? "?").slice(0, 2).toUpperCase()}
+                  {name.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="font-semibold text-sm truncate">{o.customer_name ?? "Customer"}</div>
+                    <div className="font-semibold text-sm truncate">{name}</div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.tone}`}>{meta.label}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{o.service_summary} · {o.item_count ?? 0} items</div>
+                  <div className="text-xs text-muted-foreground truncate">{items} items</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-sm">{formatGHS(o.total_local ?? 0)}</div>
+                  <div className="font-bold text-sm">{formatGHS(Number(o.amount_usd ?? 0))}</div>
                   <div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
                 </div>
               </Link>
@@ -220,7 +218,7 @@ function DashboardHome() {
         <div className="grid grid-cols-2 gap-3">
           {[
             { icon: Zap, title: "Express jobs", desc: "Earn 2× on 6hr orders", tone: "from-warning/20 to-warning/5" },
-            { icon: Star, title: `${(merchant?.rating_avg ?? 4.9).toFixed(1)}★ rating`, desc: "Top 5% in your city", tone: "from-success/20 to-success/5" },
+            { icon: Star, title: `${Number(merchant?.rating ?? 0).toFixed(1)}★ rating`, desc: `${merchant?.total_reviews ?? 0} reviews`, tone: "from-success/20 to-success/5" },
             { icon: Truck, title: "Free pickups", desc: `${activeOrders.length} active`, tone: "from-primary/20 to-primary/5" },
             { icon: Banknote, title: "Next payout", desc: "Mon", tone: "from-accent to-accent/30" },
           ].map((h) => (

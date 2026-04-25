@@ -2,17 +2,35 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, type AppRole } from "./supabase";
 
+/**
+ * Real schema (introspected): `merchants` columns are
+ *   id, owner_id, business_name, email, phone, address, city, country_code,
+ *   lat, lng, rating, total_reviews, total_orders, on_time_pct,
+ *   acceptance_rate, capacity_per_day, current_load, online, kyc_status, joined_at
+ *
+ * (No `country`, no `is_online`, no `created_at`, no `rating_avg`.)
+ */
 export interface MerchantRow {
   id: string;
   owner_id: string;
   business_name: string;
-  city: string | null;
-  country: string | null;
+  email: string | null;
   phone: string | null;
+  address: string | null;
+  city: string | null;
+  country_code: string | null;
+  lat: number | null;
+  lng: number | null;
+  rating: number | null;
+  total_reviews: number | null;
+  total_orders: number | null;
+  on_time_pct: number | null;
+  acceptance_rate: number | null;
+  capacity_per_day: number | null;
+  current_load: number | null;
+  online: boolean | null;
   kyc_status: "pending" | "in_review" | "verified" | "rejected" | null;
-  is_online: boolean | null;
-  rating_avg: number | null;
-  created_at: string;
+  joined_at: string;
 }
 
 interface AuthCtx {
@@ -50,10 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Subscribe FIRST per Supabase guidance, then read existing session.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
-      // Defer DB calls so they don't run inside the auth callback.
       setTimeout(() => {
         loadRolesAndMerchant(sess?.user?.id).finally(() => setLoading(false));
       }, 0);

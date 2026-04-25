@@ -61,14 +61,14 @@ export function AIDispatchPanel() {
           const expiresInSec = Math.max(0, Math.round((new Date(o.expires_at).getTime() - Date.now()) / 1000));
           const pct = Math.max(0, Math.min(100, (expiresInSec / 90) * 100));
           const urgent = expiresInSec < 20;
-          const payload = (o.payload ?? {}) as {
+          const payload: {
             customer_name?: string;
             service?: string;
             amount_local?: number;
             distance?: string;
             rider_name?: string;
             rider_eta?: string;
-          };
+          } = {};
           return (
             <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
               <div className="h-1 bg-muted">

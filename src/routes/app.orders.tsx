@@ -86,7 +86,9 @@ function OrdersPage() {
         )}
         {filtered.map((o) => {
           const meta = statusMeta[(o.status as keyof typeof statusMeta)] ?? statusMeta.pending;
-          const avatar = (o.customer_name ?? "?").slice(0, 2).toUpperCase();
+          const name = o.customer?.full_name ?? "Customer";
+          const items = Array.isArray(o.items) ? o.items.length : 0;
+          const avatar = name.slice(0, 2).toUpperCase();
           const shortId = o.id.slice(0, 8);
           return (
             <div key={o.id} className="bg-card rounded-2xl border border-border shadow-card overflow-hidden">
@@ -101,7 +103,7 @@ function OrdersPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-bold truncate">{o.customer_name ?? "Customer"}</div>
+                      <div className="font-bold truncate">{name}</div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.tone}`}>{meta.label}</span>
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">{shortId} · {new Date(o.created_at).toLocaleString()}</div>
@@ -110,23 +112,23 @@ function OrdersPage() {
 
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   <div className="bg-muted rounded-lg p-2">
-                    <div className="text-muted-foreground">Service</div>
-                    <div className="font-semibold mt-0.5 truncate">{o.service_summary ?? "—"}</div>
+                    <div className="text-muted-foreground">Items</div>
+                    <div className="font-semibold mt-0.5">{items}</div>
                   </div>
                   <div className="bg-muted rounded-lg p-2">
-                    <div className="text-muted-foreground">Items</div>
-                    <div className="font-semibold mt-0.5">{o.item_count ?? 0}</div>
+                    <div className="text-muted-foreground">Address</div>
+                    <div className="font-semibold mt-0.5 truncate">{o.pickup_address ?? "—"}</div>
                   </div>
                   <div className="bg-muted rounded-lg p-2">
                     <div className="text-muted-foreground">Amount</div>
-                    <div className="font-semibold mt-0.5 text-primary">{format(o.total_local ?? 0)}</div>
+                    <div className="font-semibold mt-0.5 text-primary">{format(Number(o.amount_usd ?? 0))}</div>
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <MapPin size={12} className="text-primary shrink-0" />
-                    <span className="truncate">{o.pickup_address ?? "—"}{o.distance_km ? ` · ${o.distance_km.toFixed(1)} km` : ""}</span>
+                    <span className="truncate">{o.delivery_address ?? o.pickup_address ?? "—"}</span>
                   </div>
                   <span className="text-primary font-semibold flex items-center gap-0.5 shrink-0">
                     Details <ChevronRight size={12} />
