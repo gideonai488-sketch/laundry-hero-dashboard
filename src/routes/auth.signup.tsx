@@ -17,7 +17,7 @@ function Signup() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
-    biz: "", owner: "", phone: "", country: "", city: "", email: "", password: "",
+    biz: "", owner: "", phone: "", country_code: "", city: "", email: "", password: "",
   });
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -47,8 +47,9 @@ function Signup() {
       const { error: mErr } = await supabase.from("merchants").insert({
         owner_id: userId,
         business_name: form.biz,
+        email: form.email,
         city: form.city || null,
-        country: form.country || null,
+        country_code: form.country_code || null,
         phone: form.phone || null,
       });
       if (mErr && mErr.code !== "23505") {
@@ -96,10 +97,15 @@ function Signup() {
               <Input id="phone" value={form.phone} onChange={set("phone")} placeholder="+1 555 123 4567" className="h-12 rounded-xl" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <select id="country" required value={form.country} onChange={set("country")} className="w-full h-12 rounded-xl px-3 bg-background border border-input text-sm">
+              <Label htmlFor="country_code">Country</Label>
+              <select id="country_code" required value={form.country_code} onChange={set("country_code")} className="w-full h-12 rounded-xl px-3 bg-background border border-input text-sm">
                 <option value="" disabled>Select…</option>
-                {["United States","United Kingdom","Canada","Australia","Germany","France","Spain","India","Brazil","Mexico","Nigeria","Kenya","Ghana","South Africa","UAE","Singapore","Japan","Other"].map((c) => <option key={c}>{c}</option>)}
+                {[
+                  ["US","United States"],["GB","United Kingdom"],["CA","Canada"],["AU","Australia"],
+                  ["DE","Germany"],["FR","France"],["ES","Spain"],["IN","India"],["BR","Brazil"],
+                  ["MX","Mexico"],["NG","Nigeria"],["KE","Kenya"],["GH","Ghana"],["ZA","South Africa"],
+                  ["AE","UAE"],["SG","Singapore"],["JP","Japan"],
+                ].map(([code, label]) => <option key={code} value={code}>{label}</option>)}
               </select>
             </div>
           </div>
