@@ -1,10 +1,27 @@
 import { useState } from "react";
 import { Mic } from "lucide-react";
-import { sampleVoicePrompts, voiceIntents } from "@/lib/mock-data";
-import { logVoiceCommand } from "@/lib/voice-history";
+import { useAuth } from "@/lib/auth";
+import { logVoiceCommandToDb } from "@/lib/queries";
 import { toast } from "sonner";
 
+const samplePrompts = [
+  "Show today's earnings",
+  "Mark order as ready",
+  "Open dispatch panel",
+  "What's my acceptance rate this week?",
+  "Pause new orders for 30 minutes",
+];
+
+const intents: { pattern: RegExp; intent: string; feedback: string }[] = [
+  { pattern: /earning/i, intent: "open_earnings", feedback: "Opening earnings…" },
+  { pattern: /ready/i, intent: "mark_ready", feedback: "Marking next order as ready" },
+  { pattern: /dispatch/i, intent: "open_dispatch", feedback: "Opening dispatch panel" },
+  { pattern: /accept/i, intent: "show_acceptance", feedback: "Showing acceptance rate" },
+  { pattern: /pause/i, intent: "pause_orders", feedback: "Pausing new orders for 30 min" },
+];
+
 export function VoiceCommandBar() {
+  const { user } = useAuth();
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
 
@@ -12,7 +29,7 @@ export function VoiceCommandBar() {
     if (listening) return;
     setListening(true);
     setTranscript("");
-    const sample = sampleVoicePrompts[Math.floor(Math.random() * sampleVoicePrompts.length)];
+    const sample = samplePrompts[Math.floor(Math.random() * samplePrompts.length)];
     let i = 0;
     const id = setInterval(() => {
       i++;
@@ -20,25 +37,21 @@ export function VoiceCommandBar() {
       if (i >= sample.length) {
         clearInterval(id);
         setTimeout(() => {
-          const intent = voiceIntents.find((v) => v.pattern.test(sample));
-          if (intent) {
-            toast.success(intent.feedback, { icon: "🎤", duration: 3500 });
-            logVoiceCommand({
-              transcript: sample,
-              intent: intent.action,
-              result: intent.feedback,
+          const match = intents.find((v) => v.pattern.test(sample));
+          const intent = match?.intent ?? "unknown";
+          const result = match?.feedback ?? "No matching intent";
+          const success = !!match;
+          if (success) toast.success(result, { icon: "🎤", duration: 3500 });
+          else toast(`Heard: "${sample}"`, { icon: "🎤" });
+          if (user) {
+            logVoiceCommandToDb({
+              userId: user.id,
               source: "push-to-talk",
-              success: true,
-            });
-          } else {
-            toast(`Heard: "${sample}"`, { icon: "🎤" });
-            logVoiceCommand({
               transcript: sample,
-              intent: "unknown",
-              result: "No matching intent",
-              source: "push-to-talk",
-              success: false,
-            });
+              intent,
+              resultSummary: result,
+              success,
+            }).catch(() => { /* swallow — non-critical */ });
           }
           setListening(false);
           setTranscript("");
