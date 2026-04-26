@@ -16,22 +16,20 @@ export const Route = createFileRoute("/auth/signup")({
 function Signup() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({
-    biz: "", owner: "", phone: "", country_code: "", city: "", email: "", password: "",
-  });
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+  const [form, setForm] = useState({ full_name: "", phone: "", email: "", password: "" });
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/app` : undefined;
+    const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/app/onboarding` : undefined;
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
         emailRedirectTo: redirectTo,
-        data: { full_name: form.owner, phone: form.phone },
+        data: { full_name: form.full_name, phone: form.phone },
       },
     });
 
@@ -41,31 +39,13 @@ function Signup() {
       return;
     }
 
-    const userId = data.user?.id;
-    if (userId) {
-      // Insert merchant row (kyc_status defaults to 'pending' on the backend).
-      const { error: mErr } = await supabase.from("merchants").insert({
-        owner_id: userId,
-        business_name: form.biz,
-        email: form.email,
-        city: form.city || null,
-        country_code: form.country_code || null,
-        phone: form.phone || null,
-      });
-      if (mErr && mErr.code !== "23505") {
-        // 23505 = duplicate; ignore if a trigger already created it.
-        console.error(mErr);
-        toast.error("Account created but business profile failed: " + mErr.message);
-      }
-    }
-
     setBusy(false);
     if (!data.session) {
       toast.success("Check your email to confirm your account.");
       navigate({ to: "/auth/login" });
     } else {
-      toast.success("Welcome to Highest Wash!");
-      navigate({ to: "/app" });
+      toast.success("Welcome — let's set up your shop.");
+      navigate({ to: "/app/onboarding" });
     }
   };
 
@@ -78,40 +58,18 @@ function Signup() {
         </Link>
         <div className="mt-10"><Logo size="lg" variant="light" /></div>
         <h1 className="mt-8 text-3xl font-bold">Become a merchant</h1>
-        <p className="mt-2 text-white/85">Start accepting jobs in 5 minutes — available in 30+ countries.</p>
+        <p className="mt-2 text-white/85">Win laundry orders in real-time across Ghana.</p>
       </div>
 
       <div className="flex-1 -mt-6 bg-background rounded-t-3xl px-6 pt-8 pb-10">
         <form onSubmit={submit} className="space-y-4 max-w-md mx-auto">
           <div className="space-y-2">
-            <Label htmlFor="biz">Business name</Label>
-            <Input id="biz" required value={form.biz} onChange={set("biz")} placeholder="Your laundry shop" className="h-12 rounded-xl" />
+            <Label htmlFor="name">Your name</Label>
+            <Input id="name" required value={form.full_name} onChange={set("full_name")} placeholder="Full name" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="owner">Your name</Label>
-            <Input id="owner" required value={form.owner} onChange={set("owner")} placeholder="Full name" className="h-12 rounded-xl" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={form.phone} onChange={set("phone")} placeholder="+1 555 123 4567" className="h-12 rounded-xl" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country_code">Country</Label>
-              <select id="country_code" required value={form.country_code} onChange={set("country_code")} className="w-full h-12 rounded-xl px-3 bg-background border border-input text-sm">
-                <option value="" disabled>Select…</option>
-                {[
-                  ["US","United States"],["GB","United Kingdom"],["CA","Canada"],["AU","Australia"],
-                  ["DE","Germany"],["FR","France"],["ES","Spain"],["IN","India"],["BR","Brazil"],
-                  ["MX","Mexico"],["NG","Nigeria"],["KE","Kenya"],["GH","Ghana"],["ZA","South Africa"],
-                  ["AE","UAE"],["SG","Singapore"],["JP","Japan"],
-                ].map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
-            <Input id="city" required value={form.city} onChange={set("city")} placeholder="e.g. London, Lagos, Tokyo" className="h-12 rounded-xl" />
+            <Label htmlFor="phone">Phone</Label>
+            <Input id="phone" value={form.phone} onChange={set("phone")} placeholder="+233 20 000 0000" className="h-12 rounded-xl" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -123,7 +81,11 @@ function Signup() {
           </div>
 
           <div className="rounded-xl bg-gradient-brand-soft p-4 space-y-2">
-            {["Free to start, no monthly fees", "Get paid weekly to bank or mobile wallet", "Insurance on every order"].map((b) => (
+            {[
+              "Live incoming orders from the customer app",
+              "Bid your own price — win the jobs you want",
+              "Paystack settlement to your bank",
+            ].map((b) => (
               <div key={b} className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <CheckCircle2 size={16} className="text-success" /> {b}
               </div>

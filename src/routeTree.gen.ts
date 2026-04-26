@@ -19,6 +19,7 @@ import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
+import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
 
@@ -72,6 +73,11 @@ const AppOrdersRoute = AppOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEarningsRoute = AppEarningsRouteImport.update({
   id: '/earnings',
   path: '/earnings',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/earnings': typeof AppEarningsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/earnings': typeof AppEarningsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
   '/auth/login': typeof AuthLoginRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/earnings'
+    | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
     | '/auth/login'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/app/earnings'
+    | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
     | '/auth/login'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/earnings'
+    | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
     | '/auth/login'
@@ -251,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrdersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/earnings': {
       id: '/app/earnings'
       path: '/earnings'
@@ -270,6 +289,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppEarningsRoute: typeof AppEarningsRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -278,6 +298,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppEarningsRoute: AppEarningsRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
