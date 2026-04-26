@@ -1,11 +1,9 @@
 import { Outlet, createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
-import { AICopilot } from "@/components/AICopilot";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { OnboardingTour } from "@/components/OnboardingTour";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
-import { Loader2, ShieldCheck, Clock, AlertTriangle } from "lucide-react";
+import { Loader2, Store, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/app")({
@@ -20,6 +18,13 @@ function AppLayout() {
     if (!loading && !user) navigate({ to: "/auth/login" });
   }, [loading, user, navigate]);
 
+  // Redirect to onboarding when authed but no merchant row exists
+  useEffect(() => {
+    if (!loading && user && !merchant && location.pathname !== "/app/onboarding") {
+      navigate({ to: "/app/onboarding" });
+    }
+  }, [loading, user, merchant, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -30,43 +35,25 @@ function AppLayout() {
 
   if (!user) return null;
 
-  // No merchant row yet → onboarding hint
-  if (!merchant) {
+  // Allow the onboarding route to render even when there's no merchant yet.
+  const onOnboarding = typeof window !== "undefined" && window.location.pathname === "/app/onboarding";
+
+  if (!merchant && !onOnboarding) {
     return (
-      <GateScreen
-        icon={<AlertTriangle size={28} />}
-        title="No merchant profile"
-        body="Your account isn't linked to a laundry shop yet. Complete signup or contact support."
-        cta={{ label: "Back to signup", to: "/auth/signup" }}
-      />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin text-primary" size={28} />
+      </div>
     );
   }
 
-  // KYC gate
-  if (merchant.kyc_status !== "verified") {
-    return (
-      <GateScreen
-        icon={<Clock size={28} />}
-        title={merchant.kyc_status === "rejected" ? "KYC rejected" : "Verification in progress"}
-        body={
-          merchant.kyc_status === "rejected"
-            ? "Our team rejected your last KYC submission. Please re-upload your documents."
-            : "Our team is reviewing your business documents. You'll be able to go online once verified — usually under 24 hours."
-        }
-        cta={{ label: "Open KYC center", to: "/app/kyc" }}
-        allowKyc
-      />
-    );
-  }
-
-  // Role check (admin allowed too as a fail-safe for support sessions)
-  if (!isMerchant) {
+  // Role check (admin allowed too as a fail-safe)
+  if (merchant && !isMerchant) {
     return (
       <GateScreen
         icon={<ShieldCheck size={28} />}
         title="Awaiting role grant"
-        body="Your KYC is verified but the 'merchant' role hasn't been granted yet. Our team will assign it shortly."
-        cta={{ label: "Sign out", to: "/auth/login" }}
+        body={"Your shop is set up but the 'merchant' role isn't on your account yet. Please contact support so we can activate it."}
+        cta={{ label: "Sign out", to: "/auth/login" as const }}
       />
     );
   }
@@ -77,21 +64,18 @@ function AppLayout() {
       <div className="mx-auto w-full max-w-md min-h-screen pb-28 relative">
         <Outlet />
       </div>
-      <AICopilot />
       <BottomNav />
-      <OnboardingTour />
     </div>
   );
 }
 
 function GateScreen({
-  icon, title, body, cta, allowKyc,
+  icon, title, body, cta,
 }: {
   icon: React.ReactNode;
   title: string;
   body: string;
-  cta: { label: string; to: string };
-  allowKyc?: boolean;
+  cta: { label: string; to: "/auth/login" };
 }) {
   const { signOut } = useAuth();
   return (
@@ -107,15 +91,9 @@ function GateScreen({
           <h1 className="mt-5 text-2xl font-bold">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
           <div className="mt-6 space-y-2">
-            {allowKyc ? (
-              <Link to="/app/kyc" className="block w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground shadow-brand font-semibold flex items-center justify-center">
-                {cta.label}
-              </Link>
-            ) : (
-              <Link to={cta.to} className="block w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground shadow-brand font-semibold flex items-center justify-center">
-                {cta.label}
-              </Link>
-            )}
+            <Link to={cta.to} className="block w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground shadow-brand font-semibold flex items-center justify-center">
+              {cta.label}
+            </Link>
             <button onClick={signOut} className="block w-full h-12 rounded-xl border border-border font-semibold">
               Sign out
             </button>

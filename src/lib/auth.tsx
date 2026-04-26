@@ -3,17 +3,19 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase, type AppRole } from "./supabase";
 
 /**
- * Real schema (introspected): `merchants` columns are
+ * Real `merchants` columns in the shared backend
+ * (NOT `hw_merchants`):
  *   id, owner_id, business_name, email, phone, address, city, country_code,
- *   lat, lng, rating, total_reviews, total_orders, on_time_pct,
- *   acceptance_rate, capacity_per_day, current_load, online, kyc_status, joined_at
+ *   lat, lng, online, paystack_subaccount_code, kyc_status, joined_at,
+ *   plus a few stat columns (rating, total_orders, ...).
  *
- * (No `country`, no `is_online`, no `created_at`, no `rating_avg`.)
+ * We deliberately do NOT gate on `kyc_status` — the spec says treat all
+ * merchants as verified for now.
  */
 export interface MerchantRow {
   id: string;
   owner_id: string;
-  business_name: string;
+  business_name: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;
@@ -21,16 +23,9 @@ export interface MerchantRow {
   country_code: string | null;
   lat: number | null;
   lng: number | null;
-  rating: number | null;
-  total_reviews: number | null;
-  total_orders: number | null;
-  on_time_pct: number | null;
-  acceptance_rate: number | null;
-  capacity_per_day: number | null;
-  current_load: number | null;
   online: boolean | null;
-  kyc_status: "pending" | "in_review" | "verified" | "rejected" | null;
-  joined_at: string;
+  paystack_subaccount_code: string | null;
+  joined_at?: string | null;
 }
 
 interface AuthCtx {
@@ -40,7 +35,6 @@ interface AuthCtx {
   roles: AppRole[];
   merchant: MerchantRow | null;
   isMerchant: boolean;
-  isVerified: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -63,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("user_roles").select("role").eq("user_id", uid),
       supabase.from("merchants").select("*").eq("owner_id", uid).maybeSingle(),
     ]);
-    setRoles((rolesRes.data ?? []).map((r: { role: AppRole }) => r.role));
+    setRoles(((rolesRes.data ?? []) as { role: AppRole }[]).map((r) => r.role));
     setMerchant((merchantRes.data as MerchantRow | null) ?? null);
   };
 
@@ -91,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       roles,
       merchant,
       isMerchant: roles.includes("merchant") || roles.includes("admin"),
-      isVerified: merchant?.kyc_status === "verified",
       refresh: () => loadRolesAndMerchant(session?.user?.id),
       signOut: async () => {
         await supabase.auth.signOut();

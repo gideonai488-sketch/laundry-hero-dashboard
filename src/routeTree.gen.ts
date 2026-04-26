@@ -17,32 +17,11 @@ import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
 import { Route as LegalMerchantRouteImport } from './routes/legal.merchant'
 import { Route as AuthSignupRouteImport } from './routes/auth.signup'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
-import { Route as AppVoiceHistoryRouteImport } from './routes/app.voice-history'
-import { Route as AppSuppliesRouteImport } from './routes/app.supplies'
-import { Route as AppStaffRouteImport } from './routes/app.staff'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppServicesRouteImport } from './routes/app.services'
-import { Route as AppSearchRouteImport } from './routes/app.search'
-import { Route as AppScorecardRouteImport } from './routes/app.scorecard'
-import { Route as AppSchedulingRouteImport } from './routes/app.scheduling'
-import { Route as AppReviewsRouteImport } from './routes/app.reviews'
-import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppPromotionsRouteImport } from './routes/app.promotions'
-import { Route as AppProfileRouteImport } from './routes/app.profile'
-import { Route as AppPayoutsRouteImport } from './routes/app.payouts'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
-import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
-import { Route as AppKycRouteImport } from './routes/app.kyc'
-import { Route as AppInventoryRouteImport } from './routes/app.inventory'
-import { Route as AppHelpRouteImport } from './routes/app.help'
+import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
-import { Route as AppCustomersRouteImport } from './routes/app.customers'
-import { Route as AppChatRouteImport } from './routes/app.chat'
-import { Route as AppBankRouteImport } from './routes/app.bank'
-import { Route as AppAiPricingRouteImport } from './routes/app.ai-pricing'
-import { Route as AppAiGuardRouteImport } from './routes/app.ai-guard'
 import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
-import { Route as AppMessageChatIdRouteImport } from './routes/app.message.$chatId'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -84,69 +63,9 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppVoiceHistoryRoute = AppVoiceHistoryRouteImport.update({
-  id: '/voice-history',
-  path: '/voice-history',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSuppliesRoute = AppSuppliesRouteImport.update({
-  id: '/supplies',
-  path: '/supplies',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppStaffRoute = AppStaffRouteImport.update({
-  id: '/staff',
-  path: '/staff',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppServicesRoute = AppServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSearchRoute = AppSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppScorecardRoute = AppScorecardRouteImport.update({
-  id: '/scorecard',
-  path: '/scorecard',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppSchedulingRoute = AppSchedulingRouteImport.update({
-  id: '/scheduling',
-  path: '/scheduling',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReviewsRoute = AppReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPromotionsRoute = AppPromotionsRouteImport.update({
-  id: '/promotions',
-  path: '/promotions',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPayoutsRoute = AppPayoutsRouteImport.update({
-  id: '/payouts',
-  path: '/payouts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppOrdersRoute = AppOrdersRouteImport.update({
@@ -154,24 +73,9 @@ const AppOrdersRoute = AppOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AppRoute,
 } as any)
-const AppNotificationsRoute = AppNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppKycRoute = AppKycRouteImport.update({
-  id: '/kyc',
-  path: '/kyc',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppHelpRoute = AppHelpRouteImport.update({
-  id: '/help',
-  path: '/help',
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
 const AppEarningsRoute = AppEarningsRouteImport.update({
@@ -179,148 +83,55 @@ const AppEarningsRoute = AppEarningsRouteImport.update({
   path: '/earnings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCustomersRoute = AppCustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppChatRoute = AppChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBankRoute = AppBankRouteImport.update({
-  id: '/bank',
-  path: '/bank',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAiPricingRoute = AppAiPricingRouteImport.update({
-  id: '/ai-pricing',
-  path: '/ai-pricing',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAiGuardRoute = AppAiGuardRouteImport.update({
-  id: '/ai-guard',
-  path: '/ai-guard',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppOrderOrderIdRoute = AppOrderOrderIdRouteImport.update({
   id: '/order/$orderId',
   path: '/order/$orderId',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMessageChatIdRoute = AppMessageChatIdRouteImport.update({
-  id: '/message/$chatId',
-  path: '/message/$chatId',
   getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/app/ai-guard': typeof AppAiGuardRoute
-  '/app/ai-pricing': typeof AppAiPricingRoute
-  '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRoute
-  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
-  '/app/help': typeof AppHelpRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kyc': typeof AppKycRoute
-  '/app/notifications': typeof AppNotificationsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
-  '/app/payouts': typeof AppPayoutsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/promotions': typeof AppPromotionsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/reviews': typeof AppReviewsRoute
-  '/app/scheduling': typeof AppSchedulingRoute
-  '/app/scorecard': typeof AppScorecardRoute
-  '/app/search': typeof AppSearchRoute
-  '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/staff': typeof AppStaffRoute
-  '/app/supplies': typeof AppSuppliesRoute
-  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
-  '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app/ai-guard': typeof AppAiGuardRoute
-  '/app/ai-pricing': typeof AppAiPricingRoute
-  '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRoute
-  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
-  '/app/help': typeof AppHelpRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kyc': typeof AppKycRoute
-  '/app/notifications': typeof AppNotificationsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
-  '/app/payouts': typeof AppPayoutsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/promotions': typeof AppPromotionsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/reviews': typeof AppReviewsRoute
-  '/app/scheduling': typeof AppSchedulingRoute
-  '/app/scorecard': typeof AppScorecardRoute
-  '/app/search': typeof AppSearchRoute
-  '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/staff': typeof AppStaffRoute
-  '/app/supplies': typeof AppSuppliesRoute
-  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app': typeof AppIndexRoute
-  '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/app/ai-guard': typeof AppAiGuardRoute
-  '/app/ai-pricing': typeof AppAiPricingRoute
-  '/app/bank': typeof AppBankRoute
-  '/app/chat': typeof AppChatRoute
-  '/app/customers': typeof AppCustomersRoute
   '/app/earnings': typeof AppEarningsRoute
-  '/app/help': typeof AppHelpRoute
-  '/app/inventory': typeof AppInventoryRoute
-  '/app/kyc': typeof AppKycRoute
-  '/app/notifications': typeof AppNotificationsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
-  '/app/payouts': typeof AppPayoutsRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/promotions': typeof AppPromotionsRoute
-  '/app/reports': typeof AppReportsRoute
-  '/app/reviews': typeof AppReviewsRoute
-  '/app/scheduling': typeof AppSchedulingRoute
-  '/app/scorecard': typeof AppScorecardRoute
-  '/app/search': typeof AppSearchRoute
-  '/app/services': typeof AppServicesRoute
   '/app/settings': typeof AppSettingsRoute
-  '/app/staff': typeof AppStaffRoute
-  '/app/supplies': typeof AppSuppliesRoute
-  '/app/voice-history': typeof AppVoiceHistoryRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/signup': typeof AuthSignupRoute
   '/legal/merchant': typeof LegalMerchantRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
-  '/app/message/$chatId': typeof AppMessageChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRouteTypes {
@@ -328,108 +139,45 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
-    | '/app/ai-guard'
-    | '/app/ai-pricing'
-    | '/app/bank'
-    | '/app/chat'
-    | '/app/customers'
     | '/app/earnings'
-    | '/app/help'
-    | '/app/inventory'
-    | '/app/kyc'
-    | '/app/notifications'
+    | '/app/onboarding'
     | '/app/orders'
-    | '/app/payouts'
-    | '/app/profile'
-    | '/app/promotions'
-    | '/app/reports'
-    | '/app/reviews'
-    | '/app/scheduling'
-    | '/app/scorecard'
-    | '/app/search'
-    | '/app/services'
     | '/app/settings'
-    | '/app/staff'
-    | '/app/supplies'
-    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
     | '/legal/privacy'
     | '/legal/terms'
     | '/app/'
-    | '/app/message/$chatId'
     | '/app/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app/ai-guard'
-    | '/app/ai-pricing'
-    | '/app/bank'
-    | '/app/chat'
-    | '/app/customers'
     | '/app/earnings'
-    | '/app/help'
-    | '/app/inventory'
-    | '/app/kyc'
-    | '/app/notifications'
+    | '/app/onboarding'
     | '/app/orders'
-    | '/app/payouts'
-    | '/app/profile'
-    | '/app/promotions'
-    | '/app/reports'
-    | '/app/reviews'
-    | '/app/scheduling'
-    | '/app/scorecard'
-    | '/app/search'
-    | '/app/services'
     | '/app/settings'
-    | '/app/staff'
-    | '/app/supplies'
-    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
     | '/legal/privacy'
     | '/legal/terms'
     | '/app'
-    | '/app/message/$chatId'
     | '/app/order/$orderId'
   id:
     | '__root__'
     | '/'
     | '/app'
-    | '/app/ai-guard'
-    | '/app/ai-pricing'
-    | '/app/bank'
-    | '/app/chat'
-    | '/app/customers'
     | '/app/earnings'
-    | '/app/help'
-    | '/app/inventory'
-    | '/app/kyc'
-    | '/app/notifications'
+    | '/app/onboarding'
     | '/app/orders'
-    | '/app/payouts'
-    | '/app/profile'
-    | '/app/promotions'
-    | '/app/reports'
-    | '/app/reviews'
-    | '/app/scheduling'
-    | '/app/scorecard'
-    | '/app/search'
-    | '/app/services'
     | '/app/settings'
-    | '/app/staff'
-    | '/app/supplies'
-    | '/app/voice-history'
     | '/auth/login'
     | '/auth/signup'
     | '/legal/merchant'
     | '/legal/privacy'
     | '/legal/terms'
     | '/app/'
-    | '/app/message/$chatId'
     | '/app/order/$orderId'
   fileRoutesById: FileRoutesById
 }
@@ -501,95 +249,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/voice-history': {
-      id: '/app/voice-history'
-      path: '/voice-history'
-      fullPath: '/app/voice-history'
-      preLoaderRoute: typeof AppVoiceHistoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/supplies': {
-      id: '/app/supplies'
-      path: '/supplies'
-      fullPath: '/app/supplies'
-      preLoaderRoute: typeof AppSuppliesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/staff': {
-      id: '/app/staff'
-      path: '/staff'
-      fullPath: '/app/staff'
-      preLoaderRoute: typeof AppStaffRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/services': {
-      id: '/app/services'
-      path: '/services'
-      fullPath: '/app/services'
-      preLoaderRoute: typeof AppServicesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/search': {
-      id: '/app/search'
-      path: '/search'
-      fullPath: '/app/search'
-      preLoaderRoute: typeof AppSearchRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/scorecard': {
-      id: '/app/scorecard'
-      path: '/scorecard'
-      fullPath: '/app/scorecard'
-      preLoaderRoute: typeof AppScorecardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/scheduling': {
-      id: '/app/scheduling'
-      path: '/scheduling'
-      fullPath: '/app/scheduling'
-      preLoaderRoute: typeof AppSchedulingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/reviews': {
-      id: '/app/reviews'
-      path: '/reviews'
-      fullPath: '/app/reviews'
-      preLoaderRoute: typeof AppReviewsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/reports': {
-      id: '/app/reports'
-      path: '/reports'
-      fullPath: '/app/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/promotions': {
-      id: '/app/promotions'
-      path: '/promotions'
-      fullPath: '/app/promotions'
-      preLoaderRoute: typeof AppPromotionsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/profile': {
-      id: '/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/payouts': {
-      id: '/app/payouts'
-      path: '/payouts'
-      fullPath: '/app/payouts'
-      preLoaderRoute: typeof AppPayoutsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/orders': {
@@ -599,32 +263,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrdersRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/notifications': {
-      id: '/app/notifications'
-      path: '/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/kyc': {
-      id: '/app/kyc'
-      path: '/kyc'
-      fullPath: '/app/kyc'
-      preLoaderRoute: typeof AppKycRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/inventory': {
-      id: '/app/inventory'
-      path: '/inventory'
-      fullPath: '/app/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/help': {
-      id: '/app/help'
-      path: '/help'
-      fullPath: '/app/help'
-      preLoaderRoute: typeof AppHelpRouteImport
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/earnings': {
@@ -634,41 +277,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEarningsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/customers': {
-      id: '/app/customers'
-      path: '/customers'
-      fullPath: '/app/customers'
-      preLoaderRoute: typeof AppCustomersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/chat': {
-      id: '/app/chat'
-      path: '/chat'
-      fullPath: '/app/chat'
-      preLoaderRoute: typeof AppChatRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/bank': {
-      id: '/app/bank'
-      path: '/bank'
-      fullPath: '/app/bank'
-      preLoaderRoute: typeof AppBankRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/ai-pricing': {
-      id: '/app/ai-pricing'
-      path: '/ai-pricing'
-      fullPath: '/app/ai-pricing'
-      preLoaderRoute: typeof AppAiPricingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/ai-guard': {
-      id: '/app/ai-guard'
-      path: '/ai-guard'
-      fullPath: '/app/ai-guard'
-      preLoaderRoute: typeof AppAiGuardRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/order/$orderId': {
       id: '/app/order/$orderId'
       path: '/order/$orderId'
@@ -676,73 +284,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrderOrderIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/message/$chatId': {
-      id: '/app/message/$chatId'
-      path: '/message/$chatId'
-      fullPath: '/app/message/$chatId'
-      preLoaderRoute: typeof AppMessageChatIdRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
 interface AppRouteChildren {
-  AppAiGuardRoute: typeof AppAiGuardRoute
-  AppAiPricingRoute: typeof AppAiPricingRoute
-  AppBankRoute: typeof AppBankRoute
-  AppChatRoute: typeof AppChatRoute
-  AppCustomersRoute: typeof AppCustomersRoute
   AppEarningsRoute: typeof AppEarningsRoute
-  AppHelpRoute: typeof AppHelpRoute
-  AppInventoryRoute: typeof AppInventoryRoute
-  AppKycRoute: typeof AppKycRoute
-  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppOrdersRoute: typeof AppOrdersRoute
-  AppPayoutsRoute: typeof AppPayoutsRoute
-  AppProfileRoute: typeof AppProfileRoute
-  AppPromotionsRoute: typeof AppPromotionsRoute
-  AppReportsRoute: typeof AppReportsRoute
-  AppReviewsRoute: typeof AppReviewsRoute
-  AppSchedulingRoute: typeof AppSchedulingRoute
-  AppScorecardRoute: typeof AppScorecardRoute
-  AppSearchRoute: typeof AppSearchRoute
-  AppServicesRoute: typeof AppServicesRoute
   AppSettingsRoute: typeof AppSettingsRoute
-  AppStaffRoute: typeof AppStaffRoute
-  AppSuppliesRoute: typeof AppSuppliesRoute
-  AppVoiceHistoryRoute: typeof AppVoiceHistoryRoute
   AppIndexRoute: typeof AppIndexRoute
-  AppMessageChatIdRoute: typeof AppMessageChatIdRoute
   AppOrderOrderIdRoute: typeof AppOrderOrderIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAiGuardRoute: AppAiGuardRoute,
-  AppAiPricingRoute: AppAiPricingRoute,
-  AppBankRoute: AppBankRoute,
-  AppChatRoute: AppChatRoute,
-  AppCustomersRoute: AppCustomersRoute,
   AppEarningsRoute: AppEarningsRoute,
-  AppHelpRoute: AppHelpRoute,
-  AppInventoryRoute: AppInventoryRoute,
-  AppKycRoute: AppKycRoute,
-  AppNotificationsRoute: AppNotificationsRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppOrdersRoute: AppOrdersRoute,
-  AppPayoutsRoute: AppPayoutsRoute,
-  AppProfileRoute: AppProfileRoute,
-  AppPromotionsRoute: AppPromotionsRoute,
-  AppReportsRoute: AppReportsRoute,
-  AppReviewsRoute: AppReviewsRoute,
-  AppSchedulingRoute: AppSchedulingRoute,
-  AppScorecardRoute: AppScorecardRoute,
-  AppSearchRoute: AppSearchRoute,
-  AppServicesRoute: AppServicesRoute,
   AppSettingsRoute: AppSettingsRoute,
-  AppStaffRoute: AppStaffRoute,
-  AppSuppliesRoute: AppSuppliesRoute,
-  AppVoiceHistoryRoute: AppVoiceHistoryRoute,
   AppIndexRoute: AppIndexRoute,
-  AppMessageChatIdRoute: AppMessageChatIdRoute,
   AppOrderOrderIdRoute: AppOrderOrderIdRoute,
 }
 
@@ -760,12 +319,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

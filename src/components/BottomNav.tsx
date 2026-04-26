@@ -1,12 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, ClipboardList, BarChart3, MessageSquare, User } from "lucide-react";
+import { Home, ClipboardList, Wallet, Settings } from "lucide-react";
 
 const items = [
   { to: "/app" as const, label: "Home", icon: Home, exact: true },
   { to: "/app/orders" as const, label: "Orders", icon: ClipboardList },
-  { to: "/app/earnings" as const, label: "Earnings", icon: BarChart3 },
-  { to: "/app/chat" as const, label: "Chat", icon: MessageSquare },
-  { to: "/app/profile" as const, label: "Profile", icon: User },
+  { to: "/app/earnings" as const, label: "Wallet", icon: Wallet },
+  { to: "/app/settings" as const, label: "Settings", icon: Settings },
 ];
 
 export function BottomNav() {
@@ -23,14 +22,14 @@ export function BottomNav() {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-smooth min-w-[56px] ${
+              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-smooth min-w-[64px] ${
                 isActive
                   ? "bg-gradient-brand text-primary-foreground shadow-brand"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-              <span className={`text-[10px] font-semibold ${isActive ? "" : ""}`}>{item.label}</span>
+              <span className="text-[10px] font-semibold">{item.label}</span>
             </Link>
           );
         })}

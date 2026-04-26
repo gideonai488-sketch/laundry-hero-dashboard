@@ -1,248 +1,470 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
-import { AIDispatchPanel } from "@/components/AIDispatchPanel";
-import { AIInsights } from "@/components/AIInsights";
-import { revenueData, statusMeta } from "@/lib/mock-data";
-import { useLocale } from "@/lib/locale";
-import { useAuth } from "@/lib/auth";
-import { useOrders, useUpdateMerchant } from "@/lib/queries";
-import { ArrowUpRight, Award, BarChart3, Banknote, Bike, Bot, Calendar, ClipboardList, History, Package, Power, Shield, Sparkles, Star, Truck, Users, Wallet, Zap } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
+import {
+  Activity,
+  ArrowRight,
+  Banknote,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
+  Loader2,
+  MapPin,
+  PackageOpen,
+  Power,
+  Radio,
+  Sparkles,
+  Trophy,
+  X,
+} from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import {
+  useIncomingFeed,
+  useMyOrders,
+  useToggleOnline,
+  useSubmitBid,
+  useMyBidsWatcher,
+} from "@/lib/queries";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/app/")({
-  component: DashboardHome,
+  head: () => ({ meta: [{ title: "Dashboard — Highest Wash Merchant" }] }),
+  component: Dashboard,
 });
 
-function DashboardHome() {
-  const { format: formatGHS } = useLocale();
-  const { merchant } = useAuth();
-  const { data: orders = [] } = useOrders(merchant?.id);
-  const updateMerchant = useUpdateMerchant();
-  const online = !!merchant?.online;
-  const pendingCount = orders.filter((o) => o.status === "pending" || o.status === "ai_dispatching").length;
-  const activeOrders = orders.filter((o) => ["accepted", "pickup", "washing", "ready", "out_for_delivery"].includes(o.status));
-  const todayOrders = orders.filter((o) => new Date(o.created_at).toDateString() === new Date().toDateString());
-  const doneToday = todayOrders.filter((o) => o.status === "delivered").length;
-  const todayEarnings = todayOrders
-    .filter((o) => o.status === "delivered")
-    .reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0);
+const fmt = (n: number) => `₵${n.toFixed(2)}`;
 
-  const toggleOnline = () => {
-    if (!merchant) return;
-    updateMerchant.mutate(
-      { id: merchant.id, patch: { online: !online } },
+function haversineKm(lat1?: number | null, lng1?: number | null, lat2?: number | null, lng2?: number | null) {
+  if (lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+  const R = 6371;
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function Dashboard() {
+  const navigate = useNavigate();
+  const { merchant, refresh } = useAuth();
+  const merchantId = merchant?.id;
+
+  const toggleOnline = useToggleOnline();
+  const { data: incoming = [], isLoading: incomingLoading } = useIncomingFeed(merchantId);
+  const { data: myOrders = [] } = useMyOrders(merchantId);
+
+  // Toast on win + jump to order
+  useMyBidsWatcher(merchantId, (orderId) => {
+    toast.success(`🎉 You won order #${orderId.slice(0, 6)}!`);
+    refresh();
+  });
+
+  const today = new Date();
+  const isToday = (iso?: string | null) => {
+    if (!iso) return false;
+    const d = new Date(iso);
+    return d.toDateString() === today.toDateString();
+  };
+
+  // Stats
+  const inProgress = useMemo(
+    () =>
+      myOrders.filter(
+        (o: any) =>
+          o.delivery_status &&
+          !["delivered", "cancelled"].includes(o.delivery_status as string)
+      ),
+    [myOrders]
+  );
+  const deliveredToday = useMemo(
+    () => myOrders.filter((o: any) => o.delivery_status === "delivered" && isToday(o.delivered_at)),
+    [myOrders]
+  );
+  const earnedToday = useMemo(
+    () =>
+      deliveredToday
+        .filter((o: any) => o.payment_status === "paid")
+        .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0),
+    [deliveredToday]
+  );
+  const wonToday = useMemo(
+    () => myOrders.filter((o: any) => isToday(o.created_at)).length,
+    [myOrders]
+  );
+
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
+  const visibleIncoming = useMemo(
+    () => incoming.filter((o: any) => !skipped.has(o.id) && !o.my_bid),
+    [incoming, skipped]
+  );
+
+  const [bidOrder, setBidOrder] = useState<any | null>(null);
+
+  const setOnline = (v: boolean) => {
+    if (!merchantId) return;
+    toggleOnline.mutate(
+      { merchantId, online: v },
       {
-        onSuccess: () => toast.success(online ? "You're now offline" : "You're online — receiving jobs"),
-        onError: (e) => toast.error((e as Error).message),
+        onSuccess: () => {
+          toast.success(v ? "You're online — sending you orders." : "Shop is offline.");
+          refresh();
+        },
+        onError: (e: any) => toast.error(e.message),
       }
     );
   };
 
   return (
     <div>
-      <AppHeader showLocation />
-
-      <section className="px-5">
-        <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-5 shadow-brand relative overflow-hidden">
-          <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Today's earnings</div>
-              <div className="text-3xl font-bold mt-1">{formatGHS(todayEarnings)}</div>
-              <div className="flex items-center gap-1 text-xs text-white/85 mt-1">
-                <ArrowUpRight size={12} /> {merchant?.business_name ?? "Your shop"}
-              </div>
+      {/* Header */}
+      <header className="px-5 pt-6 pb-4 bg-gradient-hero text-primary-foreground rounded-b-3xl shadow-brand">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-xs text-white/75 font-medium">Welcome back</div>
+            <div className="flex items-center gap-1.5 mt-0.5 truncate">
+              <MapPin size={14} className="shrink-0" />
+              <div className="text-base font-bold truncate">{merchant?.business_name ?? "My shop"}</div>
             </div>
-            <button
-              onClick={toggleOnline}
-              disabled={updateMerchant.isPending}
-              className={`flex flex-col items-center gap-1 px-4 py-3 rounded-2xl backdrop-blur border ${
-                online ? "bg-success/20 border-success/40" : "bg-white/10 border-white/20"
-              } disabled:opacity-60`}
-              aria-label="Toggle availability"
-            >
-              <Power size={20} />
-              <span className="text-[10px] font-bold uppercase">{online ? "Online" : "Offline"}</span>
+          </div>
+
+          <button
+            onClick={() => setOnline(!merchant?.online)}
+            disabled={toggleOnline.isPending}
+            className={`flex items-center gap-2 px-3 h-10 rounded-full text-xs font-bold transition-smooth border ${
+              merchant?.online
+                ? "bg-success/20 border-success/30 text-white"
+                : "bg-white/10 border-white/30 text-white/85"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${merchant?.online ? "bg-success animate-pulse" : "bg-white/60"}`} />
+            <Power size={14} />
+            {merchant?.online ? "Online" : "Offline"}
+          </button>
+        </div>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-4 gap-2 mt-5">
+          <Stat label="Won today" value={String(wonToday)} icon={<Trophy size={14} />} />
+          <Stat label="In progress" value={String(inProgress.length)} icon={<Activity size={14} />} />
+          <Stat label="Delivered" value={String(deliveredToday.length)} icon={<CheckCircle2 size={14} />} />
+          <Stat label="₵ today" value={fmt(earnedToday)} icon={<Banknote size={14} />} />
+        </div>
+      </header>
+
+      {/* Live feed */}
+      <section className="px-5 mt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Radio size={16} className="text-primary" /> Incoming orders
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Live broadcast pool — bid fast, the customer picks one merchant.
+            </p>
+          </div>
+          {merchant?.online && (
+            <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-success/15 text-success">
+              LIVE
+            </span>
+          )}
+        </div>
+
+        {!merchant?.online && (
+          <div className="mt-4 rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+            <Power className="mx-auto mb-2 opacity-50" size={20} />
+            You're offline. Toggle "Online" above to start receiving orders.
+          </div>
+        )}
+
+        {merchant?.online && incomingLoading && (
+          <div className="mt-4 text-center py-10 text-muted-foreground">
+            <Loader2 className="animate-spin mx-auto" size={20} />
+          </div>
+        )}
+
+        {merchant?.online && !incomingLoading && visibleIncoming.length === 0 && (
+          <div className="mt-4 rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            <Sparkles className="mx-auto mb-2 text-primary opacity-70" size={20} />
+            No open orders right now — sit tight, the next one will pop in here in real-time.
+          </div>
+        )}
+
+        <div className="mt-3 space-y-3">
+          {visibleIncoming.map((o: any) => (
+            <IncomingCard
+              key={o.id}
+              order={o}
+              myLat={merchant?.lat}
+              myLng={merchant?.lng}
+              onBid={() => setBidOrder(o)}
+              onSkip={() => setSkipped((s) => new Set([...s, o.id]))}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* In-progress shortcut */}
+      {inProgress.length > 0 && (
+        <section className="px-5 mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <ClipboardList size={16} className="text-primary" /> In progress
+            </h2>
+            <button onClick={() => navigate({ to: "/app/orders" })} className="text-xs font-bold text-primary inline-flex items-center gap-1">
+              All orders <ArrowRight size={12} />
             </button>
           </div>
-          <div className="relative grid grid-cols-3 gap-3 mt-5">
-            {[
-              { label: "Pending", value: pendingCount },
-              { label: "Active", value: activeOrders.length },
-              { label: "Done today", value: doneToday },
-            ].map((s) => (
-              <div key={s.label} className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/15">
-                <div className="text-xl font-bold">{s.value}</div>
-                <div className="text-[10px] text-white/70 font-medium uppercase tracking-wider mt-0.5">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-5 mt-6">
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { icon: ClipboardList, label: "Orders", to: "/app/orders" as const, badge: pendingCount },
-            { icon: BarChart3, label: "Earnings", to: "/app/earnings" as const },
-            { icon: Wallet, label: "Payouts", to: "/app/payouts" as const },
-            { icon: Users, label: "Staff", to: "/app/staff" as const },
-          ].map((a) => (
-            <Link
-              key={a.label}
-              to={a.to}
-              className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-card border border-border shadow-card hover:bg-accent transition-smooth relative"
-            >
-              {a.badge ? (
-                <span className="absolute top-1.5 right-1.5 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                  {a.badge}
-                </span>
-              ) : null}
-              <div className="h-10 w-10 rounded-xl bg-gradient-brand-soft flex items-center justify-center">
-                <a.icon size={18} className="text-primary" />
-              </div>
-              <span className="text-[11px] font-semibold">{a.label}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <AIDispatchPanel />
-
-      <section className="px-5 mt-6">
-        <div className="bg-card rounded-3xl border border-border shadow-card p-5">
-          <div className="flex items-center justify-between mb-1">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">This week</div>
-              <div className="text-2xl font-bold mt-0.5">{formatGHS(orders.filter((o) => o.status === "delivered").reduce((s, o) => s + Number(o.amount_usd ?? 0), 0))}</div>
-            </div>
-            <Link to="/app/earnings" className="text-xs font-semibold text-primary flex items-center gap-1">
-              Details <ArrowUpRight size={12} />
-            </Link>
-          </div>
-          <div className="h-32 -mx-2 mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }}
-                  formatter={(v: number) => [formatGHS(v), "Revenue"]}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={2.5} fill="url(#rev)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-5 mt-6">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-7 w-7 rounded-lg bg-gradient-brand text-primary-foreground flex items-center justify-center">
-            <Bot size={14} />
-          </div>
-          <h2 className="text-lg font-bold">AI command center</h2>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: Sparkles, label: "AI pricing", to: "/app/ai-pricing" as const, tone: "from-primary/20 to-primary/5" },
-            { icon: Shield, label: "AI guard", to: "/app/ai-guard" as const, tone: "from-destructive/20 to-destructive/5" },
-            { icon: Award, label: "Scorecard", to: "/app/scorecard" as const, tone: "from-success/20 to-success/5" },
-            { icon: Calendar, label: "Schedule", to: "/app/scheduling" as const, tone: "from-warning/20 to-warning/5" },
-            { icon: Package, label: "Supplies", to: "/app/supplies" as const, tone: "from-accent to-accent/30" },
-            { icon: History, label: "Voice log", to: "/app/voice-history" as const, tone: "from-primary/15 to-primary/5" },
-          ].map((a) => (
-            <Link
-              key={a.label}
-              to={a.to}
-              className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-gradient-to-br ${a.tone} border border-border hover:scale-[1.02] transition-smooth`}
-            >
-              <a.icon size={18} className="text-foreground" />
-              <span className="text-[11px] font-semibold text-center">{a.label}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <AIInsights limit={2} />
-
-      <section className="px-5 mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">Live activity</h2>
-          <Link to="/app/orders" className="text-xs font-semibold text-primary">See all</Link>
-        </div>
-        <div className="space-y-2">
-          {activeOrders.length === 0 && (
-            <div className="text-center text-sm text-muted-foreground py-6 bg-card border border-border rounded-2xl">
-              No active orders right now.
-            </div>
-          )}
-          {activeOrders.slice(0, 3).map((o) => {
-            const meta = statusMeta[(o.status as keyof typeof statusMeta)] ?? statusMeta.pending;
-            const name = o.customer?.full_name ?? "Customer";
-            const items = Array.isArray(o.items) ? o.items.length : 0;
-            return (
-              <Link
+          <div className="mt-3 space-y-2">
+            {inProgress.slice(0, 3).map((o: any) => (
+              <button
                 key={o.id}
-                to="/app/orders"
-                className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border shadow-card hover:bg-accent transition-smooth"
+                onClick={() => navigate({ to: "/app/order/$orderId", params: { orderId: o.id } })}
+                className="w-full text-left p-3 rounded-2xl bg-card border border-border shadow-card flex items-center gap-3"
               >
-                <div className="h-11 w-11 rounded-xl bg-gradient-brand-soft text-primary font-bold flex items-center justify-center">
-                  {name.slice(0, 2).toUpperCase()}
+                <div className="h-10 w-10 rounded-xl bg-gradient-brand-soft text-primary flex items-center justify-center">
+                  <PackageOpen size={16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <div className="font-semibold text-sm truncate">{name}</div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${meta.tone}`}>{meta.label}</span>
+                  <div className="font-semibold text-sm">#{String(o.id).slice(0, 6)}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {o.delivery_status} · {fmt(Number(o.subtotal ?? 0))}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{items} items</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-sm">{formatGHS(Number(o.amount_usd ?? 0))}</div>
-                  <div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+                <ArrowRight size={14} className="text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section className="px-5 mt-6">
-        <h2 className="text-lg font-bold mb-3">Boosters</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: Zap, title: "Express jobs", desc: "Earn 2× on 6hr orders", tone: "from-warning/20 to-warning/5" },
-            { icon: Star, title: `${Number(merchant?.rating ?? 0).toFixed(1)}★ rating`, desc: `${merchant?.total_reviews ?? 0} reviews`, tone: "from-success/20 to-success/5" },
-            { icon: Truck, title: "Free pickups", desc: `${activeOrders.length} active`, tone: "from-primary/20 to-primary/5" },
-            { icon: Banknote, title: "Next payout", desc: "Mon", tone: "from-accent to-accent/30" },
-          ].map((h) => (
-            <div key={h.title} className={`p-4 rounded-2xl bg-gradient-to-br ${h.tone} border border-border`}>
-              <h.icon size={20} className="text-foreground" />
-              <div className="font-bold text-sm mt-3">{h.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{h.desc}</div>
-            </div>
+      {/* Bid sheet */}
+      <BidSheet order={bidOrder} merchantId={merchantId} onClose={() => setBidOrder(null)} />
+    </div>
+  );
+}
+
+function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+  return (
+    <div className="bg-white/15 backdrop-blur rounded-2xl px-2 py-2.5 text-center">
+      <div className="flex items-center justify-center text-white/80">{icon}</div>
+      <div className="text-base font-bold leading-tight mt-1">{value}</div>
+      <div className="text-[10px] text-white/70 leading-none mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+const COUNTDOWN_SECONDS = 90;
+
+function IncomingCard({
+  order,
+  myLat,
+  myLng,
+  onBid,
+  onSkip,
+}: {
+  order: any;
+  myLat: number | null | undefined;
+  myLng: number | null | undefined;
+  onBid: () => void;
+  onSkip: () => void;
+}) {
+  // Countdown anchored on order.created_at
+  const createdMs = new Date(order.created_at).getTime();
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = (now - createdMs) / 1000;
+  const remaining = Math.max(0, COUNTDOWN_SECONDS - elapsed);
+  const pct = remaining / COUNTDOWN_SECONDS;
+  const expired = remaining <= 0;
+
+  const distKm = haversineKm(myLat, myLng, order.pickup_lat, order.pickup_lng);
+  const services = (order.items as any[])?.map((i) => i.description).filter(Boolean).join(", ") || order.service_name || "Laundry order";
+  const customerName = order.customer?.full_name?.split(" ")?.[0] ?? "New customer";
+  const photos = (order.photo_urls as string[] | null) ?? [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="bg-card rounded-2xl border border-border shadow-card overflow-hidden"
+    >
+      <div className="p-4 flex items-start gap-3">
+        {/* Countdown ring */}
+        <div className="relative h-14 w-14 shrink-0">
+          <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90">
+            <circle cx="18" cy="18" r="16" stroke="hsl(var(--border))" strokeWidth="3" fill="none" />
+            <motion.circle
+              cx="18" cy="18" r="16"
+              stroke={expired ? "hsl(var(--destructive))" : "hsl(var(--primary))"}
+              strokeWidth="3" fill="none" strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 16}
+              animate={{ strokeDashoffset: 2 * Math.PI * 16 * (1 - pct) }}
+              transition={{ duration: 0.5, ease: "linear" }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">
+            {Math.ceil(remaining)}s
+          </div>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="font-bold text-sm truncate">{customerName}</div>
+            {distKm != null && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-brand-soft text-primary">
+                {distKm.toFixed(1)} km
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
+            <MapPin size={11} className="shrink-0" /> {order.pickup_address ?? "No address"}
+          </div>
+          <div className="text-xs mt-1 line-clamp-2">{services}</div>
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
+            {order.estimated_weight_kg && <span>~{order.estimated_weight_kg} kg</span>}
+            {order.pickup_date && <span className="inline-flex items-center gap-1"><Clock size={10} /> {order.pickup_date}</span>}
+          </div>
+        </div>
+      </div>
+
+      {photos.length > 0 && (
+        <div className="px-4 pb-3 flex gap-2 overflow-x-auto">
+          {photos.slice(0, 4).map((src, i) => (
+            <img key={i} src={src} alt="" className="h-14 w-14 rounded-lg object-cover border border-border shrink-0" />
           ))}
         </div>
-      </section>
+      )}
 
-      <section className="px-5 mt-6">
-        <div className="rounded-2xl bg-card border border-border shadow-card p-4 flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-gradient-brand text-primary-foreground flex items-center justify-center">
-            <Bike size={20} />
+      <div className="grid grid-cols-2 gap-2 p-3 border-t border-border bg-muted/30">
+        <button
+          onClick={onSkip}
+          className="h-11 rounded-xl border border-border bg-card font-semibold text-sm flex items-center justify-center gap-1.5"
+        >
+          <X size={14} /> Skip
+        </button>
+        <button
+          onClick={onBid}
+          disabled={expired}
+          className="h-11 rounded-xl bg-gradient-brand text-primary-foreground font-bold text-sm shadow-brand flex items-center justify-center gap-1.5 disabled:opacity-40"
+        >
+          <Banknote size={14} /> {expired ? "Expired" : "Bid"}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+function BidSheet({
+  order,
+  merchantId,
+  onClose,
+}: {
+  order: any | null;
+  merchantId: string | undefined;
+  onClose: () => void;
+}) {
+  const submit = useSubmitBid();
+  const suggested = order?.estimated_weight_kg ? Math.round(0.6 * Number(order.estimated_weight_kg) * 25) : 25;
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (order) {
+      setAmount(String(suggested));
+      setMessage("");
+    }
+  }, [order, suggested]);
+
+  const validate = () => {
+    const n = Number(amount);
+    if (!Number.isFinite(n) || n < 5 || n > 500) {
+      toast.error("Amount must be a whole ₵ value between ₵5 and ₵500.");
+      return null;
+    }
+    return Math.round(n);
+  };
+
+  const send = () => {
+    if (!order || !merchantId) return;
+    const n = validate();
+    if (n == null) return;
+    submit.mutate(
+      { orderId: order.id, merchantId, amount: n, message: message.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast.success("Bid submitted — good luck!");
+          onClose();
+        },
+        onError: (e: any) => toast.error(e.message ?? "Couldn't submit bid"),
+      }
+    );
+  };
+
+  return (
+    <Sheet open={!!order} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="bottom" className="rounded-t-3xl px-5 pt-6 pb-8 max-w-md mx-auto">
+        <SheetHeader className="text-left">
+          <SheetTitle>Submit your bid</SheetTitle>
+          <SheetDescription>
+            Total price in ₵ for the whole basket. Customer picks the bid they like best.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your price</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₵</span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={5}
+                max={500}
+                step={1}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="h-14 text-2xl font-bold pl-8 rounded-xl"
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Suggested: ₵{suggested} (≈₵25 / kg) · range ₵5–₵500
+            </p>
           </div>
-          <div className="flex-1">
-            <div className="font-semibold text-sm">Riders nearby</div>
-            <div className="text-xs text-muted-foreground">Average pickup time: ~8 min</div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message (optional)</label>
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="e.g. Free fabric softener · ready in 24h"
+              className="h-12 rounded-xl"
+              maxLength={120}
+            />
           </div>
-          <button onClick={() => toast.info("Rider request sent (awaiting backend fn)")} className="text-xs font-semibold text-primary">Request</button>
         </div>
-      </section>
-    </div>
+
+        <SheetFooter className="mt-6 flex-col gap-2">
+          <Button
+            onClick={send}
+            disabled={submit.isPending}
+            className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold"
+          >
+            {submit.isPending ? <Loader2 className="animate-spin" /> : "Submit bid"}
+          </Button>
+          <Button onClick={onClose} variant="outline" className="w-full h-12 rounded-xl">
+            Cancel
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

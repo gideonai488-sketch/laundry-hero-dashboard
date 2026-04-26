@@ -1,158 +1,132 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
-import { AIInsights } from "@/components/AIInsights";
 import { useAuth } from "@/lib/auth";
-import { useOrders, usePayouts } from "@/lib/queries";
-import { useLocale } from "@/lib/locale";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowDownRight, ArrowUpRight, Loader2, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMyOrders } from "@/lib/queries";
 
 export const Route = createFileRoute("/app/earnings")({
-  head: () => ({ meta: [{ title: "Earnings — Highest Wash Merchant" }] }),
-  component: EarningsPage,
+  head: () => ({ meta: [{ title: "Wallet — Highest Wash Merchant" }] }),
+  component: WalletPage,
 });
 
-const ranges = ["7D", "30D", "6M", "1Y"] as const;
+const fmt = (n: number) => `₵${n.toFixed(2)}`;
 
-function bucketize(orders: { created_at: string; amount_usd: number | null; status: string }[], range: typeof ranges[number]) {
+function WalletPage() {
+  const { merchant } = useAuth();
+  const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
+
+  const paid = useMemo(
+    () => orders.filter((o: any) => o.payment_status === "paid" && o.delivered_at),
+    [orders]
+  );
+
   const now = new Date();
-  const days = range === "7D" ? 7 : range === "30D" ? 30 : range === "6M" ? 180 : 365;
-  const labels = range === "6M" || range === "1Y";
-  const bucketCount = range === "7D" ? 7 : range === "30D" ? 30 : range === "6M" ? 6 : 12;
-  const bucketDays = days / bucketCount;
-  const buckets: { day: string; revenue: number }[] = [];
-  for (let i = bucketCount - 1; i >= 0; i--) {
-    const start = new Date(now.getTime() - (i + 1) * bucketDays * 86400000);
-    const end = new Date(now.getTime() - i * bucketDays * 86400000);
-    const revenue = orders
-      .filter((o) => o.status === "delivered" && new Date(o.created_at) >= start && new Date(o.created_at) < end)
-      .reduce((s, o) => s + Number(o.amount_usd ?? 0), 0);
-    buckets.push({
-      day: labels
-        ? start.toLocaleDateString(undefined, { month: "short" })
-        : start.toLocaleDateString(undefined, { weekday: "short" }),
-      revenue: Math.round(revenue * 100) / 100,
-    });
-  }
-  return buckets;
-}
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+  startOfWeek.setHours(0, 0, 0, 0);
 
-function EarningsPage() {
-  const { merchant, user } = useAuth();
-  const { format } = useLocale();
-  const [range, setRange] = useState<(typeof ranges)[number]>("7D");
-  const { data: orders = [], isLoading } = useOrders(merchant?.id);
-  const { data: payouts = [] } = usePayouts(user?.id);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const data = useMemo(() => bucketize(orders, range), [orders, range]);
+  const weekTotal = paid
+    .filter((o: any) => new Date(o.delivered_at) >= startOfWeek)
+    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
 
-  const today = new Date().toDateString();
-  const weekStart = new Date(Date.now() - 7 * 86400000);
-  const todayRev = orders.filter((o) => o.status === "delivered" && new Date(o.created_at).toDateString() === today).reduce((s, o) => s + Number(o.amount_usd ?? 0), 0);
-  const weekRev = orders.filter((o) => o.status === "delivered" && new Date(o.created_at) >= weekStart).reduce((s, o) => s + Number(o.amount_usd ?? 0), 0);
-  const delivered = orders.filter((o) => o.status === "delivered");
-  const avgOrder = delivered.length ? delivered.reduce((s, o) => s + Number(o.amount_usd ?? 0), 0) / delivered.length : 0;
-  const refunds = orders.filter((o) => o.status === "cancelled").reduce((s, o) => s + Number(o.amount_usd ?? 0), 0);
-  const available = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.amount_usd ?? 0), 0);
+  const monthTotal = paid
+    .filter((o: any) => new Date(o.delivered_at) >= startOfMonth)
+    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+
+  const lifetimeTotal = paid.reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+
+  const recent = paid
+    .slice()
+    .sort((a: any, b: any) => new Date(b.delivered_at).getTime() - new Date(a.delivered_at).getTime())
+    .slice(0, 30);
+
+  const hasPayouts = !!merchant?.paystack_subaccount_code;
 
   return (
     <div>
-      <AppHeader title="Earnings" subtitle="Track every dollar" />
+      <AppHeader title="Wallet" subtitle="Earnings & payouts" />
 
-      <section className="px-5">
-        <div className="rounded-3xl bg-gradient-hero text-primary-foreground p-5 shadow-brand">
-          <div className="text-xs font-semibold uppercase tracking-widest text-white/70">Available balance</div>
-          <div className="text-4xl font-bold mt-1">{format(available)}</div>
-          <div className="flex items-center gap-1 text-sm text-white/85 mt-1">
-            <ArrowUpRight size={14} /> {delivered.length} orders delivered
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Link to="/app/payouts" className="flex-1 bg-white text-primary font-semibold text-sm py-2.5 rounded-xl text-center">Withdraw</Link>
-            <Link to="/app/bank" className="flex-1 bg-white/15 backdrop-blur border border-white/20 text-white font-semibold text-sm py-2.5 rounded-xl text-center">Payout accounts</Link>
-          </div>
-        </div>
+      {/* Tiles */}
+      <section className="px-5 mt-2 grid grid-cols-3 gap-2">
+        <Tile icon={<Calendar size={14} />} label="This week" value={fmt(weekTotal)} />
+        <Tile icon={<TrendingUp size={14} />} label="This month" value={fmt(monthTotal)} />
+        <Tile icon={<Wallet size={14} />} label="Lifetime" value={fmt(lifetimeTotal)} />
       </section>
 
-      <section className="px-5 mt-5 grid grid-cols-2 gap-3">
-        {[
-          { label: "Today", v: format(todayRev), c: "", up: true },
-          { label: "This week", v: format(weekRev), c: "", up: true },
-          { label: "Avg order", v: format(avgOrder), c: "", up: true },
-          { label: "Refunds", v: format(refunds), c: "", up: false },
-        ].map((k) => (
-          <div key={k.label} className="bg-card rounded-2xl border border-border shadow-card p-4">
-            <div className="text-xs text-muted-foreground font-medium">{k.label}</div>
-            <div className="text-xl font-bold mt-1">{k.v}</div>
-            {k.c && (
-              <div className={`text-xs font-semibold mt-1 flex items-center gap-0.5 ${k.up ? "text-success" : "text-destructive"}`}>
-                {k.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />} {k.c}
-              </div>
-            )}
-          </div>
-        ))}
-      </section>
-
-      <section className="px-5 mt-5">
-        <div className="bg-card rounded-3xl border border-border shadow-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold">Revenue</h3>
-            <div className="flex gap-1 bg-muted p-1 rounded-full">
-              {ranges.map((r) => (
-                <button key={r} onClick={() => setRange(r)} className={`px-3 py-1 text-[11px] font-bold rounded-full transition-smooth ${range === r ? "bg-card shadow-soft text-primary" : "text-muted-foreground"}`}>
-                  {r}
-                </button>
-              ))}
+      {/* Payouts setup banner */}
+      {!hasPayouts && (
+        <section className="px-5 mt-5">
+          <div className="rounded-2xl bg-gradient-brand text-primary-foreground p-4 shadow-brand">
+            <div className="flex items-center gap-2">
+              <Banknote size={18} />
+              <div className="font-bold">Set up payouts</div>
             </div>
+            <p className="text-xs text-white/85 mt-1">
+              Add your bank to start receiving Paystack settlements ~24 h after each delivery.
+            </p>
+            <a href="/app/settings" className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
+              Open Settings
+            </a>
           </div>
-          <div className="h-56 -mx-2">
-            {isLoading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground"><Loader2 className="animate-spin" /></div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data}>
-                  <defs>
-                    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--primary)" />
-                      <stop offset="100%" stopColor="var(--primary-glow)" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="var(--border)" vertical={false} strokeDasharray="3 3" />
-                  <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={40} />
-                  <Tooltip cursor={{ fill: "var(--accent)" }} contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 }} formatter={(v: number) => [format(v), "Revenue"]} />
-                  <Bar dataKey="revenue" fill="url(#bar)" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+        </section>
+      )}
+
+      {hasPayouts && (
+        <section className="px-5 mt-5">
+          <div className="rounded-2xl bg-card border border-border p-4 text-xs text-muted-foreground">
+            Paystack settles to your bank ~24 h after the customer confirms delivery.
+            Subaccount: <span className="font-mono text-foreground">{merchant?.paystack_subaccount_code}</span>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <AIInsights />
-
-      <section className="px-5 mt-5">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold">Recent payouts</h3>
-          <Link to="/app/payouts" className="text-xs font-semibold text-primary">All</Link>
+      {/* Recent paid orders */}
+      <section className="px-5 mt-6">
+        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          Recent paid orders
         </div>
-        <div className="space-y-2">
-          {payouts.length === 0 && <div className="text-center py-6 text-muted-foreground text-sm bg-card border border-border rounded-2xl">No payouts yet.</div>}
-          {payouts.slice(0, 3).map((p) => (
-            <div key={p.id} className="bg-card rounded-2xl border border-border shadow-card p-3 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/15 text-success flex items-center justify-center"><Wallet size={18} /></div>
+        {isLoading && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Loader2 className="animate-spin mx-auto" size={20} />
+          </div>
+        )}
+        {!isLoading && recent.length === 0 && (
+          <div className="text-center py-10 text-muted-foreground rounded-2xl border border-dashed border-border text-sm">
+            No paid orders yet.
+          </div>
+        )}
+        <ul className="space-y-2">
+          {recent.map((o: any) => (
+            <li key={o.id} className="bg-card border border-border rounded-2xl p-3 flex items-center gap-3 shadow-card">
+              <div className="h-10 w-10 rounded-xl bg-gradient-brand-soft text-primary flex items-center justify-center">
+                <Banknote size={14} />
+              </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm">{p.reference ?? p.id.slice(0, 8)}</div>
-                <div className="text-xs text-muted-foreground">{p.paid_at ? new Date(p.paid_at).toLocaleDateString() : "—"}</div>
+                <div className="text-sm font-semibold truncate">
+                  {o.customer?.full_name ?? "Customer"} · #{String(o.id).slice(0, 6)}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  {new Date(o.delivered_at).toLocaleDateString()} · {o.service_name ?? "Laundry"}
+                </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-sm">{format(Number(p.amount_usd ?? 0))}</div>
-                <div className="text-[10px] text-success font-semibold uppercase">{p.status}</div>
-              </div>
-            </div>
+              <div className="text-base font-bold">{fmt(Number(o.subtotal ?? 0))}</div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
+    </div>
+  );
+}
+
+function Tile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-card border border-border shadow-card p-3 text-center">
+      <div className="text-muted-foreground flex items-center justify-center">{icon}</div>
+      <div className="text-base font-bold mt-1">{value}</div>
+      <div className="text-[10px] text-muted-foreground leading-none mt-0.5">{label}</div>
     </div>
   );
 }
