@@ -2,9 +2,11 @@ import { Outlet, createFileRoute, Link, useNavigate } from "@tanstack/react-rout
 import { BottomNav } from "@/components/BottomNav";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { useAuth } from "@/lib/auth";
-import { useEffect } from "react";
-import { Loader2, Store, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
