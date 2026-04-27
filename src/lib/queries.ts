@@ -334,3 +334,268 @@ export function useMyBidsWatcher(merchantId: string | undefined, onAccepted: (or
     };
   }, [merchantId, onAccepted]);
 }
+
+// ───────────────────────── Chats & messages ─────────────────────────
+
+/**
+ * Live list of chats for this merchant (one per order with a customer).
+ * Joins customer profile + order summary for the list view.
+ */
+export function useMyChats(merchantId: string | undefined) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["my-chats", merchantId],
+    enabled: !!merchantId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("chats")
+        .select("id, order_id, customer_id, merchant_id, rider_id, last_message_at")
+        .eq("merchant_id", merchantId!)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(100);
+      if (error) throw error;
+      const chats = (data ?? []) as AnyRow[];
+      if (!chats.length) return [];
+
+      const customerIds = Array.from(new Set(chats.map((c) => c.customer_id).filter(Boolean)));
+      const orderIds = Array.from(new Set(chats.map((c) => c.order_id).filter(Boolean)));
+      const chatIds = chats.map((c) => c.id);
+
+      const [profilesRes, ordersRes, lastMsgsRes] = await Promise.all([
+        customerIds.length
+          ? supabase.from("profiles").select("id, full_name, phone, avatar_url").in("id", customerIds)
+          : Promise.resolve({ data: [] as AnyRow[], error: null }),
+        orderIds.length
+          ? supabase.from("hw_orders").select("id, service_name, delivery_status, subtotal").in("id", orderIds)
+          : Promise.resolve({ data: [] as AnyRow[], error: null }),
+        chatIds.length
+          ? supabase
+              .from("messages")
+              .select("chat_id, body, sender_id, sent_at, read_at")
+              .in("chat_id", chatIds)
+              .order("sent_at", { ascending: false })
+              .limit(500)
+          : Promise.resolve({ data: [] as AnyRow[], error: null }),
+      ]);
+
+      const profileMap = new Map<string, AnyRow>((profilesRes.data ?? []).map((p: AnyRow) => [p.id, p]));
+      const orderMap = new Map<string, AnyRow>((ordersRes.data ?? []).map((o: AnyRow) => [o.id, o]));
+      const lastByChat = new Map<string, AnyRow>();
+      const unreadByChat = new Map<string, number>();
+      (lastMsgsRes.data ?? []).forEach((m: AnyRow) => {
+        if (!lastByChat.has(m.chat_id)) lastByChat.set(m.chat_id, m);
+        if (!m.read_at && m.sender_id !== merchantId) {
+          unreadByChat.set(m.chat_id, (unreadByChat.get(m.chat_id) ?? 0) + 1);
+        }
+      });
+
+      return chats.map((c) => ({
+        ...c,
+        customer: profileMap.get(c.customer_id) ?? null,
+        order: orderMap.get(c.order_id) ?? null,
+        last_message: lastByChat.get(c.id) ?? null,
+        unread_count: unreadByChat.get(c.id) ?? 0,
+      }));
+    },
+  });
+
+  useEffect(() => {
+    if (!merchantId) return;
+    const ch = supabase
+      .channel(`merchant:chats:${merchantId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chats", filter: `merchant_id=eq.${merchantId}` },
+        () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [merchantId, qc]);
+
+  return query;
+}
+
+export function useChatThread(chatId: string | undefined) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["chat", chatId],
+    enabled: !!chatId,
+    queryFn: async () => {
+      const [chatRes, msgsRes] = await Promise.all([
+        supabase
+          .from("chats")
+          .select("id, order_id, customer_id, merchant_id, rider_id")
+          .eq("id", chatId!)
+          .maybeSingle(),
+        supabase
+          .from("messages")
+          .select("id, chat_id, sender_id, body, sent_at, read_at")
+          .eq("chat_id", chatId!)
+          .order("sent_at", { ascending: true })
+          .limit(500),
+      ]);
+      if (chatRes.error) throw chatRes.error;
+      if (msgsRes.error) throw msgsRes.error;
+      const chat = chatRes.data as AnyRow | null;
+      let customer: AnyRow | null = null;
+      let order: AnyRow | null = null;
+      if (chat?.customer_id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, full_name, phone, avatar_url")
+          .eq("id", chat.customer_id)
+          .maybeSingle();
+        customer = data;
+      }
+      if (chat?.order_id) {
+        const { data } = await supabase
+          .from("hw_orders")
+          .select("id, service_name, delivery_status, subtotal, pickup_address")
+          .eq("id", chat.order_id)
+          .maybeSingle();
+        order = data;
+      }
+      return { chat, customer, order, messages: (msgsRes.data ?? []) as AnyRow[] };
+    },
+  });
+
+  useEffect(() => {
+    if (!chatId) return;
+    const ch = supabase
+      .channel(`chat:${chatId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+        () => qc.invalidateQueries({ queryKey: ["chat", chatId] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [chatId, qc]);
+
+  return query;
+}
+
+export function useSendMessage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      chatId,
+      senderId,
+      body,
+    }: {
+      chatId: string;
+      senderId: string;
+      body: string;
+    }) => {
+      const { error } = await supabase.from("messages").insert({
+        chat_id: chatId,
+        sender_id: senderId,
+        body,
+        sent_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      // Best-effort touch of last_message_at (RLS may block — backend trigger is the safety net)
+      await supabase
+        .from("chats")
+        .update({ last_message_at: new Date().toISOString() })
+        .eq("id", chatId);
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["chat", vars.chatId] });
+      qc.invalidateQueries({ queryKey: ["my-chats"] });
+    },
+  });
+}
+
+export function useMarkChatRead() {
+  return useMutation({
+    mutationFn: async ({ chatId, merchantId }: { chatId: string; merchantId: string }) => {
+      await supabase
+        .from("messages")
+        .update({ read_at: new Date().toISOString() })
+        .eq("chat_id", chatId)
+        .neq("sender_id", merchantId)
+        .is("read_at", null);
+    },
+  });
+}
+
+/**
+ * Ensure a chat row exists for an (order, customer, merchant) tuple.
+ * Used right after a bid is accepted so the merchant can immediately ping
+ * the customer. Returns the chat id.
+ */
+export async function ensureChat(opts: {
+  orderId: string;
+  customerId: string;
+  merchantId: string;
+}): Promise<string | null> {
+  const { data: existing } = await supabase
+    .from("chats")
+    .select("id")
+    .eq("order_id", opts.orderId)
+    .eq("merchant_id", opts.merchantId)
+    .maybeSingle();
+  if (existing?.id) return existing.id as string;
+  const { data, error } = await supabase
+    .from("chats")
+    .insert({
+      order_id: opts.orderId,
+      customer_id: opts.customerId,
+      merchant_id: opts.merchantId,
+      last_message_at: new Date().toISOString(),
+    })
+    .select("id")
+    .maybeSingle();
+  if (error) {
+    console.warn("ensureChat failed:", error);
+    return null;
+  }
+  return (data?.id as string) ?? null;
+}
+
+// ───────────────────────── Disputes ─────────────────────────
+
+export function useOrderDispute(orderId: string | undefined) {
+  return useQuery({
+    queryKey: ["dispute", orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("id, order_id, reason, status, created_at, resolved_at")
+        .eq("order_id", orderId!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useSubmitDispute() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
+      const { error } = await supabase.from("disputes").insert({
+        order_id: orderId,
+        reason,
+        status: "open",
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["dispute", vars.orderId] });
+    },
+  });
+}
