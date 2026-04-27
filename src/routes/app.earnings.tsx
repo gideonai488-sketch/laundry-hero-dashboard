@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
@@ -22,21 +22,42 @@ function WalletPage() {
   );
 
   const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
   startOfWeek.setHours(0, 0, 0, 0);
-
+  const startOfLastWeek = new Date(startOfWeek);
+  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-  const weekTotal = paid
-    .filter((o: any) => new Date(o.delivered_at) >= startOfWeek)
-    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+  const sumBetween = (from: Date, to?: Date) =>
+    paid
+      .filter((o: any) => {
+        const d = new Date(o.delivered_at);
+        return d >= from && (!to || d < to);
+      })
+      .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
 
-  const monthTotal = paid
-    .filter((o: any) => new Date(o.delivered_at) >= startOfMonth)
-    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
-
+  const todayTotal = sumBetween(startOfToday);
+  const yesterdayTotal = sumBetween(startOfYesterday, startOfToday);
+  const weekTotal = sumBetween(startOfWeek);
+  const lastWeekTotal = sumBetween(startOfLastWeek, startOfWeek);
+  const monthTotal = sumBetween(startOfMonth);
+  const lastMonthTotal = sumBetween(startOfLastMonth, startOfMonth);
   const lifetimeTotal = paid.reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+  const ordersDelivered = paid.length;
+  const avgOrder = ordersDelivered > 0 ? lifetimeTotal / ordersDelivered : 0;
+
+  const trend = (curr: number, prev: number) => {
+    if (prev === 0) return curr > 0 ? "+∞" : "—";
+    const pct = ((curr - prev) / prev) * 100;
+    const sign = pct >= 0 ? "+" : "";
+    return `${sign}${pct.toFixed(0)}%`;
+  };
 
   const recent = paid
     .slice()
