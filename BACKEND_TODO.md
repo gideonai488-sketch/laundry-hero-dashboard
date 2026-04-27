@@ -1,55 +1,134 @@
 # Highest Wash — Merchant App backend asks
 
-The Merchant frontend is now wired to the bid-marketplace model from
-`MERCHANT_APP_PROMPT.md`. To finish enabling everything, please confirm /
-deploy the following on the shared backend (project `eqbogpvabcsngspphjte`).
+The Merchant frontend now ships with a chat module, an order job-history
+timeline, and an in-app dispute submission flow. Most of it works against
+the existing tables, but a few additions are needed to make it bulletproof.
 
-## 1. Schema confirmations
-- **`merchants`** must include: `id, owner_id, business_name, phone, address,
-  lat, lng, online (bool), paystack_subaccount_code, country_code`.
-  The frontend treats every merchant as verified (no `is_verified` gate).
-- **`hw_orders`** uses `merchant_status` ('pending' for the broadcast pool +
-  `merchant_id IS NULL`) and `delivery_status` for stage transitions:
-  `merchant_accepted → picked_up_by_rider → washing → ready_for_rider →
-  out_for_delivery → delivered`.
-- **`hw_merchant_bids`**: `id, order_id, merchant_id, amount, status,
-  message, created_at, expires_at`. The merchant inserts directly.
-- **`hw_order_items`**: `id, order_id, qty, description, weight_kg`.
+## ✅ Already shipped (no backend change needed)
+- Bid marketplace (`hw_orders`, `hw_merchant_bids`, `hw_order_items`).
+- Wallet with today/yesterday/this-week/this-month + bank linkage card.
 
-## 2. RLS
-- Merchants must be able to: SELECT broadcast `hw_orders`
-  (`merchant_status='pending' AND merchant_id IS NULL`), SELECT their own
-  rows where `merchant_id = me.id`, INSERT into `hw_merchant_bids` for
-  themselves, UPDATE their own bid (`status = 'withdrawn'`), UPDATE
-  `hw_orders.delivery_status` only for orders where they are the merchant.
-- Merchants need SELECT on `profiles` rows of customers tied to their orders
-  (used to display the customer first name / phone on order detail).
-- INSERT into `user_roles` for own user with `role='merchant'` should be
-  allowed during onboarding (or grant via trigger if you prefer).
+## 🆕 Needed for the new features
 
-## 3. Edge functions
+### 1. Chats + messages RLS
+Tables `chats` and `messages` already exist:
+- `chats(id, order_id, customer_id, merchant_id, rider_id, last_message_at)`
+- `messages(id, chat_id, sender_id, body, sent_at, read_at)`
+
+A merchant must be able to:
+- SELECT/INSERT/UPDATE on `chats` where `merchant_id = me.id`
+- SELECT on `messages` where `chat_id` belongs to a chat with
+  `merchant_id = me.id`
+- INSERT on `messages` where `sender_id = auth.uid()` AND the chat's
+  `merchant_id = me.id`
+- UPDATE on `messages.read_at` for messages in their chats where
+  `sender_id != auth.uid()`
+
+### 2. Auto-create chat when a bid is accepted
+Right now the merchant frontend tries to `INSERT` a chat row after a bid is
+won. Replace that with a backend trigger:
+
+```sql
+CREATE OR REPLACE FUNCTION public.create_chat_on_bid_accept()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_customer uuid;
+BEGIN
+  IF NEW.status = 'accepted' AND (OLD.status IS DISTINCT FROM 'accepted') THEN
+    SELECT customer_id INTO v_customer FROM public.hw_orders WHERE id = NEW.order_id;
+    INSERT INTO public.chats (order_id, customer_id, merchant_id, last_message_at)
+    VALUES (NEW.order_id, v_customer, NEW.merchant_id, now())
+    ON CONFLICT DO NOTHING;
+  END IF;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_create_chat_on_bid_accept
+AFTER UPDATE ON public.hw_merchant_bids
+FOR EACH ROW EXECUTE FUNCTION public.create_chat_on_bid_accept();
+```
+
+Also auto-bump `chats.last_message_at` on every new message:
+
+```sql
+CREATE OR REPLACE FUNCTION public.touch_chat_last_message()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE public.chats SET last_message_at = NEW.sent_at WHERE id = NEW.chat_id;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_touch_chat_last_message
+AFTER INSERT ON public.messages
+FOR EACH ROW EXECUTE FUNCTION public.touch_chat_last_message();
+```
+
+Enable Realtime on `chats` and `messages` (the merchant app subscribes to both).
+
+### 3. `disputes` columns + RLS
+The `disputes` table currently has only:
+`id, order_id, reason, status, created_at, resolved_at`.
+
+Please add:
+```sql
+ALTER TABLE public.disputes
+  ADD COLUMN IF NOT EXISTS raised_by uuid REFERENCES auth.users(id),
+  ADD COLUMN IF NOT EXISTS raised_by_role text,        -- 'merchant' | 'customer' | 'rider'
+  ADD COLUMN IF NOT EXISTS category text,              -- e.g. 'wrong_items','damage','no_show','payment'
+  ADD COLUMN IF NOT EXISTS evidence_urls text[],
+  ADD COLUMN IF NOT EXISTS resolution text,
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+```
+
+A merchant must be able to:
+- INSERT a dispute on any order where `merchant_id = me.id` (set
+  `raised_by = auth.uid()`, `raised_by_role = 'merchant'`)
+- SELECT disputes on those orders
+
+### 4. NEW table: `hw_order_status_events` (job-history timeline)
+The order detail screen shows a job-history timeline. Right now it can only
+plot `created_at`, `updated_at`, `delivered_at`, `customer_confirmed_at`
+because per-stage timestamps aren't recorded. Please create:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.hw_order_status_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL REFERENCES public.hw_orders(id) ON DELETE CASCADE,
+  status text NOT NULL,           -- mirrors hw_orders.delivery_status
+  changed_by uuid REFERENCES auth.users(id),
+  changed_by_role text,           -- 'merchant' | 'rider' | 'customer' | 'system'
+  note text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_status_events_order ON public.hw_order_status_events(order_id, created_at);
+
+-- Trigger: auto-record every change of hw_orders.delivery_status
+CREATE OR REPLACE FUNCTION public.log_order_status_change()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NEW.delivery_status IS DISTINCT FROM OLD.delivery_status THEN
+    INSERT INTO public.hw_order_status_events(order_id, status, changed_by, changed_by_role)
+    VALUES (NEW.id, NEW.delivery_status, auth.uid(), 'system');
+  END IF;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_log_order_status_change
+AFTER UPDATE OF delivery_status ON public.hw_orders
+FOR EACH ROW EXECUTE FUNCTION public.log_order_status_change();
+```
+
+RLS: merchant can SELECT events where the parent order's `merchant_id = me.id`.
+
+Once this is live, the merchant timeline will start showing every stage
+transition with a real timestamp.
+
+## 5. Realtime
+Please make sure Realtime publishes `hw_orders`, `hw_merchant_bids`,
+`chats`, `messages`, and (once added) `hw_order_status_events`.
+
+## 6. Edge functions (unchanged from previous prompt)
 | When | Function | Body |
 |---|---|---|
 | Merchant marks `ready_for_rider` | `broadcast-rider-bids` | `{ order_id }` |
 | Onboarding / Settings → bank setup | `register-merchant-subaccount` | `{ merchant_id, bank_code, account_number }` |
-
-The frontend already calls both via `supabase.functions.invoke(...)` and
-gracefully degrades (warns + toasts "coming soon") when they're not deployed.
-
-## 4. Realtime
-The app subscribes to:
-- `hw_orders` filtered by `merchant_status=eq.pending` (broadcast pool)
-- `hw_orders` filtered by `merchant_id=eq.<myMerchantId>` (my orders)
-- `hw_merchant_bids` UPDATEs filtered by `merchant_id=eq.<myMerchantId>`
-  (used to toast on bid acceptance)
-
-Please make sure `Realtime` is enabled on `hw_orders` and `hw_merchant_bids`.
-
-## 5. Nice-to-have (not blocking)
-- Add `actual_weight_kg` to `hw_orders` so merchants can reconcile weight
-  after washing.
-- Add `eta_minutes` to `hw_merchant_bids` so we can pass ETA without
-  shoving it into `message`.
-- Add a `chats`/`messages` pair scoped to `(customer_id, merchant_id,
-  order_id)` if you want in-app chat (currently we surface tel: + sms:
-  links only).
