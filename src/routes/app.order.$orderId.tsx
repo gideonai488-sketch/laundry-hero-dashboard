@@ -139,17 +139,28 @@ function OrderDetailPage() {
                 Status: {String(order.delivery_status ?? "pending").replace(/_/g, " ")}
               </div>
             </div>
+            <button
+              onClick={openChat}
+              disabled={openingChat}
+              className="h-10 w-10 rounded-full bg-gradient-brand text-primary-foreground flex items-center justify-center shadow-brand disabled:opacity-50"
+              aria-label="Open chat"
+            >
+              {openingChat ? <Loader2 className="animate-spin" size={14} /> : <MessageSquare size={16} />}
+            </button>
             {phone && (
               <a href={`tel:${phone}`} className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center" aria-label="Call">
                 <Phone size={16} />
               </a>
             )}
-            {phone && (
-              <a href={`sms:${phone}`} className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center" aria-label="SMS">
-                <MessageSquare size={16} />
-              </a>
-            )}
           </div>
+          <button
+            onClick={openChat}
+            disabled={openingChat}
+            className="mt-3 w-full h-10 rounded-xl bg-gradient-brand-soft text-primary text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <MessageSquare size={14} />
+            {openingChat ? "Opening chat…" : "Message customer"}
+          </button>
         </div>
       </section>
 
