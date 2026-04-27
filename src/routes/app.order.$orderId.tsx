@@ -40,8 +40,14 @@ const STAGES: { key: string; label: string; merchantOwned: boolean }[] = [
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
+  const { user, merchant } = useAuth();
   const { data: order, isLoading } = useOrder(orderId);
+  const { data: dispute } = useOrderDispute(orderId);
   const update = useUpdateDeliveryStatus();
+  const submitDispute = useSubmitDispute();
+  const [openingChat, setOpeningChat] = useState(false);
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
 
   if (isLoading || !order) {
     return (
