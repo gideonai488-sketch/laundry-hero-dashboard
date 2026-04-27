@@ -20,12 +20,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
+  ensureChat,
   useIncomingFeed,
   useMyOrders,
   useToggleOnline,
   useSubmitBid,
   useMyBidsWatcher,
 } from "@/lib/queries";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
@@ -58,10 +60,20 @@ function Dashboard() {
   const { data: incoming = [], isLoading: incomingLoading } = useIncomingFeed(merchantId);
   const { data: myOrders = [] } = useMyOrders(merchantId);
 
-  // Toast on win + jump to order
-  useMyBidsWatcher(merchantId, (orderId) => {
+  // Toast on win + auto-open a chat with the customer
+  useMyBidsWatcher(merchantId, async (orderId) => {
     toast.success(`🎉 You won order #${orderId.slice(0, 6)}!`);
     refresh();
+    if (!merchantId) return;
+    // Look up customer for this order, then ensure a chat exists
+    const { data } = await supabase
+      .from("hw_orders")
+      .select("customer_id")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (data?.customer_id) {
+      await ensureChat({ orderId, customerId: data.customer_id, merchantId });
+    }
   });
 
   const today = new Date();
