@@ -128,9 +128,27 @@ function WalletPage() {
 
       {hasPayouts && (
         <section className="px-5 mt-5">
-          <div className="rounded-2xl bg-card border border-border p-4 text-xs text-muted-foreground">
-            Paystack settles to your bank ~24 h after the customer confirms delivery.
-            Subaccount: <span className="font-mono text-foreground">{merchant?.paystack_subaccount_code}</span>
+          <div className="rounded-2xl bg-card border border-border p-4 shadow-card">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-success/15 text-success flex items-center justify-center">
+                <Banknote size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold">Bank linked</div>
+                <div className="text-[11px] text-muted-foreground font-mono truncate">
+                  {merchant?.paystack_subaccount_code}
+                </div>
+              </div>
+              <Link
+                to="/app/settings"
+                className="h-9 px-3 rounded-xl border border-border text-xs font-bold leading-9"
+              >
+                Manage
+              </Link>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-3">
+              Paystack settles to your bank ~24 h after the customer confirms delivery.
+            </p>
           </div>
         </section>
       )}
