@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
@@ -22,21 +22,42 @@ function WalletPage() {
   );
 
   const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
   startOfWeek.setHours(0, 0, 0, 0);
-
+  const startOfLastWeek = new Date(startOfWeek);
+  startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-  const weekTotal = paid
-    .filter((o: any) => new Date(o.delivered_at) >= startOfWeek)
-    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+  const sumBetween = (from: Date, to?: Date) =>
+    paid
+      .filter((o: any) => {
+        const d = new Date(o.delivered_at);
+        return d >= from && (!to || d < to);
+      })
+      .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
 
-  const monthTotal = paid
-    .filter((o: any) => new Date(o.delivered_at) >= startOfMonth)
-    .reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
-
+  const todayTotal = sumBetween(startOfToday);
+  const yesterdayTotal = sumBetween(startOfYesterday, startOfToday);
+  const weekTotal = sumBetween(startOfWeek);
+  const lastWeekTotal = sumBetween(startOfLastWeek, startOfWeek);
+  const monthTotal = sumBetween(startOfMonth);
+  const lastMonthTotal = sumBetween(startOfLastMonth, startOfMonth);
   const lifetimeTotal = paid.reduce((s: number, o: any) => s + Number(o.subtotal ?? 0), 0);
+  const ordersDelivered = paid.length;
+  const avgOrder = ordersDelivered > 0 ? lifetimeTotal / ordersDelivered : 0;
+
+  const trend = (curr: number, prev: number) => {
+    if (prev === 0) return curr > 0 ? "+∞" : "—";
+    const pct = ((curr - prev) / prev) * 100;
+    const sign = pct >= 0 ? "+" : "";
+    return `${sign}${pct.toFixed(0)}%`;
+  };
 
   const recent = paid
     .slice()
@@ -49,11 +70,42 @@ function WalletPage() {
     <div>
       <AppHeader title="Wallet" subtitle="Earnings & payouts" />
 
-      {/* Tiles */}
-      <section className="px-5 mt-2 grid grid-cols-3 gap-2">
-        <Tile icon={<Calendar size={14} />} label="This week" value={fmt(weekTotal)} />
-        <Tile icon={<TrendingUp size={14} />} label="This month" value={fmt(monthTotal)} />
-        <Tile icon={<Wallet size={14} />} label="Lifetime" value={fmt(lifetimeTotal)} />
+      {/* Hero — featured period */}
+      <section className="px-5 mt-2">
+        <div className="rounded-3xl bg-gradient-brand text-primary-foreground p-5 shadow-brand">
+          <div className="text-xs font-semibold opacity-90">This month</div>
+          <div className="mt-1 text-3xl font-extrabold tracking-tight">{fmt(monthTotal)}</div>
+          <div className="mt-2 text-[11px] opacity-90">
+            {trend(monthTotal, lastMonthTotal)} vs last month · {ordersDelivered} orders delivered
+          </div>
+        </div>
+      </section>
+
+      {/* Period tiles */}
+      <section className="px-5 mt-3 grid grid-cols-2 gap-2">
+        <Tile
+          icon={<Calendar size={14} />}
+          label="Today"
+          value={fmt(todayTotal)}
+          sub={`${trend(todayTotal, yesterdayTotal)} vs yesterday`}
+        />
+        <Tile
+          icon={<Calendar size={14} />}
+          label="Yesterday"
+          value={fmt(yesterdayTotal)}
+        />
+        <Tile
+          icon={<TrendingUp size={14} />}
+          label="This week"
+          value={fmt(weekTotal)}
+          sub={`${trend(weekTotal, lastWeekTotal)} vs last week`}
+        />
+        <Tile
+          icon={<Wallet size={14} />}
+          label="Avg / order"
+          value={fmt(avgOrder)}
+          sub={`${ordersDelivered} delivered · ${fmt(lifetimeTotal)} lifetime`}
+        />
       </section>
 
       {/* Payouts setup banner */}
@@ -67,18 +119,36 @@ function WalletPage() {
             <p className="text-xs text-white/85 mt-1">
               Add your bank to start receiving Paystack settlements ~24 h after each delivery.
             </p>
-            <a href="/app/settings" className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
-              Open Settings
-            </a>
+            <Link to="/app/settings" className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
+              Link bank account
+            </Link>
           </div>
         </section>
       )}
 
       {hasPayouts && (
         <section className="px-5 mt-5">
-          <div className="rounded-2xl bg-card border border-border p-4 text-xs text-muted-foreground">
-            Paystack settles to your bank ~24 h after the customer confirms delivery.
-            Subaccount: <span className="font-mono text-foreground">{merchant?.paystack_subaccount_code}</span>
+          <div className="rounded-2xl bg-card border border-border p-4 shadow-card">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-success/15 text-success flex items-center justify-center">
+                <Banknote size={16} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold">Bank linked</div>
+                <div className="text-[11px] text-muted-foreground font-mono truncate">
+                  {merchant?.paystack_subaccount_code}
+                </div>
+              </div>
+              <Link
+                to="/app/settings"
+                className="h-9 px-3 rounded-xl border border-border text-xs font-bold leading-9"
+              >
+                Manage
+              </Link>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-3">
+              Paystack settles to your bank ~24 h after the customer confirms delivery.
+            </p>
           </div>
         </section>
       )}
@@ -121,12 +191,24 @@ function WalletPage() {
   );
 }
 
-function Tile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Tile({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
-    <div className="rounded-2xl bg-card border border-border shadow-card p-3 text-center">
-      <div className="text-muted-foreground flex items-center justify-center">{icon}</div>
-      <div className="text-base font-bold mt-1">{value}</div>
-      <div className="text-[10px] text-muted-foreground leading-none mt-0.5">{label}</div>
+    <div className="rounded-2xl bg-card border border-border shadow-card p-3">
+      <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+        {icon} {label}
+      </div>
+      <div className="text-lg font-bold mt-1">{value}</div>
+      {sub && <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }

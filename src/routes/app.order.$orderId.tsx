@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Clock,
   Loader2,
   MapPin,
   MessageSquare,
@@ -9,7 +12,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useOrder, useUpdateDeliveryStatus } from "@/lib/queries";
+import { useAuth } from "@/lib/auth";
+import {
+  ensureChat,
+  useOrder,
+  useOrderDispute,
+  useSubmitDispute,
+  useUpdateDeliveryStatus,
+} from "@/lib/queries";
 
 export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({ meta: [{ title: `Order #${params.orderId.slice(0, 6)} — Highest Wash` }] }),
@@ -30,8 +40,14 @@ const STAGES: { key: string; label: string; merchantOwned: boolean }[] = [
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const navigate = useNavigate();
+  const { user, merchant } = useAuth();
   const { data: order, isLoading } = useOrder(orderId);
+  const { data: dispute } = useOrderDispute(orderId);
   const update = useUpdateDeliveryStatus();
+  const submitDispute = useSubmitDispute();
+  const [openingChat, setOpeningChat] = useState(false);
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
 
   if (isLoading || !order) {
     return (
@@ -52,6 +68,35 @@ function OrderDetailPage() {
       {
         onSuccess: () => toast.success(`Marked as ${key.replace(/_/g, " ")}`),
         onError: (e: any) => toast.error(e.message ?? "Couldn't update"),
+      }
+    );
+  };
+
+  const openChat = async () => {
+    if (!merchant?.id || !order?.customer_id) return;
+    setOpeningChat(true);
+    const chatId = await ensureChat({
+      orderId,
+      customerId: order.customer_id,
+      merchantId: merchant.id,
+    });
+    setOpeningChat(false);
+    if (chatId) navigate({ to: "/app/messages/$chatId", params: { chatId } });
+    else toast.error("Couldn't open chat — backend may need to enable RLS for chats.");
+  };
+
+  const fileDispute = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!disputeReason.trim()) return;
+    submitDispute.mutate(
+      { orderId, reason: disputeReason.trim() },
+      {
+        onSuccess: () => {
+          toast.success("Dispute submitted. Support will reach out.");
+          setDisputeReason("");
+          setShowDisputeForm(false);
+        },
+        onError: (err: any) => toast.error(err.message ?? "Couldn't submit dispute"),
       }
     );
   };
@@ -94,17 +139,28 @@ function OrderDetailPage() {
                 Status: {String(order.delivery_status ?? "pending").replace(/_/g, " ")}
               </div>
             </div>
+            <button
+              onClick={openChat}
+              disabled={openingChat}
+              className="h-10 w-10 rounded-full bg-gradient-brand text-primary-foreground flex items-center justify-center shadow-brand disabled:opacity-50"
+              aria-label="Open chat"
+            >
+              {openingChat ? <Loader2 className="animate-spin" size={14} /> : <MessageSquare size={16} />}
+            </button>
             {phone && (
               <a href={`tel:${phone}`} className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center" aria-label="Call">
                 <Phone size={16} />
               </a>
             )}
-            {phone && (
-              <a href={`sms:${phone}`} className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center" aria-label="SMS">
-                <MessageSquare size={16} />
-              </a>
-            )}
           </div>
+          <button
+            onClick={openChat}
+            disabled={openingChat}
+            className="mt-3 w-full h-10 rounded-xl bg-gradient-brand-soft text-primary text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <MessageSquare size={14} />
+            {openingChat ? "Opening chat…" : "Message customer"}
+          </button>
         </div>
       </section>
 
@@ -220,6 +276,170 @@ function OrderDetailPage() {
           </div>
         )}
       </section>
+
+      {/* Timeline (history of known status changes) */}
+      <section className="px-5 mt-6">
+        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          Job history
+        </div>
+        <ol className="relative border-l-2 border-border ml-3 space-y-4 pb-2">
+          <TimelineEvent
+            label="Order placed"
+            iso={order.created_at}
+            done
+            tone="primary"
+          />
+          {order.merchant_id && (
+            <TimelineEvent
+              label="Bid accepted"
+              iso={order.updated_at}
+              done
+              tone="primary"
+              hint="You won this order"
+            />
+          )}
+          {order.delivered_at && (
+            <TimelineEvent label="Delivered" iso={order.delivered_at} done tone="success" />
+          )}
+          {order.customer_confirmed_at && (
+            <TimelineEvent
+              label="Customer confirmed"
+              iso={order.customer_confirmed_at}
+              done
+              tone="success"
+            />
+          )}
+          <TimelineEvent
+            label={`Currently: ${String(order.delivery_status ?? "pending").replace(/_/g, " ")}`}
+            iso={order.updated_at}
+            done={String(order.delivery_status) === "delivered"}
+            tone={String(order.delivery_status) === "cancelled" ? "destructive" : "muted"}
+            hint="Detailed per-stage timestamps need backend status events"
+          />
+        </ol>
+      </section>
+
+      {/* Dispute / issue submission */}
+      <section className="px-5 mt-6 mb-6">
+        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          Issue with this order?
+        </div>
+
+        {dispute ? (
+          <div className="rounded-2xl bg-card border border-border p-4 shadow-card">
+            <div className="flex items-center gap-2">
+              <div
+                className={`h-8 w-8 rounded-xl flex items-center justify-center ${
+                  dispute.status === "resolved"
+                    ? "bg-success/15 text-success"
+                    : "bg-amber-500/15 text-amber-600"
+                }`}
+              >
+                <AlertTriangle size={14} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold capitalize">
+                  Dispute · {dispute.status ?? "open"}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  Filed {new Date(dispute.created_at).toLocaleString()}
+                  {dispute.resolved_at
+                    ? ` · resolved ${new Date(dispute.resolved_at).toLocaleString()}`
+                    : ""}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 text-sm bg-muted/50 rounded-xl p-3 whitespace-pre-wrap">
+              {dispute.reason}
+            </div>
+          </div>
+        ) : !showDisputeForm ? (
+          <button
+            onClick={() => setShowDisputeForm(true)}
+            className="w-full h-12 rounded-2xl border border-amber-500/40 text-amber-600 font-semibold flex items-center justify-center gap-2"
+          >
+            <AlertTriangle size={16} /> Report an issue
+          </button>
+        ) : (
+          <form
+            onSubmit={fileDispute}
+            className="rounded-2xl bg-card border border-border p-4 shadow-card space-y-3"
+          >
+            <div className="text-xs text-muted-foreground">
+              Tell support what happened — wrong items, damage, customer no-show, payment problem, etc.
+            </div>
+            <textarea
+              value={disputeReason}
+              onChange={(e) => setDisputeReason(e.target.value)}
+              maxLength={1000}
+              rows={5}
+              placeholder="Describe the issue…"
+              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              required
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDisputeForm(false);
+                  setDisputeReason("");
+                }}
+                className="flex-1 h-11 rounded-xl border border-border text-sm font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitDispute.isPending || !disputeReason.trim()}
+                className="flex-1 h-11 rounded-xl bg-gradient-brand text-primary-foreground text-sm font-bold shadow-brand disabled:opacity-40 flex items-center justify-center"
+              >
+                {submitDispute.isPending ? (
+                  <Loader2 className="animate-spin" size={16} />
+                ) : (
+                  "Submit"
+                )}
+              </button>
+            </div>
+          </form>
+        )}
+      </section>
     </div>
+  );
+}
+
+function TimelineEvent({
+  label,
+  iso,
+  done,
+  tone,
+  hint,
+}: {
+  label: string;
+  iso?: string | null;
+  done: boolean;
+  tone: "primary" | "success" | "muted" | "destructive";
+  hint?: string;
+}) {
+  const dotClass =
+    tone === "success"
+      ? "bg-success text-white"
+      : tone === "destructive"
+      ? "bg-destructive text-white"
+      : tone === "muted"
+      ? "bg-muted text-muted-foreground"
+      : "bg-gradient-brand text-primary-foreground";
+  return (
+    <li className="ml-4">
+      <span
+        className={`absolute -left-[9px] h-4 w-4 rounded-full flex items-center justify-center ${dotClass}`}
+      >
+        {done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+      </span>
+      <div className="text-sm font-semibold capitalize">{label}</div>
+      <div className="text-[11px] text-muted-foreground">
+        {iso ? new Date(iso).toLocaleString() : "—"}
+      </div>
+      {hint && <div className="text-[10px] text-muted-foreground mt-0.5 italic">{hint}</div>}
+    </li>
   );
 }
