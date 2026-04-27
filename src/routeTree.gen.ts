@@ -20,8 +20,10 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppOnboardingRouteImport } from './routes/app.onboarding'
+import { Route as AppMessagesRouteImport } from './routes/app.messages'
 import { Route as AppEarningsRouteImport } from './routes/app.earnings'
 import { Route as AppOrderOrderIdRouteImport } from './routes/app.order.$orderId'
+import { Route as AppMessagesChatIdRouteImport } from './routes/app.messages.$chatId'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -78,6 +80,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessagesRoute = AppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEarningsRoute = AppEarningsRouteImport.update({
   id: '/earnings',
   path: '/earnings',
@@ -88,11 +95,17 @@ const AppOrderOrderIdRoute = AppOrderOrderIdRouteImport.update({
   path: '/order/$orderId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessagesChatIdRoute = AppMessagesChatIdRouteImport.update({
+  id: '/$chatId',
+  path: '/$chatId',
+  getParentRoute: () => AppMessagesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/earnings': typeof AppEarningsRoute
+  '/app/messages': typeof AppMessagesRouteWithChildren
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -102,11 +115,13 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
+  '/app/messages/$chatId': typeof AppMessagesChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/earnings': typeof AppEarningsRoute
+  '/app/messages': typeof AppMessagesRouteWithChildren
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -116,6 +131,7 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app': typeof AppIndexRoute
+  '/app/messages/$chatId': typeof AppMessagesChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRoutesById {
@@ -123,6 +139,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/earnings': typeof AppEarningsRoute
+  '/app/messages': typeof AppMessagesRouteWithChildren
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -132,6 +149,7 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/app/': typeof AppIndexRoute
+  '/app/messages/$chatId': typeof AppMessagesChatIdRoute
   '/app/order/$orderId': typeof AppOrderOrderIdRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +158,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/app/earnings'
+    | '/app/messages'
     | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
@@ -149,11 +168,13 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/app/'
+    | '/app/messages/$chatId'
     | '/app/order/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/app/earnings'
+    | '/app/messages'
     | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
@@ -163,12 +184,14 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/app'
+    | '/app/messages/$chatId'
     | '/app/order/$orderId'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/app/earnings'
+    | '/app/messages'
     | '/app/onboarding'
     | '/app/orders'
     | '/app/settings'
@@ -178,6 +201,7 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/terms'
     | '/app/'
+    | '/app/messages/$chatId'
     | '/app/order/$orderId'
   fileRoutesById: FileRoutesById
 }
@@ -270,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/messages': {
+      id: '/app/messages'
+      path: '/messages'
+      fullPath: '/app/messages'
+      preLoaderRoute: typeof AppMessagesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/earnings': {
       id: '/app/earnings'
       path: '/earnings'
@@ -284,11 +315,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrderOrderIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/messages/$chatId': {
+      id: '/app/messages/$chatId'
+      path: '/$chatId'
+      fullPath: '/app/messages/$chatId'
+      preLoaderRoute: typeof AppMessagesChatIdRouteImport
+      parentRoute: typeof AppMessagesRoute
+    }
   }
 }
 
+interface AppMessagesRouteChildren {
+  AppMessagesChatIdRoute: typeof AppMessagesChatIdRoute
+}
+
+const AppMessagesRouteChildren: AppMessagesRouteChildren = {
+  AppMessagesChatIdRoute: AppMessagesChatIdRoute,
+}
+
+const AppMessagesRouteWithChildren = AppMessagesRoute._addFileChildren(
+  AppMessagesRouteChildren,
+)
+
 interface AppRouteChildren {
   AppEarningsRoute: typeof AppEarningsRoute
+  AppMessagesRoute: typeof AppMessagesRouteWithChildren
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -298,6 +349,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppEarningsRoute: AppEarningsRoute,
+  AppMessagesRoute: AppMessagesRouteWithChildren,
   AppOnboardingRoute: AppOnboardingRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppSettingsRoute: AppSettingsRoute,
