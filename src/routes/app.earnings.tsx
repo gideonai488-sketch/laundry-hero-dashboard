@@ -70,11 +70,42 @@ function WalletPage() {
     <div>
       <AppHeader title="Wallet" subtitle="Earnings & payouts" />
 
-      {/* Tiles */}
-      <section className="px-5 mt-2 grid grid-cols-3 gap-2">
-        <Tile icon={<Calendar size={14} />} label="This week" value={fmt(weekTotal)} />
-        <Tile icon={<TrendingUp size={14} />} label="This month" value={fmt(monthTotal)} />
-        <Tile icon={<Wallet size={14} />} label="Lifetime" value={fmt(lifetimeTotal)} />
+      {/* Hero — featured period */}
+      <section className="px-5 mt-2">
+        <div className="rounded-3xl bg-gradient-brand text-primary-foreground p-5 shadow-brand">
+          <div className="text-xs font-semibold opacity-90">This month</div>
+          <div className="mt-1 text-3xl font-extrabold tracking-tight">{fmt(monthTotal)}</div>
+          <div className="mt-2 text-[11px] opacity-90">
+            {trend(monthTotal, lastMonthTotal)} vs last month · {ordersDelivered} orders delivered
+          </div>
+        </div>
+      </section>
+
+      {/* Period tiles */}
+      <section className="px-5 mt-3 grid grid-cols-2 gap-2">
+        <Tile
+          icon={<Calendar size={14} />}
+          label="Today"
+          value={fmt(todayTotal)}
+          sub={`${trend(todayTotal, yesterdayTotal)} vs yesterday`}
+        />
+        <Tile
+          icon={<Calendar size={14} />}
+          label="Yesterday"
+          value={fmt(yesterdayTotal)}
+        />
+        <Tile
+          icon={<TrendingUp size={14} />}
+          label="This week"
+          value={fmt(weekTotal)}
+          sub={`${trend(weekTotal, lastWeekTotal)} vs last week`}
+        />
+        <Tile
+          icon={<Wallet size={14} />}
+          label="Avg / order"
+          value={fmt(avgOrder)}
+          sub={`${ordersDelivered} delivered · ${fmt(lifetimeTotal)} lifetime`}
+        />
       </section>
 
       {/* Payouts setup banner */}
@@ -142,12 +173,24 @@ function WalletPage() {
   );
 }
 
-function Tile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Tile({
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
   return (
-    <div className="rounded-2xl bg-card border border-border shadow-card p-3 text-center">
-      <div className="text-muted-foreground flex items-center justify-center">{icon}</div>
-      <div className="text-base font-bold mt-1">{value}</div>
-      <div className="text-[10px] text-muted-foreground leading-none mt-0.5">{label}</div>
+    <div className="rounded-2xl bg-card border border-border shadow-card p-3">
+      <div className="flex items-center gap-1.5 text-muted-foreground text-[10px] font-bold uppercase tracking-widest">
+        {icon} {label}
+      </div>
+      <div className="text-lg font-bold mt-1">{value}</div>
+      {sub && <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }
