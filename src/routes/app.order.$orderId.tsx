@@ -72,6 +72,35 @@ function OrderDetailPage() {
     );
   };
 
+  const openChat = async () => {
+    if (!merchant?.id || !order?.customer_id) return;
+    setOpeningChat(true);
+    const chatId = await ensureChat({
+      orderId,
+      customerId: order.customer_id,
+      merchantId: merchant.id,
+    });
+    setOpeningChat(false);
+    if (chatId) navigate({ to: "/app/messages/$chatId", params: { chatId } });
+    else toast.error("Couldn't open chat — backend may need to enable RLS for chats.");
+  };
+
+  const fileDispute = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!disputeReason.trim()) return;
+    submitDispute.mutate(
+      { orderId, reason: disputeReason.trim() },
+      {
+        onSuccess: () => {
+          toast.success("Dispute submitted. Support will reach out.");
+          setDisputeReason("");
+          setShowDisputeForm(false);
+        },
+        onError: (err: any) => toast.error(err.message ?? "Couldn't submit dispute"),
+      }
+    );
+  };
+
   const customerName = order.customer?.full_name ?? "Customer";
   const phone = order.customer?.phone;
   const items: any[] = order.items ?? [];
