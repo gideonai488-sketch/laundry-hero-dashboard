@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Clock,
   Loader2,
   MapPin,
   MessageSquare,
@@ -9,7 +12,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useOrder, useUpdateDeliveryStatus } from "@/lib/queries";
+import { useAuth } from "@/lib/auth";
+import {
+  ensureChat,
+  useOrder,
+  useOrderDispute,
+  useSubmitDispute,
+  useUpdateDeliveryStatus,
+} from "@/lib/queries";
 
 export const Route = createFileRoute("/app/order/$orderId")({
   head: ({ params }) => ({ meta: [{ title: `Order #${params.orderId.slice(0, 6)} — Highest Wash` }] }),
