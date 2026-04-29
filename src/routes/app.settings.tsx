@@ -227,6 +227,27 @@ function SettingsPage() {
         <button onClick={confirmSignOut} className="w-full h-12 rounded-2xl border border-destructive/30 text-destructive font-semibold flex items-center justify-center gap-2">
           <LogOut size={16} /> Sign out
         </button>
+        <div className="mt-4 rounded-2xl border border-destructive/30 bg-card p-4 shadow-card">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <Trash2 size={16} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-bold text-destructive">Delete account</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Permanently remove your login and merchant profile from Highest Wash.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={confirmDeleteAccount}
+            disabled={deletingAccount}
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold disabled:opacity-50"
+          >
+            {deletingAccount ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+            {deletingAccount ? "Deleting…" : "Delete my account"}
+          </button>
+        </div>
         <p className="text-center text-[10px] text-muted-foreground mt-3">
           Highest Wash Merchant · {(merchant.country_code ?? "GH").toUpperCase()}
         </p>
