@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store } from "lucide-react";
+import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -16,9 +18,10 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 function SettingsPage() {
-  const { merchant, refresh, signOut } = useAuth();
+  const { merchant, refresh, session, signOut } = useAuth();
   const update = useUpdateMerchant();
   const toggleOnline = useToggleOnline();
+  const deleteAccountFn = useServerFn(deleteCurrentAccount);
 
   const [form, setForm] = useState({
     business_name: "",
@@ -29,6 +32,7 @@ function SettingsPage() {
   });
   const [bank, setBank] = useState({ bank_code: "", account_number: "" });
   const [savingBank, setSavingBank] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (merchant) {
@@ -96,6 +100,26 @@ function SettingsPage() {
 
   const confirmSignOut = () => {
     if (confirm("Sign out of Highest Wash?")) signOut();
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!session?.access_token) {
+      toast.error("Please sign in again before deleting your account.");
+      return;
+    }
+    const phrase = window.prompt("Type DELETE to permanently delete your account.");
+    if (phrase !== "DELETE") return;
+    setDeletingAccount(true);
+    try {
+      await deleteAccountFn({ data: { accessToken: session.access_token } });
+      await supabase.auth.signOut();
+      toast.success("Your account has been deleted.");
+      window.location.assign("/");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't delete account.");
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const setOnline = (v: boolean) => {
