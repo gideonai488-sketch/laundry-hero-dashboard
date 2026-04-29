@@ -60,7 +60,7 @@ export const createPaystackSubaccount = createServerFn({ method: "POST" })
     primary_contact_phone: z.string().min(4).max(30).optional(),
   }).parse(data))
   .handler(async ({ data }) => {
-    const { userClient } = await requireUser(data.accessToken);
+    const { user, userClient } = await requireUser(data.accessToken);
     const secretKey = requirePaystackSecret();
     const res = await fetch("https://api.paystack.co/subaccount", {
       method: "POST",
@@ -86,7 +86,7 @@ export const createPaystackSubaccount = createServerFn({ method: "POST" })
       await userClient
         .from("merchants")
         .update({ paystack_subaccount_code: subaccount.subaccount_code })
-        .eq("owner_id", (await userClient.auth.getUser(data.accessToken)).data.user?.id ?? "");
+        .eq("owner_id", user.id);
     }
     return subaccount;
   });
