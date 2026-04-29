@@ -121,9 +121,9 @@ function WalletPage() {
             <p className="text-xs text-white/85 mt-1">
               Add your bank to start receiving Paystack settlements ~24 h after each delivery.
             </p>
-            <Link to="/app/settings" className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
+            <button onClick={() => setLinkOpen(true)} className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
               Link bank account
-            </Link>
+            </button>
           </div>
         </section>
       )}
