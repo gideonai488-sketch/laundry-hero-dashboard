@@ -189,6 +189,8 @@ function WalletPage() {
           ))}
         </ul>
       </section>
+
+      <LinkBankSheet open={linkOpen} onClose={() => setLinkOpen(false)} />
     </div>
   );
 }
