@@ -8,6 +8,7 @@ export const PAYSTACK_PUBLIC_KEY =
   "pk_live_671fccd651daf066804466572cfd0b7c47df2471";
 
 import { supabase, SUPABASE_URL } from "./supabase";
+import { createPaystackSubaccount, resolvePaystackAccount } from "./paystack.functions";
 
 const FN_BASE = `${SUPABASE_URL}/functions/v1`;
 
@@ -62,11 +63,14 @@ export async function resolveAccount(
   account_number: string,
   bank_code: string
 ): Promise<ResolvedAccount> {
-  const data = await authedFetch(`/paystack-resolve-account`, {
-    method: "POST",
-    body: JSON.stringify({ account_number, bank_code }),
-  });
-  const r = data?.data ?? data;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error("Please sign in again to verify your account.");
+  const r = await resolvePaystackAccount({ data: {
+    accessToken,
+    account_number,
+    bank_code,
+  } });
   if (!r?.account_name) {
     throw new Error("Couldn't verify that account. Double-check the number.");
   }
@@ -89,11 +93,10 @@ export async function createSubaccount(input: {
   primary_contact_name?: string;
   primary_contact_phone?: string;
 }): Promise<CreatedSubaccount> {
-  const data = await authedFetch(`/paystack-create-subaccount`, {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-  const r = data?.data ?? data;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error("Please sign in again to link your bank.");
+  const r = await createPaystackSubaccount({ data: { ...input, accessToken } });
   if (!r?.subaccount_code) {
     throw new Error("Subaccount creation failed. Try again.");
   }
