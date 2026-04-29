@@ -141,12 +141,12 @@ function WalletPage() {
                   {merchant?.paystack_subaccount_code}
                 </div>
               </div>
-              <Link
-                to="/app/settings"
+              <button
+                onClick={() => setLinkOpen(true)}
                 className="h-9 px-3 rounded-xl border border-border text-xs font-bold leading-9"
               >
-                Manage
-              </Link>
+                Change
+              </button>
             </div>
             <p className="text-[11px] text-muted-foreground mt-3">
               Paystack settles to your bank ~24 h after the customer confirms delivery.
