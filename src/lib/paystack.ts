@@ -36,10 +36,17 @@ export interface PaystackBank {
 }
 
 export async function listBanks(country = "ghana"): Promise<PaystackBank[]> {
-  const data = await authedFetch(
-    `/paystack-list-banks?country=${encodeURIComponent(country)}`,
-    { method: "GET" }
+  // Paystack's bank list is public and CORS-enabled, so avoid the secret-key
+  // Edge Function here. This prevents a broken auth helper in that function
+  // from blocking the payout setup sheet.
+  const res = await fetch(
+    `https://api.paystack.co/bank?country=${encodeURIComponent(country)}`,
+    { headers: { Accept: "application/json" } }
   );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data?.message || data?.error || `Couldn't load banks (${res.status})`);
+  }
   // Common shapes: { data: [...] } or { banks: [...] } or [...]
   const banks = data?.data ?? data?.banks ?? data;
   return Array.isArray(banks) ? banks : [];
