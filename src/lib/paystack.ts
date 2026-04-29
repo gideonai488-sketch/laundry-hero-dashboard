@@ -1,30 +1,13 @@
 /**
  * Paystack public (publishable) key — safe to expose in browser code.
- * Used for Paystack Inline checkout. Secret-key operations (list banks,
- * resolve account, create subaccount) are proxied through the shared
- * backend's Edge Functions, which hold the SK.
+ * Used for Paystack Inline checkout. Secret-key operations are proxied through
+ * TanStack server functions, which keep the SK off the browser.
  */
 export const PAYSTACK_PUBLIC_KEY =
   "pk_live_671fccd651daf066804466572cfd0b7c47df2471";
 
-import { supabase, SUPABASE_URL } from "./supabase";
+import { supabase } from "./supabase";
 import { createPaystackSubaccount, resolvePaystackAccount } from "./paystack.functions";
-
-const FN_BASE = `${SUPABASE_URL}/functions/v1`;
-
-async function authedFetch(path: string, init: RequestInit = {}) {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const res = await fetch(`${FN_BASE}${path}`, { ...init, headers });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(json?.error || json?.message || `Request failed (${res.status})`);
-  }
-  return json;
-}
 
 export interface PaystackBank {
   id: number;
