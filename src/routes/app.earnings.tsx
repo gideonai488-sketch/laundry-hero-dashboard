@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { LinkBankSheet } from "@/components/LinkBankSheet";
 import { useAuth } from "@/lib/auth";
 import { useMyOrders } from "@/lib/queries";
 
@@ -15,6 +16,7 @@ const fmt = (n: number) => `₵${n.toFixed(2)}`;
 function WalletPage() {
   const { merchant } = useAuth();
   const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const paid = useMemo(
     () => orders.filter((o: any) => o.payment_status === "paid" && o.delivered_at),
