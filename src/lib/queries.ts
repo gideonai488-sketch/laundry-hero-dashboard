@@ -468,14 +468,14 @@ export function useChatThread(chatId: string | undefined) {
 
   useEffect(() => {
     if (!chatId) return;
-    const ch = supabase
-      .channel(`chat:${chatId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
-        () => qc.invalidateQueries({ queryKey: ["chat", chatId] })
-      )
-      .subscribe();
+    const topic = `chat:${chatId}:${Math.random().toString(36).slice(2, 8)}`;
+    const ch = supabase.channel(topic);
+    ch.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+      () => qc.invalidateQueries({ queryKey: ["chat", chatId] })
+    );
+    ch.subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
