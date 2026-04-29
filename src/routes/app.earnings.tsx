@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
+import { LinkBankSheet } from "@/components/LinkBankSheet";
 import { useAuth } from "@/lib/auth";
 import { useMyOrders } from "@/lib/queries";
 
@@ -15,6 +16,7 @@ const fmt = (n: number) => `₵${n.toFixed(2)}`;
 function WalletPage() {
   const { merchant } = useAuth();
   const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const paid = useMemo(
     () => orders.filter((o: any) => o.payment_status === "paid" && o.delivered_at),
@@ -119,9 +121,9 @@ function WalletPage() {
             <p className="text-xs text-white/85 mt-1">
               Add your bank to start receiving Paystack settlements ~24 h after each delivery.
             </p>
-            <Link to="/app/settings" className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
+            <button onClick={() => setLinkOpen(true)} className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
               Link bank account
-            </Link>
+            </button>
           </div>
         </section>
       )}
@@ -139,12 +141,12 @@ function WalletPage() {
                   {merchant?.paystack_subaccount_code}
                 </div>
               </div>
-              <Link
-                to="/app/settings"
+              <button
+                onClick={() => setLinkOpen(true)}
                 className="h-9 px-3 rounded-xl border border-border text-xs font-bold leading-9"
               >
-                Manage
-              </Link>
+                Change
+              </button>
             </div>
             <p className="text-[11px] text-muted-foreground mt-3">
               Paystack settles to your bank ~24 h after the customer confirms delivery.
@@ -187,6 +189,8 @@ function WalletPage() {
           ))}
         </ul>
       </section>
+
+      <LinkBankSheet open={linkOpen} onClose={() => setLinkOpen(false)} />
     </div>
   );
 }
