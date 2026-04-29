@@ -401,19 +401,19 @@ export function useMyChats(merchantId: string | undefined) {
 
   useEffect(() => {
     if (!merchantId) return;
-    const ch = supabase
-      .channel(`merchant:chats:${merchantId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chats", filter: `merchant_id=eq.${merchantId}` },
-        () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
-      )
-      .subscribe();
+    const topic = `merchant:chats:${merchantId}:${Math.random().toString(36).slice(2, 8)}`;
+    const ch = supabase.channel(topic);
+    ch.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "chats", filter: `merchant_id=eq.${merchantId}` },
+      () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
+    );
+    ch.on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "messages" },
+      () => qc.invalidateQueries({ queryKey: ["my-chats", merchantId] })
+    );
+    ch.subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
@@ -468,14 +468,14 @@ export function useChatThread(chatId: string | undefined) {
 
   useEffect(() => {
     if (!chatId) return;
-    const ch = supabase
-      .channel(`chat:${chatId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
-        () => qc.invalidateQueries({ queryKey: ["chat", chatId] })
-      )
-      .subscribe();
+    const topic = `chat:${chatId}:${Math.random().toString(36).slice(2, 8)}`;
+    const ch = supabase.channel(topic);
+    ch.on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
+      () => qc.invalidateQueries({ queryKey: ["chat", chatId] })
+    );
+    ch.subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
