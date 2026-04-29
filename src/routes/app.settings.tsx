@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store } from "lucide-react";
+import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
@@ -16,9 +18,10 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 function SettingsPage() {
-  const { merchant, refresh, signOut } = useAuth();
+  const { merchant, refresh, session, signOut } = useAuth();
   const update = useUpdateMerchant();
   const toggleOnline = useToggleOnline();
+  const deleteAccountFn = useServerFn(deleteCurrentAccount);
 
   const [form, setForm] = useState({
     business_name: "",
@@ -29,6 +32,7 @@ function SettingsPage() {
   });
   const [bank, setBank] = useState({ bank_code: "", account_number: "" });
   const [savingBank, setSavingBank] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (merchant) {
@@ -96,6 +100,26 @@ function SettingsPage() {
 
   const confirmSignOut = () => {
     if (confirm("Sign out of Highest Wash?")) signOut();
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!session?.access_token) {
+      toast.error("Please sign in again before deleting your account.");
+      return;
+    }
+    const phrase = window.prompt("Type DELETE to permanently delete your account.");
+    if (phrase !== "DELETE") return;
+    setDeletingAccount(true);
+    try {
+      await deleteAccountFn({ data: { accessToken: session.access_token } });
+      await supabase.auth.signOut();
+      toast.success("Your account has been deleted.");
+      window.location.assign("/");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't delete account.");
+    } finally {
+      setDeletingAccount(false);
+    }
   };
 
   const setOnline = (v: boolean) => {
@@ -203,6 +227,27 @@ function SettingsPage() {
         <button onClick={confirmSignOut} className="w-full h-12 rounded-2xl border border-destructive/30 text-destructive font-semibold flex items-center justify-center gap-2">
           <LogOut size={16} /> Sign out
         </button>
+        <div className="mt-4 rounded-2xl border border-destructive/30 bg-card p-4 shadow-card">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+              <Trash2 size={16} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-bold text-destructive">Delete account</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Permanently remove your login and merchant profile from Highest Wash.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={confirmDeleteAccount}
+            disabled={deletingAccount}
+            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold disabled:opacity-50"
+          >
+            {deletingAccount ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+            {deletingAccount ? "Deleting…" : "Delete my account"}
+          </button>
+        </div>
         <p className="text-center text-[10px] text-muted-foreground mt-3">
           Highest Wash Merchant · {(merchant.country_code ?? "GH").toUpperCase()}
         </p>
