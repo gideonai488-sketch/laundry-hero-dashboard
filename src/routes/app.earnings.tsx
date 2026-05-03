@@ -152,10 +152,24 @@ function WalletPage() {
                 <Banknote size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold">Bank linked</div>
-                <div className="text-[11px] text-muted-foreground font-mono truncate">
-                  {merchant?.paystack_subaccount_code}
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-bold truncate">
+                    {bankInfo?.bank_name ?? "Bank linked"}
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-success/15 text-success">
+                    Active
+                  </span>
                 </div>
+                {bankInfo?.account_name && (
+                  <div className="text-[12px] font-semibold truncate">
+                    {bankInfo.account_name}
+                  </div>
+                )}
+                {bankInfo?.account_number && (
+                  <div className="text-[11px] text-muted-foreground font-mono truncate">
+                    •••• {bankInfo.account_number.slice(-4)}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setLinkOpen(true)}
@@ -163,6 +177,22 @@ function WalletPage() {
               >
                 Change
               </button>
+            </div>
+            <div className="mt-3 pt-3 border-t border-border space-y-1">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-muted-foreground">Subaccount</span>
+                <span className="font-mono text-foreground/80 truncate ml-2">
+                  {merchant?.paystack_subaccount_code}
+                </span>
+              </div>
+              {bankInfo?.linked_at && (
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-muted-foreground">Linked</span>
+                  <span className="text-foreground/80">
+                    {new Date(bankInfo.linked_at).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
             </div>
             <p className="text-[11px] text-muted-foreground mt-3">
               Paystack settles to your bank ~24 h after the customer confirms delivery.
