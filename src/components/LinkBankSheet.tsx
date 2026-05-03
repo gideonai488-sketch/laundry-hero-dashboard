@@ -42,7 +42,11 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
     setBanks([]);
     setBankCode("");
     listBanks(country)
-      .then(setBanks)
+      .then((list) => {
+        // Deduplicate by code — Paystack occasionally returns duplicate entries
+        const seen = new Set<string>();
+        setBanks(list.filter((b) => (seen.has(b.code) ? false : seen.add(b.code) && true)));
+      })
       .catch((e) => toast.error(e.message ?? "Couldn't load banks"))
       .finally(() => setLoadingBanks(false));
   }, [country, open]);
@@ -187,7 +191,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
               ) : (
                 filtered.map((b) => (
                   <button
-                    key={b.code}
+                    key={b.id != null ? String(b.id) : b.code}
                     onClick={() => setBankCode(b.code)}
                     className={`w-full text-left px-3 py-2.5 text-sm border-b border-border last:border-0 flex items-center justify-between ${
                       bankCode === b.code ? "bg-primary/10 text-primary font-bold" : ""

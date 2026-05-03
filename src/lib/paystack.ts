@@ -39,6 +39,14 @@ export interface ResolvedAccount {
   bank_id?: number;
 }
 
+function friendlyFnError(raw: string | undefined, fallback: string): string {
+  if (!raw) return fallback;
+  if (raw.includes("non-2xx") || raw.includes("Edge Function") || raw.includes("Failed to send")) {
+    return fallback;
+  }
+  return raw;
+}
+
 export async function resolveAccount(
   account_number: string,
   bank_code: string
@@ -46,7 +54,10 @@ export async function resolveAccount(
   const { data, error } = await supabase.functions.invoke("resolve-bank-account", {
     body: { account_number, bank_code },
   });
-  if (error) throw new Error(error.message ?? "Couldn't verify that account.");
+  if (error) {
+    console.warn("resolve-bank-account edge fn error:", error.message);
+    throw new Error(friendlyFnError(error.message, "Account verification is temporarily unavailable. Please try again soon."));
+  }
   const r = (data as any)?.data ?? data;
   if (!r?.account_name) {
     throw new Error("Couldn't verify that account. Double-check the number.");
@@ -82,7 +93,10 @@ export async function createSubaccount(input: {
     "register-merchant-subaccount",
     { body: payload }
   );
-  if (error) throw new Error(error.message ?? "Subaccount creation failed.");
+  if (error) {
+    console.warn("register-merchant-subaccount edge fn error:", error.message);
+    throw new Error(friendlyFnError(error.message, "Payout setup is temporarily unavailable. You can link your bank later from Settings."));
+  }
   const r = (data as any)?.data ?? data;
   if (!r?.subaccount_code) {
     throw new Error("Subaccount creation failed. Try again.");
