@@ -71,9 +71,16 @@ export async function createSubaccount(input: {
   primary_contact_phone?: string;
   merchant_id?: string;
 }): Promise<CreatedSubaccount> {
+  // Send both our field names AND Paystack-native names so the edge
+  // function works regardless of which schema it validates against.
+  const payload = {
+    ...input,
+    settlement_bank: input.bank_code,
+    percentage_charge: input.percentage_charge ?? 0,
+  };
   const { data, error } = await supabase.functions.invoke(
     "register-merchant-subaccount",
-    { body: input }
+    { body: payload }
   );
   if (error) throw new Error(error.message ?? "Subaccount creation failed.");
   const r = (data as any)?.data ?? data;
