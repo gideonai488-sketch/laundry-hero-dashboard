@@ -42,6 +42,9 @@ workflows:
       - name: Install dependencies
         script: |
           npm ci
+      - name: Build Capacitor web assets and sync Android
+        script: |
+          npm run build:cap
       - name: Setup Android SDK
         script: |
           ANDROID_SDK_ROOT=$ANDROID_HOME
