@@ -26,7 +26,12 @@ function Landing() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
-          <Logo size="sm" />
+          <div className="flex flex-col leading-none">
+            <Logo size="sm" />
+            <span className="text-[9px] text-muted-foreground tracking-wide mt-0.5 pl-0.5">
+              A product of Genesis Holdings Inc, USA
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <Link to="/auth/login">
               <Button variant="ghost" size="sm">Log in</Button>
