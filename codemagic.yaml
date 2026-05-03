@@ -1,0 +1,74 @@
+# Codemagic CI/CD Configuration for Laundry Hero Dashboard Android App
+#
+# Setup Instructions:
+# 1. Create a Codemagic account and connect your repository
+# 2. Configure version numbers in Codemagic environment variables:
+#    - ANDROID_VERSION_CODE: Integer version code (must be higher than Play Store version)
+#    - ANDROID_VERSION_NAME: String version name (e.g., "1.2.3")
+# 3. No additional environment variables needed - all credentials are embedded
+# 4. The keystore is embedded as base64 in the ANDROID_KEYSTORE variable
+#
+# This configuration builds the Android AAB for manual download and testing.
+# For Google Play Store publishing, manually upload the AAB and manage version codes.
+
+workflows:
+  android-workflow:
+    name: Android Build
+    max_build_duration: 30
+    environment:
+      node: latest
+      java: 21
+    environment_variables:
+      # Version Configuration - UPDATE THESE BEFORE EACH BUILD
+      ANDROID_VERSION_CODE: 2  # Must be higher than current Play Store version (e.g., if Play Store has 1, set to 2)
+      ANDROID_VERSION_NAME: "1.1"  # User-visible version string (e.g., "1.1", "2.0.1")
+      # Supabase Configuration
+      SUPABASE_URL: "https://eqbogpvabcsngspphjte.supabase.co"
+      SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYm9ncHZhYmNzbmdzcHBoanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjcxMjMsImV4cCI6MjA5MjM0MzEyM30.EN5bPu66_y5xN1i_EKxMbFKJoKb9jAmuIBxGUTRSMPk"
+
+      # Paystack Configuration
+      PAYSTACK_PUBLIC_KEY: "pk_live_671fccd651daf066804466572cfd0b7c47df2471"
+
+      # Keystore Configuration
+      HW_KEYSTORE_PASSWORD: "HWMerchant@Genesis2025!Hw#"
+      HW_KEY_PASSWORD: "HWMerchant@Genesis2025!Hw#"
+      HW_KEY_ALIAS: "highestwash-merchant"
+      ANDROID_KEYSTORE: "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"
+
+      # VAPID Keys for Push Notifications
+      VITE_VAPID_PUBLIC_KEY: "BHnAKnfcFbA1kMvjxAQTSTpYemv11cgNh6HjWWkrlzH8-VU1zbJIwqcUkKdqLu56bUCkmvct6oK45XiWl5ydhUM"
+
+      # Android SDK Configuration
+      ANDROID_HOME: "/usr/local/android-sdk"
+      ANDROID_SDK_ROOT: "/usr/local/android-sdk"
+      JAVA_HOME: "/usr/local/android-sdk"
+
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+
+      - name: Setup Android SDK
+        script: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install 'platform-tools' 'platforms;android-35' 'build-tools;34.0.0'
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+      - name: Setup keystore
+        script: |
+          # Create keystore directory if it doesn't exist
+          mkdir -p android
+          # Copy keystore file (you need to upload this as an environment variable or artifact)
+          echo $ANDROID_KEYSTORE | base64 -d > android/highestwash-merchant.p12
+
+      - name: Build web app
+        script: |
+          npm run build:cap
+
+      - name: Build Android AAB
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
