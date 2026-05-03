@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
+import { Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
