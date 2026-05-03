@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { LinkBankSheet } from "@/components/LinkBankSheet";
