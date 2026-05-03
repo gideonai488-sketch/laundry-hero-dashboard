@@ -187,40 +187,7 @@ function SettingsPage() {
         </form>
       </section>
 
-      {/* Payouts */}
-      <section className="px-5 mt-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Payouts</h2>
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-card space-y-3">
-          {merchant.paystack_subaccount_code ? (
-            <div className="text-sm">
-              <div className="flex items-center gap-2 font-semibold">
-                <Banknote size={16} className="text-primary" /> Paystack subaccount linked
-              </div>
-              <div className="text-xs text-muted-foreground mt-1 font-mono">{merchant.paystack_subaccount_code}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Settlements land in your bank ~24 h after the customer confirms delivery.
-              </p>
-            </div>
-          ) : (
-            <>
-              <p className="text-xs text-muted-foreground">
-                Add your bank info to receive Paystack settlements.
-              </p>
-              <div className="space-y-1.5">
-                <Label htmlFor="bcode" className="text-xs">Bank code</Label>
-                <Input id="bcode" value={bank.bank_code} onChange={(e) => setBank((b) => ({ ...b, bank_code: e.target.value }))} placeholder="e.g. 058" className="h-11 rounded-xl" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="acct" className="text-xs">Account number</Label>
-                <Input id="acct" value={bank.account_number} onChange={(e) => setBank((b) => ({ ...b, account_number: e.target.value }))} placeholder="10-digit" className="h-11 rounded-xl" />
-              </div>
-              <Button onClick={setupPayouts} disabled={savingBank} className="w-full h-11 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-sm font-semibold">
-                {savingBank ? <Loader2 className="animate-spin" /> : "Set up payouts"}
-              </Button>
-            </>
-          )}
-        </div>
-      </section>
+      {/* Payouts moved to Wallet — link/manage your bank from there. */}
 
       {/* Sign out */}
       <section className="px-5 mt-6 mb-4">
