@@ -17,6 +17,22 @@ function WalletPage() {
   const { merchant } = useAuth();
   const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [bankInfo, setBankInfo] = useState<{
+    bank_name?: string;
+    account_number?: string;
+    account_name?: string;
+    linked_at?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!merchant?.id) return;
+    try {
+      const raw = localStorage.getItem(`hw-merchant-bank:${merchant.id}`);
+      setBankInfo(raw ? JSON.parse(raw) : null);
+    } catch {
+      setBankInfo(null);
+    }
+  }, [merchant?.id, linkOpen]);
 
   const paid = useMemo(
     () => orders.filter((o: any) => o.payment_status === "paid" && o.delivered_at),
