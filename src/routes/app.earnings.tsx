@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Banknote, Loader2, Wallet, TrendingUp, Calendar } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { LinkBankSheet } from "@/components/LinkBankSheet";
+import { LinkedBankCard, type BankInfo } from "@/components/LinkedBankCard";
 import { useAuth } from "@/lib/auth";
 import { useMyOrders } from "@/lib/queries";
 
@@ -17,12 +18,7 @@ function WalletPage() {
   const { merchant } = useAuth();
   const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
   const [linkOpen, setLinkOpen] = useState(false);
-  const [bankInfo, setBankInfo] = useState<{
-    bank_name?: string;
-    account_number?: string;
-    account_name?: string;
-    linked_at?: string;
-  } | null>(null);
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
 
   useEffect(() => {
     if (!merchant?.id) return;
@@ -126,9 +122,12 @@ function WalletPage() {
         />
       </section>
 
-      {/* Payouts setup banner */}
-      {!hasPayouts && (
-        <section className="px-5 mt-5">
+      {/* Payouts section */}
+      <section className="px-5 mt-5">
+        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          Payout account
+        </div>
+        {!hasPayouts ? (
           <div className="rounded-2xl bg-gradient-brand text-primary-foreground p-4 shadow-brand">
             <div className="flex items-center gap-2">
               <Banknote size={18} />
@@ -137,69 +136,21 @@ function WalletPage() {
             <p className="text-xs text-white/85 mt-1">
               Add your bank to start receiving Paystack settlements ~24 h after each delivery.
             </p>
-            <button onClick={() => setLinkOpen(true)} className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9">
+            <button
+              onClick={() => setLinkOpen(true)}
+              className="inline-block mt-3 px-3 h-9 rounded-xl bg-white text-primary font-bold text-xs leading-9"
+            >
               Link bank account
             </button>
           </div>
-        </section>
-      )}
-
-      {hasPayouts && (
-        <section className="px-5 mt-5">
-          <div className="rounded-2xl bg-card border border-border p-4 shadow-card">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/15 text-success flex items-center justify-center">
-                <Banknote size={16} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="text-sm font-bold truncate">
-                    {bankInfo?.bank_name ?? "Bank linked"}
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-success/15 text-success">
-                    Active
-                  </span>
-                </div>
-                {bankInfo?.account_name && (
-                  <div className="text-[12px] font-semibold truncate">
-                    {bankInfo.account_name}
-                  </div>
-                )}
-                {bankInfo?.account_number && (
-                  <div className="text-[11px] text-muted-foreground font-mono truncate">
-                    •••• {bankInfo.account_number.slice(-4)}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => setLinkOpen(true)}
-                className="h-9 px-3 rounded-xl border border-border text-xs font-bold leading-9"
-              >
-                Change
-              </button>
-            </div>
-            <div className="mt-3 pt-3 border-t border-border space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-muted-foreground">Subaccount</span>
-                <span className="font-mono text-foreground/80 truncate ml-2">
-                  {merchant?.paystack_subaccount_code}
-                </span>
-              </div>
-              {bankInfo?.linked_at && (
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-muted-foreground">Linked</span>
-                  <span className="text-foreground/80">
-                    {new Date(bankInfo.linked_at).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-3">
-              Paystack settles to your bank ~24 h after the customer confirms delivery.
-            </p>
-          </div>
-        </section>
-      )}
+        ) : (
+          <LinkedBankCard
+            bankInfo={bankInfo}
+            subaccountCode={merchant?.paystack_subaccount_code}
+            onChangeBank={() => setLinkOpen(true)}
+          />
+        )}
+      </section>
 
       {/* Recent paid orders */}
       <section className="px-5 mt-6">

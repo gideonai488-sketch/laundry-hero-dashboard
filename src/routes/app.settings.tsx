@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
+import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import { LinkedBankCard, type BankInfo } from "@/components/LinkedBankCard";
+import { LinkBankSheet } from "@/components/LinkBankSheet";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — Highest Wash Merchant" }] }),
@@ -31,6 +33,18 @@ function SettingsPage() {
     lng: "",
   });
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
+
+  useEffect(() => {
+    if (!merchant?.id) return;
+    try {
+      const raw = localStorage.getItem(`hw-merchant-bank:${merchant.id}`);
+      setBankInfo(raw ? JSON.parse(raw) : null);
+    } catch {
+      setBankInfo(null);
+    }
+  }, [merchant?.id, linkOpen]);
 
   useEffect(() => {
     if (merchant) {
@@ -161,7 +175,33 @@ function SettingsPage() {
         </form>
       </section>
 
-      {/* Payouts moved to Wallet — link/manage your bank from there. */}
+      {/* Payouts */}
+      <section className="px-5 mt-5">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Payout account</h2>
+        {merchant.paystack_subaccount_code ? (
+          <LinkedBankCard
+            bankInfo={bankInfo}
+            subaccountCode={merchant.paystack_subaccount_code}
+            onChangeBank={() => setLinkOpen(true)}
+          />
+        ) : (
+          <div className="rounded-2xl bg-card border border-border shadow-card p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
+              <Banknote size={18} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold">No bank linked</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Add your bank to receive Paystack settlements.</div>
+            </div>
+            <button
+              onClick={() => setLinkOpen(true)}
+              className="h-9 px-3 rounded-xl bg-gradient-brand text-primary-foreground text-xs font-bold shadow-brand shrink-0"
+            >
+              Link bank
+            </button>
+          </div>
+        )}
+      </section>
 
       {/* Sign out */}
       <section className="px-5 mt-6 mb-4">
@@ -193,6 +233,15 @@ function SettingsPage() {
           Highest Wash Merchant · {(merchant.country_code ?? "GH").toUpperCase()}
         </p>
       </section>
+
+      <LinkBankSheet
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        onLinked={() => {
+          const raw = localStorage.getItem(`hw-merchant-bank:${merchant.id}`);
+          setBankInfo(raw ? JSON.parse(raw) : null);
+        }}
+      />
     </div>
   );
 }
