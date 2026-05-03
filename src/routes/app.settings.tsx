@@ -30,8 +30,6 @@ function SettingsPage() {
     lat: "",
     lng: "",
   });
-  const [bank, setBank] = useState({ bank_code: "", account_number: "" });
-  const [savingBank, setSavingBank] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
