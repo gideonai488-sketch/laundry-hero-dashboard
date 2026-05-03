@@ -72,30 +72,6 @@ function SettingsPage() {
     );
   };
 
-  const setupPayouts = async () => {
-    if (!bank.bank_code || !bank.account_number) {
-      toast.error("Enter bank code and account number.");
-      return;
-    }
-    setSavingBank(true);
-    try {
-      await supabase.functions.invoke("register-merchant-subaccount", {
-        body: {
-          merchant_id: merchant.id,
-          bank_code: bank.bank_code,
-          account_number: bank.account_number,
-        },
-      });
-      await refresh();
-      toast.success("Payouts setup submitted.");
-    } catch (err: any) {
-      console.warn(err);
-      toast.info("Payouts edge function not deployed yet — backend agent will handle it.");
-    } finally {
-      setSavingBank(false);
-    }
-  };
-
   const confirmSignOut = () => {
     if (confirm("Sign out of Highest Wash?")) signOut();
   };
