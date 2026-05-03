@@ -178,7 +178,7 @@ function SettingsPage() {
       {/* Payouts */}
       <section className="px-5 mt-5">
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Payout account</h2>
-        {merchant.paystack_subaccount_code ? (
+        {(merchant.paystack_subaccount_code || bankInfo) ? (
           <LinkedBankCard
             bankInfo={bankInfo}
             subaccountCode={merchant.paystack_subaccount_code}

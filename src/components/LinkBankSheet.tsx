@@ -35,6 +35,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
   const [resolvedName, setResolvedName] = useState<string | null>(null);
   const [resolveError, setResolveError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [manualName, setManualName] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -84,8 +85,10 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
 
   const selectedBank = banks.find((b) => b.code === bankCode);
 
+  const confirmedName = resolvedName || manualName.trim();
+
   const submit = async () => {
-    if (!merchant || !resolvedName || !selectedBank) return;
+    if (!merchant || !confirmedName || !selectedBank) return;
     setSubmitting(true);
     try {
       const r = await createSubaccount({
@@ -93,7 +96,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
         bank_code: selectedBank.code,
         account_number: accountNumber,
         primary_contact_email: user?.email ?? merchant.email ?? undefined,
-        primary_contact_name: resolvedName,
+        primary_contact_name: confirmedName,
         primary_contact_phone: merchant.phone ?? undefined,
       });
       // Persist on merchant row in case the function didn't write it.
@@ -109,7 +112,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
           JSON.stringify({
             bank_name: selectedBank.name,
             account_number: accountNumber,
-            account_name: resolvedName,
+            account_name: confirmedName,
             country,
             linked_at: new Date().toISOString(),
           })
@@ -223,7 +226,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
           </div>
 
           {bankCode && accountNumber.length >= 8 && (
-            <div className="rounded-xl border border-border bg-card p-3">
+            <div className="rounded-xl border border-border bg-card p-3 space-y-2">
               {resolving && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="animate-spin" size={14} /> Verifying account…
@@ -246,7 +249,17 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
                 </div>
               )}
               {!resolving && resolveError && (
-                <div className="text-xs text-destructive">{resolveError}</div>
+                <>
+                  <div className="text-xs text-amber-600 font-medium">
+                    Auto-verify unavailable — enter your account name manually to continue.
+                  </div>
+                  <input
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    placeholder="e.g. JOHN DOE MENSAH"
+                    className="w-full h-10 px-3 rounded-xl bg-background border border-border text-sm font-semibold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </>
               )}
             </div>
           )}
@@ -255,7 +268,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
         <div className="px-5 pt-3 pb-5 border-t border-border bg-background">
           <button
             onClick={submit}
-            disabled={!resolvedName || submitting}
+            disabled={!confirmedName || submitting}
             className="w-full h-12 rounded-2xl bg-gradient-brand text-primary-foreground font-bold shadow-brand disabled:opacity-40 flex items-center justify-center gap-2"
           >
             {submitting ? <Loader2 className="animate-spin" size={16} /> : null}

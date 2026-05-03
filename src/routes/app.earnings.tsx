@@ -15,12 +15,12 @@ export const Route = createFileRoute("/app/earnings")({
 const fmt = (n: number) => `₵${n.toFixed(2)}`;
 
 function WalletPage() {
-  const { merchant } = useAuth();
+  const { merchant, refresh } = useAuth();
   const { data: orders = [], isLoading } = useMyOrders(merchant?.id);
   const [linkOpen, setLinkOpen] = useState(false);
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
 
-  useEffect(() => {
+  const readBankInfo = () => {
     if (!merchant?.id) return;
     try {
       const raw = localStorage.getItem(`hw-merchant-bank:${merchant.id}`);
@@ -28,6 +28,10 @@ function WalletPage() {
     } catch {
       setBankInfo(null);
     }
+  };
+
+  useEffect(() => {
+    readBankInfo();
   }, [merchant?.id, linkOpen]);
 
   const paid = useMemo(
@@ -78,7 +82,7 @@ function WalletPage() {
     .sort((a: any, b: any) => new Date(b.delivered_at).getTime() - new Date(a.delivered_at).getTime())
     .slice(0, 30);
 
-  const hasPayouts = !!merchant?.paystack_subaccount_code;
+  const hasPayouts = !!merchant?.paystack_subaccount_code || !!bankInfo;
 
   return (
     <div>
@@ -187,7 +191,14 @@ function WalletPage() {
         </ul>
       </section>
 
-      <LinkBankSheet open={linkOpen} onClose={() => setLinkOpen(false)} />
+      <LinkBankSheet
+        open={linkOpen}
+        onClose={() => setLinkOpen(false)}
+        onLinked={() => {
+          readBankInfo();
+          refresh();
+        }}
+      />
     </div>
   );
 }
