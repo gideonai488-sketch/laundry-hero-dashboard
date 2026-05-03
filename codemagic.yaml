@@ -30,7 +30,6 @@ environment_variables:
   # Android SDK Configuration
   ANDROID_HOME: "/usr/local/android-sdk"
   ANDROID_SDK_ROOT: "/usr/local/android-sdk"
-  JAVA_HOME: "/usr/local/android-sdk"
 
 workflows:
   android-workflow:
@@ -45,7 +44,20 @@ workflows:
           npm ci
       - name: Setup Android SDK
         script: |
-          echo "y" | $ANDROID_HOME/tools/bin/sdkmanager --install 'platform-tools' 'platforms;android-35' 'build-tools;34.0.0'
+          ANDROID_SDK_ROOT=$ANDROID_HOME
+          if [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          else
+            SDKMANAGER="$ANDROID_HOME/tools/bin/sdkmanager"
+          fi
+          echo "Using sdkmanager: $SDKMANAGER"
+          echo "y" | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --install 'platform-tools' 'platforms;android-35' 'build-tools;34.0.0' || {
+            echo "sdkmanager failed with current JDK, retrying with JDK 11 fallback"
+            export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+            export PATH="$JAVA_HOME/bin:$PATH"
+            echo "Using JAVA_HOME: $JAVA_HOME"
+            echo "y" | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --install 'platform-tools' 'platforms;android-35' 'build-tools;34.0.0'
+          }
       - name: Create keystore file
         script: |
           echo $ANDROID_KEYSTORE | base64 -d > android/app/highestwash-merchant.keystore
