@@ -1,0 +1,310 @@
+Build Capacitor web assets and sync Android
+11s
+
+
+
+Show command
+
+> build:cap
+> vite build && node scripts/generate-index.mjs && npx cap sync
+
+vite v7.3.2 building client environment for production...
+transforming...
+✓ 2456 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                              0.02 kB
+dist/client/.vite/manifest.json                       15.42 kB │ gzip:   1.82 kB
+dist/client/assets/dashboard-preview-q_mlteI-.jpg     50.44 kB
+dist/client/assets/feature-payouts-CTXd1csJ.jpg       70.10 kB
+dist/client/assets/feature-pickup-DKPDPLcx.jpg        71.02 kB
+dist/client/assets/feature-quality-CYy3-uiQ.jpg       71.99 kB
+dist/client/assets/hero-merchant-CYvz8Bi2.jpg        164.34 kB
+dist/client/assets/styles-DkbGdx04.css                92.72 kB │ gzip:  15.03 kB
+dist/client/assets/chevron-right-CqMJ3A-6.js           0.13 kB │ gzip:   0.14 kB
+dist/client/assets/loader-circle-DxHsZIO8.js           0.14 kB │ gzip:   0.15 kB
+dist/client/assets/x-DPv8lXxP.js                       0.16 kB │ gzip:   0.15 kB
+dist/client/assets/arrow-right-DvQMrzNj.js             0.17 kB │ gzip:   0.16 kB
+dist/client/assets/power-BCBbWody.js                   0.17 kB │ gzip:   0.17 kB
+dist/client/assets/circle-check-8G0PjTI8.js            0.17 kB │ gzip:   0.17 kB
+dist/client/assets/banknote-Ch9wRwGx.js                0.24 kB │ gzip:   0.21 kB
+dist/client/assets/message-circle-HPy8cURd.js          0.24 kB │ gzip:   0.21 kB
+dist/client/assets/map-pin-C6RIMEdA.js                 0.26 kB │ gzip:   0.22 kB
+dist/client/assets/wallet-BQu-DyI7.js                  0.29 kB │ gzip:   0.21 kB
+dist/client/assets/phone-GHA7FJ1N.js                   0.32 kB │ gzip:   0.23 kB
+dist/client/assets/clipboard-list-Cyg6aI3p.js          0.41 kB │ gzip:   0.26 kB
+dist/client/assets/store-Dlehy1XK.js                   0.50 kB │ gzip:   0.29 kB
+dist/client/assets/package-open-iv4H9WRl.js            0.58 kB │ gzip:   0.33 kB
+dist/client/assets/input-ENdQ1Qzl.js                   0.59 kB │ gzip:   0.37 kB
+dist/client/assets/shield-check-BplV82y5.js            0.59 kB │ gzip:   0.36 kB
+dist/client/assets/AppHeader-DHEQb3u0.js               0.60 kB │ gzip:   0.35 kB
+dist/client/assets/sparkles-COHApS2H.js                0.61 kB │ gzip:   0.33 kB
+dist/client/assets/eye-7G5RkX63.js                     0.64 kB │ gzip:   0.35 kB
+dist/client/assets/push-L495pizh.js                    0.68 kB │ gzip:   0.41 kB
+dist/client/assets/label-CkkzrClZ.js                   0.91 kB │ gzip:   0.56 kB
+dist/client/assets/Logo-BBaGN0de.js                    1.00 kB │ gzip:   0.57 kB
+dist/client/assets/legal.privacy-BOGw4SRk.js           1.50 kB │ gzip:   0.79 kB
+dist/client/assets/legal.merchant-CkqdPkpf.js          1.74 kB │ gzip:   0.89 kB
+dist/client/assets/legal.terms-Dj3ipKVw.js             2.39 kB │ gzip:   1.10 kB
+dist/client/assets/app.messages-Ck-lqbhn.js            2.76 kB │ gzip:   1.17 kB
+dist/client/assets/auth.login-DDNKbzWE.js              3.29 kB │ gzip:   1.40 kB
+dist/client/assets/app.orders-qx24ca7a.js              3.50 kB │ gzip:   1.46 kB
+dist/client/assets/auth.signup-BhIWFYr-.js             3.91 kB │ gzip:   1.60 kB
+dist/client/assets/app.messages._chatId-Bqhl_vu9.js    4.64 kB │ gzip:   2.05 kB
+dist/client/assets/app.earnings-Co7_KkfY.js            5.46 kB │ gzip:   2.22 kB
+dist/client/assets/app.onboarding-DqCQmdFI.js          6.11 kB │ gzip:   2.10 kB
+dist/client/assets/app-DD0spPag.js                     7.08 kB │ gzip:   2.83 kB
+dist/client/assets/index-D6y_YSbX.js                   9.73 kB │ gzip:   3.56 kB
+dist/client/assets/app.order._orderId-BxJwDi77.js     11.54 kB │ gzip:   3.59 kB
+dist/client/assets/app.settings-BBHpNLZ5.js           12.47 kB │ gzip:   4.56 kB
+dist/client/assets/LinkBankSheet-7psyUQBo.js          13.50 kB │ gzip:   4.35 kB
+dist/client/assets/queries-DteQDa5V.js                20.94 kB │ gzip:   6.32 kB
+dist/client/assets/button-DP_qcu22.js                 30.63 kB │ gzip:  10.00 kB
+dist/client/assets/app.index-6SrUkRpm.js             169.36 kB │ gzip:  55.20 kB
+dist/client/assets/index-C7sK9yxA.js                 604.31 kB │ gzip: 180.04 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.40s
+vite v7.3.2 building ssr environment for production...
+transforming...
+✓ 2514 modules transformed.
+rendering chunks...
+dist/server/wrangler.json                                            1.21 kB
+dist/server/.vite/manifest.json                                     16.20 kB
+dist/server/assets/dashboard-preview-q_mlteI-.jpg                   50.44 kB
+dist/server/assets/feature-payouts-CTXd1csJ.jpg                     70.10 kB
+dist/server/assets/feature-pickup-DKPDPLcx.jpg                      71.02 kB
+dist/server/assets/feature-quality-CYy3-uiQ.jpg                     71.99 kB
+dist/server/assets/hero-merchant-CYvz8Bi2.jpg                      164.34 kB
+dist/server/assets/styles-DkbGdx04.css                              92.72 kB
+dist/server/assets/start-HYkvq4Ni.js                                 0.06 kB
+dist/server/assets/__23tanstack-start-plugin-adapters-Cwee5PKy.js    0.14 kB
+dist/server/index.js                                                 0.21 kB
+dist/server/assets/chevron-right-CTz4K-5-.js                         0.23 kB
+dist/server/assets/x-Cfkm8WgF.js                                     0.24 kB
+dist/server/assets/loader-circle-BM_KY9-C.js                         0.25 kB
+dist/server/assets/power-CcYYUSQ8.js                                 0.27 kB
+dist/server/assets/arrow-right-CPmq4o2H.js                           0.28 kB
+dist/server/assets/circle-check-D6MOa-uW.js                          0.30 kB
+dist/server/assets/banknote-Cb69eusJ.js                              0.37 kB
+dist/server/assets/message-circle-V1fDpRwD.js                        0.38 kB
+dist/server/assets/map-pin-BaZ3vFqB.js                               0.39 kB
+dist/server/assets/wallet-3uWUJSgq.js                                0.42 kB
+dist/server/assets/phone-CF3WWYza.js                                 0.44 kB
+dist/server/assets/clipboard-list-BM_oXjNi.js                        0.60 kB
+dist/server/assets/store-D67pM3Iq.js                                 0.64 kB
+dist/server/assets/package-open-Dxds9bAz.js                          0.79 kB
+dist/server/assets/input-XMm8LQ34.js                                 0.84 kB
+dist/server/assets/shield-check-C6M-f427.js                          0.84 kB
+dist/server/assets/sparkles-DKY9-K4p.js                              0.86 kB
+dist/server/assets/eye-BxAXUbLd.js                                   0.92 kB
+dist/server/assets/AppHeader-DelknWHR.js                             0.96 kB
+dist/server/assets/push-B_rvMXzh.js                                  0.97 kB
+dist/server/assets/Logo-BoeJyW2I.js                                  1.61 kB
+dist/server/assets/label-B5v9ueXK.js                                 1.82 kB
+dist/server/assets/legal.privacy-CC2IFKwL.js                         2.19 kB
+dist/server/assets/legal.merchant-CZz1w2IC.js                        2.50 kB
+dist/server/assets/account.functions-BsHYVRV0.js                     2.64 kB
+dist/server/assets/legal.terms-C-fYHqrP.js                           3.60 kB
+dist/server/assets/app.messages-CAeQhwZG.js                          4.64 kB
+dist/server/assets/_tanstack-start-manifest_v-DkRYTsRj.js            5.14 kB
+dist/server/assets/app.orders-iX9OYTb9.js                            5.62 kB
+dist/server/assets/auth.login-CT4CX85i.js                            5.64 kB
+dist/server/assets/auth.signup-BWoOp_7S.js                           6.65 kB
+dist/server/assets/app.messages._chatId-l6twwb4u.js                  7.49 kB
+dist/server/assets/app.earnings-BjBWxhcW.js                          9.93 kB
+dist/server/assets/app.onboarding-Bu6asFb0.js                       10.21 kB
+dist/server/assets/app-BAE0QHxf.js                                  11.49 kB
+dist/server/assets/app.settings-B0HQwP_1.js                         14.68 kB
+dist/server/assets/index-Ce0mFUiN.js                                14.74 kB
+dist/server/assets/app.order._orderId-Db_ZZmHm.js                   19.02 kB
+dist/server/assets/LinkBankSheet-Drum6el_.js                        23.54 kB
+dist/server/assets/queries-CzmQx5Ss.js                              42.48 kB
+dist/server/assets/button-DkmHkIBI.js                              105.77 kB
+dist/server/assets/types-DGfzljZx.js                               105.83 kB
+dist/server/assets/router-rInSB-lu.js                              246.28 kB
+dist/server/assets/app.index-CemXATIK.js                           371.33 kB
+dist/server/assets/index-BUNYNcIL.js                               701.98 kB
+dist/server/assets/worker-entry-DTXN9eaK.js                        739.63 kB
+✓ built in 3.13s
+Found entry via manifest: assets/index-C7sK9yxA.js
+CSS files: [ 'assets/styles-DkbGdx04.css' ]
+✅ Generated dist/client/index.html (entry: assets/index-C7sK9yxA.js)
+✔ Copying web assets from client to android/app/src/main/assets/public in 12.21ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 444.04μs
+✔ copy android in 41.64ms
+✔ Updating Android plugins in 10.55ms
+✔ update android in 71.51ms
+✔ Copying web assets from client to ios/App/App/public in 10.09ms
+✔ Creating capacitor.config.json in ios/App/App in 220.58μs
+✔ copy ios in 45.95ms
+✔ Updating iOS plugins in 7.62ms
+
+> build:cap
+> vite build && node scripts/generate-index.mjs && npx cap sync
+
+vite v7.3.2 building client environment for production...
+transforming...
+✓ 2456 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                              0.02 kB
+dist/client/.vite/manifest.json                       15.42 kB │ gzip:   1.82 kB
+dist/client/assets/dashboard-preview-q_mlteI-.jpg     50.44 kB
+dist/client/assets/feature-payouts-CTXd1csJ.jpg       70.10 kB
+dist/client/assets/feature-pickup-DKPDPLcx.jpg        71.02 kB
+dist/client/assets/feature-quality-CYy3-uiQ.jpg       71.99 kB
+dist/client/assets/hero-merchant-CYvz8Bi2.jpg        164.34 kB
+dist/client/assets/styles-DkbGdx04.css                92.72 kB │ gzip:  15.03 kB
+dist/client/assets/chevron-right-CqMJ3A-6.js           0.13 kB │ gzip:   0.14 kB
+dist/client/assets/loader-circle-DxHsZIO8.js           0.14 kB │ gzip:   0.15 kB
+dist/client/assets/x-DPv8lXxP.js                       0.16 kB │ gzip:   0.15 kB
+dist/client/assets/arrow-right-DvQMrzNj.js             0.17 kB │ gzip:   0.16 kB
+dist/client/assets/power-BCBbWody.js                   0.17 kB │ gzip:   0.17 kB
+dist/client/assets/circle-check-8G0PjTI8.js            0.17 kB │ gzip:   0.17 kB
+dist/client/assets/banknote-Ch9wRwGx.js                0.24 kB │ gzip:   0.21 kB
+dist/client/assets/message-circle-HPy8cURd.js          0.24 kB │ gzip:   0.21 kB
+dist/client/assets/map-pin-C6RIMEdA.js                 0.26 kB │ gzip:   0.22 kB
+dist/client/assets/wallet-BQu-DyI7.js                  0.29 kB │ gzip:   0.21 kB
+dist/client/assets/phone-GHA7FJ1N.js                   0.32 kB │ gzip:   0.23 kB
+dist/client/assets/clipboard-list-Cyg6aI3p.js          0.41 kB │ gzip:   0.26 kB
+dist/client/assets/store-Dlehy1XK.js                   0.50 kB │ gzip:   0.29 kB
+dist/client/assets/package-open-iv4H9WRl.js            0.58 kB │ gzip:   0.33 kB
+dist/client/assets/input-ENdQ1Qzl.js                   0.59 kB │ gzip:   0.37 kB
+dist/client/assets/shield-check-BplV82y5.js            0.59 kB │ gzip:   0.36 kB
+dist/client/assets/AppHeader-DHEQb3u0.js               0.60 kB │ gzip:   0.35 kB
+dist/client/assets/sparkles-COHApS2H.js                0.61 kB │ gzip:   0.33 kB
+dist/client/assets/eye-7G5RkX63.js                     0.64 kB │ gzip:   0.35 kB
+dist/client/assets/push-L495pizh.js                    0.68 kB │ gzip:   0.41 kB
+dist/client/assets/label-CkkzrClZ.js                   0.91 kB │ gzip:   0.56 kB
+dist/client/assets/Logo-BBaGN0de.js                    1.00 kB │ gzip:   0.57 kB
+dist/client/assets/legal.privacy-BOGw4SRk.js           1.50 kB │ gzip:   0.79 kB
+dist/client/assets/legal.merchant-CkqdPkpf.js          1.74 kB │ gzip:   0.89 kB
+dist/client/assets/legal.terms-Dj3ipKVw.js             2.39 kB │ gzip:   1.10 kB
+dist/client/assets/app.messages-Ck-lqbhn.js            2.76 kB │ gzip:   1.17 kB
+dist/client/assets/auth.login-DDNKbzWE.js              3.29 kB │ gzip:   1.40 kB
+dist/client/assets/app.orders-qx24ca7a.js              3.50 kB │ gzip:   1.46 kB
+dist/client/assets/auth.signup-BhIWFYr-.js             3.91 kB │ gzip:   1.60 kB
+dist/client/assets/app.messages._chatId-Bqhl_vu9.js    4.64 kB │ gzip:   2.05 kB
+dist/client/assets/app.earnings-Co7_KkfY.js            5.46 kB │ gzip:   2.22 kB
+dist/client/assets/app.onboarding-DqCQmdFI.js          6.11 kB │ gzip:   2.10 kB
+dist/client/assets/app-DD0spPag.js                     7.08 kB │ gzip:   2.83 kB
+dist/client/assets/index-D6y_YSbX.js                   9.73 kB │ gzip:   3.56 kB
+dist/client/assets/app.order._orderId-BxJwDi77.js     11.54 kB │ gzip:   3.59 kB
+dist/client/assets/app.settings-BBHpNLZ5.js           12.47 kB │ gzip:   4.56 kB
+dist/client/assets/LinkBankSheet-7psyUQBo.js          13.50 kB │ gzip:   4.35 kB
+dist/client/assets/queries-DteQDa5V.js                20.94 kB │ gzip:   6.32 kB
+dist/client/assets/button-DP_qcu22.js                 30.63 kB │ gzip:  10.00 kB
+dist/client/assets/app.index-6SrUkRpm.js             169.36 kB │ gzip:  55.20 kB
+dist/client/assets/index-C7sK9yxA.js                 604.31 kB │ gzip: 180.04 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.40s
+vite v7.3.2 building ssr environment for production...
+transforming...
+✓ 2514 modules transformed.
+rendering chunks...
+dist/server/wrangler.json                                            1.21 kB
+dist/server/.vite/manifest.json                                     16.20 kB
+dist/server/assets/dashboard-preview-q_mlteI-.jpg                   50.44 kB
+dist/server/assets/feature-payouts-CTXd1csJ.jpg                     70.10 kB
+dist/server/assets/feature-pickup-DKPDPLcx.jpg                      71.02 kB
+dist/server/assets/feature-quality-CYy3-uiQ.jpg                     71.99 kB
+dist/server/assets/hero-merchant-CYvz8Bi2.jpg                      164.34 kB
+dist/server/assets/styles-DkbGdx04.css                              92.72 kB
+dist/server/assets/start-HYkvq4Ni.js                                 0.06 kB
+dist/server/assets/__23tanstack-start-plugin-adapters-Cwee5PKy.js    0.14 kB
+dist/server/index.js                                                 0.21 kB
+dist/server/assets/chevron-right-CTz4K-5-.js                         0.23 kB
+dist/server/assets/x-Cfkm8WgF.js                                     0.24 kB
+dist/server/assets/loader-circle-BM_KY9-C.js                         0.25 kB
+dist/server/assets/power-CcYYUSQ8.js                                 0.27 kB
+dist/server/assets/arrow-right-CPmq4o2H.js                           0.28 kB
+dist/server/assets/circle-check-D6MOa-uW.js                          0.30 kB
+dist/server/assets/banknote-Cb69eusJ.js                              0.37 kB
+dist/server/assets/message-circle-V1fDpRwD.js                        0.38 kB
+dist/server/assets/map-pin-BaZ3vFqB.js                               0.39 kB
+dist/server/assets/wallet-3uWUJSgq.js                                0.42 kB
+dist/server/assets/phone-CF3WWYza.js                                 0.44 kB
+dist/server/assets/clipboard-list-BM_oXjNi.js                        0.60 kB
+dist/server/assets/store-D67pM3Iq.js                                 0.64 kB
+dist/server/assets/package-open-Dxds9bAz.js                          0.79 kB
+dist/server/assets/input-XMm8LQ34.js                                 0.84 kB
+dist/server/assets/shield-check-C6M-f427.js                          0.84 kB
+dist/server/assets/sparkles-DKY9-K4p.js                              0.86 kB
+dist/server/assets/eye-BxAXUbLd.js                                   0.92 kB
+dist/server/assets/AppHeader-DelknWHR.js                             0.96 kB
+dist/server/assets/push-B_rvMXzh.js                                  0.97 kB
+dist/server/assets/Logo-BoeJyW2I.js                                  1.61 kB
+dist/server/assets/label-B5v9ueXK.js                                 1.82 kB
+dist/server/assets/legal.privacy-CC2IFKwL.js                         2.19 kB
+dist/server/assets/legal.merchant-CZz1w2IC.js                        2.50 kB
+dist/server/assets/account.functions-BsHYVRV0.js                     2.64 kB
+dist/server/assets/legal.terms-C-fYHqrP.js                           3.60 kB
+dist/server/assets/app.messages-CAeQhwZG.js                          4.64 kB
+dist/server/assets/_tanstack-start-manifest_v-DkRYTsRj.js            5.14 kB
+dist/server/assets/app.orders-iX9OYTb9.js                            5.62 kB
+dist/server/assets/auth.login-CT4CX85i.js                            5.64 kB
+dist/server/assets/auth.signup-BWoOp_7S.js                           6.65 kB
+dist/server/assets/app.messages._chatId-l6twwb4u.js                  7.49 kB
+dist/server/assets/app.earnings-BjBWxhcW.js                          9.93 kB
+dist/server/assets/app.onboarding-Bu6asFb0.js                       10.21 kB
+dist/server/assets/app-BAE0QHxf.js                                  11.49 kB
+dist/server/assets/app.settings-B0HQwP_1.js                         14.68 kB
+dist/server/assets/index-Ce0mFUiN.js                                14.74 kB
+dist/server/assets/app.order._orderId-Db_ZZmHm.js                   19.02 kB
+dist/server/assets/LinkBankSheet-Drum6el_.js                        23.54 kB
+dist/server/assets/queries-CzmQx5Ss.js                              42.48 kB
+dist/server/assets/button-DkmHkIBI.js                              105.77 kB
+dist/server/assets/types-DGfzljZx.js                               105.83 kB
+dist/server/assets/router-rInSB-lu.js                              246.28 kB
+dist/server/assets/app.index-CemXATIK.js                           371.33 kB
+dist/server/assets/index-BUNYNcIL.js                               701.98 kB
+dist/server/assets/worker-entry-DTXN9eaK.js                        739.63 kB
+✓ built in 3.13s
+Found entry via manifest: assets/index-C7sK9yxA.js
+CSS files: [ 'assets/styles-DkbGdx04.css' ]
+✅ Generated dist/client/index.html (entry: assets/index-C7sK9yxA.js)
+✔ Copying web assets from client to android/app/src/main/assets/public in 12.21ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 444.04μs
+✔ copy android in 41.64ms
+✔ Updating Android plugins in 10.55ms
+✔ update android in 71.51ms
+✔ Copying web assets from client to ios/App/App/public in 10.09ms
+✔ Creating capacitor.config.json in ios/App/App in 220.58μs
+✔ copy ios in 45.95ms
+✔ Updating iOS plugins in 7.62ms
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] Analyzing dependencies
+        Adding spec repo `trunk` with CDN `https://cdn.cocoapods.org/`
+        [!] CocoaPods could not find compatible versions for pod "Capacitor":
+        In Podfile:
+        Capacitor (from `../../node_modules/@capacitor/ios`)
+        
+        Specs satisfying the `Capacitor (from `../../node_modules/@capacitor/ios`)` dependency were found, but they required a higher minimum deployment target.
+        
+
+
+Build failed :|
+Step 3 script `Build Capacitor web assets and sync Android` exited with status code 1
+✖ Updating iOS native dependencies with pod install - failed!
+✖ update ios - failed!
+[error] Analyzing dependencies
+        Adding spec repo `trunk` with CDN `https://cdn.cocoapods.org/`
+        [!] CocoaPods could not find compatible versions for pod "Capacitor":
+        In Podfile:
+        Capacitor (from `../../node_modules/@capacitor/ios`)
+        
+        Specs satisfying the `Capacitor (from `../../node_modules/@capacitor/ios`)` dependency were found, but they required a higher minimum deployment target.
+        
+
+
+Build failed :|
+Step 3 script `Build Capacitor web assets and sync Android` exited with status code 1
+
+Setup A

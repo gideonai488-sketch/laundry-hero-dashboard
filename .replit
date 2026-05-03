@@ -2,6 +2,7 @@ modules = ["nodejs-20", "web", "python-3.11"]
 [agent]
 expertMode = true
 stack = "BEST_EFFORT_FALLBACK"
+integrations = ["javascript_database:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
@@ -46,3 +47,5 @@ VITE_VAPID_PUBLIC_KEY = "BHnAKnfcFbA1kMvjxAQTSTpYemv11cgNh6HjWWkrlzH8-VU1zbJIwqc
 HW_KEYSTORE_PASSWORD = "HWMerchant@Genesis2025!Hw#"
 HW_KEY_ALIAS = "highestwash-merchant"
 HW_KEY_PASSWORD = "HWMerchant@Genesis2025!Hw#"
+VITE_SUPABASE_URL = "https://eqbogpvabcsngspphjte.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYm9ncHZhYmNzbmdzcHBoanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjcxMjMsImV4cCI6MjA5MjM0MzEyM30.EN5bPu66_y5xN1i_EKxMbFKJoKb9jAmuIBxGUTRSMPk"
