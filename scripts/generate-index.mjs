@@ -1,6 +1,8 @@
 /**
  * Post-build script: creates dist/client/index.html for Capacitor.
- * Reads the Vite manifest to find the real entry JS and CSS filenames.
+ * Reads the Vite manifest to find the real entry JS and CSS filenames,
+ * and injects a minimal window.$_TSR stub so TanStack Start can boot
+ * in CSR mode (no SSR server to inject dehydrated state).
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
@@ -56,6 +58,31 @@ const cssLinks = cssFiles
   .map((f) => `  <link rel="stylesheet" crossorigin href="/${f}">`)
   .join("\n");
 
+/**
+ * TanStack Start's client bundle calls `window.$_TSR || en()` where en()
+ * throws "Invariant failed". Without a server injecting the SSR dehydrated
+ * state, this crashes silently and leaves the app blank.
+ *
+ * Injecting a minimal stub lets the client detect there is no dehydrated
+ * state and fall through to a fresh CSR render instead.
+ */
+const tsrStub = `
+  <script>
+    window.$_TSR = {
+      initialized: false,
+      buffer: [],
+      t: new Map(),
+      h: function() {},
+      router: {
+        matches: [],
+        lastMatchId: null,
+        manifest: null,
+        dehydratedData: null,
+        ssr: null
+      }
+    };
+  </script>`;
+
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -64,6 +91,7 @@ const html = `<!doctype html>
     <meta name="theme-color" content="#0ea5e9" />
     <title>Highest Wash</title>
 ${cssLinks}
+${tsrStub}
   </head>
   <body>
     <div id="root"></div>
