@@ -16,8 +16,18 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file("../../android/highestwash-merchant.p12")
+            storePassword System.getenv("HW_KEYSTORE_PASSWORD") ?: "HWMerchant@Genesis2025!Hw#"
+            keyAlias System.getenv("HW_KEY_ALIAS") ?: "highestwash-merchant"
+            keyPassword System.getenv("HW_KEY_PASSWORD") ?: "HWMerchant@Genesis2025!Hw#"
+            storeType "PKCS12"
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

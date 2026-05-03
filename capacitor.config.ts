@@ -9,8 +9,10 @@ const config: CapacitorConfig = {
   },
   android: {
     buildOptions: {
-      keystorePath: undefined,
-      keystoreAlias: undefined,
+      keystorePath: "android/highestwash-merchant.p12",
+      keystoreAlias: "highestwash-merchant",
+      keystorePassword: process.env.HW_KEYSTORE_PASSWORD,
+      keystoreAliasPassword: process.env.HW_KEY_PASSWORD,
     },
   },
 };

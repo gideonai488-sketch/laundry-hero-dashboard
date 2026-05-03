@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-20", "web", "python-3.11"]
 [agent]
 expertMode = true
 stack = "BEST_EFFORT_FALLBACK"
@@ -43,3 +43,6 @@ publicDir = "dist/client"
 
 [userenv.shared]
 VITE_VAPID_PUBLIC_KEY = "BHnAKnfcFbA1kMvjxAQTSTpYemv11cgNh6HjWWkrlzH8-VU1zbJIwqcUkKdqLu56bUCkmvct6oK45XiWl5ydhUM"
+HW_KEYSTORE_PASSWORD = "HWMerchant@Genesis2025!Hw#"
+HW_KEY_ALIAS = "highestwash-merchant"
+HW_KEY_PASSWORD = "HWMerchant@Genesis2025!Hw#"
