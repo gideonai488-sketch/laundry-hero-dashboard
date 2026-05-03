@@ -97,6 +97,20 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
         .from("merchants")
         .update({ paystack_subaccount_code: r.subaccount_code })
         .eq("id", merchant.id);
+      // Cache human-readable bank details locally so the Wallet card can
+      // show bank name + masked account without an extra round-trip.
+      try {
+        localStorage.setItem(
+          `hw-merchant-bank:${merchant.id}`,
+          JSON.stringify({
+            bank_name: selectedBank.name,
+            account_number: accountNumber,
+            account_name: resolvedName,
+            country,
+            linked_at: new Date().toISOString(),
+          })
+        );
+      } catch {}
       await refresh();
       toast.success("Bank linked! Payouts are now active.");
       onLinked?.(r.subaccount_code);
