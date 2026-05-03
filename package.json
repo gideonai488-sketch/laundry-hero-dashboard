@@ -8,6 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "build:cap": "vite build && node scripts/generate-index.mjs && npx cap sync",
+    "build:android": "vite build && node scripts/generate-index.mjs && npx cap sync android",
     "cap:android": "npm run build:cap && npx cap open android",
     "cap:ios": "npm run build:cap && npx cap open ios",
     "cap:sync": "npx cap sync",
