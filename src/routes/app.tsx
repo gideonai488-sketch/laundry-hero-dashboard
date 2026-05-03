@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Outlet, createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/app")({
 function AppLayout() {
   const { loading, user, merchant, isMerchant } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth/login" });
@@ -38,7 +39,7 @@ function AppLayout() {
   if (!user) return null;
 
   // Allow the onboarding route to render even when there's no merchant yet.
-  const onOnboarding = typeof window !== "undefined" && window.location.pathname === "/app/onboarding";
+  const onOnboarding = location.pathname === "/app/onboarding";
 
   if (!merchant && !onOnboarding) {
     return (
