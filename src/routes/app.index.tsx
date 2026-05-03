@@ -286,9 +286,11 @@ function IncomingCard({
   onSkip: () => void;
 }) {
   // Countdown anchored on order.created_at
+  // useState(0) avoids SSR/client hydration mismatch (Date.now() differs server vs client)
   const createdMs = new Date(order.created_at).getTime();
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
   useEffect(() => {
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
   }, []);

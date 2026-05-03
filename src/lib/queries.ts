@@ -1,6 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "./supabase";
+
+// Lazy import push so SSR never touches browser-only APIs
+const notifyLocal = (title: string, opts: { body?: string; tag?: string; url?: string }) => {
+  if (typeof window === "undefined") return;
+  import("./push").then(({ showLocalNotification }) => showLocalNotification(title, opts)).catch(() => {});
+};
 
 /**
  * Live data hooks for the Highest Wash MERCHANT app — bid-marketplace model.
@@ -119,20 +125,46 @@ export function useIncomingFeed(myMerchantId: string | undefined) {
     },
   });
 
-  // Realtime: any change to broadcast pool re-fetches.
+  // Track known order IDs so we only notify on genuinely NEW ones
+  const knownIds = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     const ch = supabase
       .channel("merchant:incoming")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "hw_orders", filter: "merchant_status=eq.pending" },
-        () => qc.invalidateQueries({ queryKey: ["incoming-feed"] })
+        (payload: AnyRow) => {
+          qc.invalidateQueries({ queryKey: ["incoming-feed"] });
+          // Fire a local notification when a NEW order arrives and the tab is hidden
+          if (
+            payload.eventType === "INSERT" &&
+            payload.new?.id &&
+            !knownIds.current.has(payload.new.id) &&
+            document.visibilityState === "hidden"
+          ) {
+            knownIds.current.add(payload.new.id as string);
+            notifyLocal("New order incoming! 🧺", {
+              body: payload.new.pickup_address
+                ? `Pickup: ${payload.new.pickup_address}`
+                : "Open the app to bid before the 90 s window closes.",
+              tag: `order-${payload.new.id}`,
+              url: "/app/",
+            });
+          }
+        }
       )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
   }, [qc]);
+
+  // Seed knownIds once initial data loads
+  useEffect(() => {
+    const orders = query.data;
+    if (orders) orders.forEach((o: AnyRow) => knownIds.current.add(o.id as string));
+  }, [query.data]);
 
   return query;
 }
@@ -325,6 +357,14 @@ export function useMyBidsWatcher(merchantId: string | undefined, onAccepted: (or
         (payload: AnyRow) => {
           if (payload.new?.status === "accepted") {
             onAccepted(payload.new.order_id as string);
+            // Notify even if tab is hidden
+            if (document.visibilityState === "hidden") {
+              notifyLocal("🎉 You won the bid!", {
+                body: `Order #${String(payload.new.order_id).slice(0, 6)} is yours. Open the app to start.`,
+                tag: `bid-won-${payload.new.order_id}`,
+                url: `/app/order/${payload.new.order_id}`,
+              });
+            }
           }
         }
       )

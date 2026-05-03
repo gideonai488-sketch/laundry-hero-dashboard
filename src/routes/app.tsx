@@ -7,6 +7,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { registerSW, subscribeToPush } from "@/lib/push";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -16,6 +17,17 @@ function AppLayout() {
   const { loading, user, merchant, isMerchant } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Register service worker once on mount
+  useEffect(() => {
+    registerSW();
+  }, []);
+
+  // Subscribe to push notifications once merchant is known
+  useEffect(() => {
+    if (!merchant?.id) return;
+    subscribeToPush(merchant.id).catch(() => {});
+  }, [merchant?.id]);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth/login" });

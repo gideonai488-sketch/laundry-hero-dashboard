@@ -38,3 +38,8 @@ externalPort = 80
 deploymentTarget = "static"
 build = ["npm", "run", "build"]
 publicDir = "dist/client"
+
+[userenv]
+
+[userenv.shared]
+VITE_VAPID_PUBLIC_KEY = "BHnAKnfcFbA1kMvjxAQTSTpYemv11cgNh6HjWWkrlzH8-VU1zbJIwqcUkKdqLu56bUCkmvct6oK45XiWl5ydhUM"

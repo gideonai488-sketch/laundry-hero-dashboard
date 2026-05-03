@@ -70,6 +70,48 @@ public/
   - Adaptive icon background: white (`#FFFFFF`) via `android/app/src/main/res/values/colors.xml`
 - iOS: all sizes in `ios/App/App/Assets.xcassets/AppIcon.appiconset/` with `Contents.json`
 
+## Push Notifications (Web Push / VAPID — no Firebase needed)
+
+### Architecture
+- **Service worker**: `public/sw.js` — handles `push` events and `notificationclick`
+- **Push utility**: `src/lib/push.ts` — registers SW, subscribes device, calls edge fn
+- **Edge function**: `supabase/functions/send-push/index.ts` — VAPID signing + RFC 8291 encryption
+- **DB table**: `push_subscriptions(id, merchant_id, endpoint, keys, user_agent)` — migration in `supabase/migrations/20260503000000_push_subscriptions.sql`
+
+### VAPID Keys (already generated)
+| Key | Value |
+|---|---|
+| Public (VITE_VAPID_PUBLIC_KEY) | `BHnAKnfcFbA1kMvjxAQTSTpYemv11cgNh6HjWWkrlzH8-VU1zbJIwqcUkKdqLu56bUCkmvct6oK45XiWl5ydhUM` |
+| Private (raw, 32 bytes base64url) | `gAQWS8TXxK05Q7NNHRPY6usu1YmJ_CCbftTht_w5KPI` |
+| Private (PKCS8 full) | `MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQggAQWS8TXxK05Q7NNHRPY6usu1YmJ_CCbftTht_w5KPKhRANCAAR5wCp33BWwNZDL48QEE0k6WHpr9dXIDYeh41lpK5cx_PlVNc2ySMKnFJCnai7uem1ApJr3LeqCuOV4lpecnYVD` |
+
+The public key is set as `VITE_VAPID_PUBLIC_KEY` env var (done). The edge function reads `VAPID_PRIVATE_KEY` (PKCS8) and `VAPID_PUBLIC_KEY` from Supabase secrets.
+
+### One-time Supabase setup required
+1. **Run the migration**: `supabase/migrations/20260503000000_push_subscriptions.sql` in your Supabase SQL editor
+2. **Add Supabase secrets** (Dashboard → Edge Functions → Secrets):
+   - `VAPID_PUBLIC_KEY` = the public key above
+   - `VAPID_PRIVATE_KEY` = the PKCS8 private key above
+   - `VAPID_SUBJECT` = `mailto:admin@highestwash.com` (or your email)
+3. **Deploy the edge function**: `supabase functions deploy send-push`
+
+### How notifications work
+| Situation | Notification |
+|---|---|
+| App open (foreground) | Sonner toast (already worked) |
+| App backgrounded (tab hidden, JS still running) | Native OS notification via Service Worker |
+| App closed entirely | True Web Push via `send-push` edge fn (needs server-side trigger) |
+
+### Notification triggers (client-side, backgrounded)
+- New incoming order via Supabase Realtime → `notifyLocal("New order incoming! 🧺")`
+- Bid accepted via Supabase Realtime → `notifyLocal("🎉 You won the bid!")`
+
+### Server-side trigger (call from other edge functions or DB webhooks)
+```
+POST /functions/v1/send-push
+{ "merchant_id": "<uuid>", "title": "...", "body": "...", "url": "/app/", "tag": "..." }
+```
+
 ## Backend Requirements
 See `BACKEND_TODO.md` for pending Supabase backend changes needed:
 - Chat/messages RLS policies
