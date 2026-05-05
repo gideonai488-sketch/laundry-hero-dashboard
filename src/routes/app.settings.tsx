@@ -41,6 +41,8 @@ function SettingsPage() {
     lng: "",
   });
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePhrase, setDeletePhrase] = useState("");
   const [linkOpen, setLinkOpen] = useState(false);
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
 
@@ -103,8 +105,10 @@ function SettingsPage() {
       toast.error("Please sign in again before deleting your account.");
       return;
     }
-    const phrase = window.prompt("Type DELETE to permanently delete your account.");
-    if (phrase !== "DELETE") return;
+    if (deletePhrase.trim().toUpperCase() !== "DELETE") {
+      toast.error('Type DELETE to confirm.');
+      return;
+    }
     setDeletingAccount(true);
     try {
       await deleteAccountFn({ data: { accessToken: session.access_token } });
@@ -115,6 +119,8 @@ function SettingsPage() {
       toast.error(err?.message ?? "Couldn't delete account.");
     } finally {
       setDeletingAccount(false);
+      setDeleteOpen(false);
+      setDeletePhrase("");
     }
   };
 
