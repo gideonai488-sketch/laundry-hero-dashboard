@@ -3,6 +3,20 @@ workflows:
     name: iOS TestFlight Deployment
     max_build_duration: 120
     instance_type: mac_mini_m1
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+        - pattern: 'release/*'
+          include: true
+          source: true
+        - pattern: 'v*'
+          include: true
+          source: true
     environment:
       vars:
         BUNDLE_ID: "com.highestwash.merchants"
@@ -18,33 +32,14 @@ workflows:
         XCODE_WORKSPACE: "App.xcworkspace"
         XCODE_SCHEME: "App"
         IPA_NAME: "Merchants.ipa"
-    triggering:
-      events:
-        - push
-        - tag
-      branch_patterns:
-        - pattern: 'main'
-          include: true
-          source: true
-        - pattern: 'release/*'
-          include: true
-          source: true
-        - pattern: 'v*'
-          include: true
-          source: true
-    signing:
-      ios:
-        automatic: true
+      ios_signing:
+        distribution_type: app_store
         bundle_identifier: "com.highestwash.merchants"
     
     cache:
-      caching_patterns:
-        - path: Pods
-          patterns:
-            - '**/Podfile.lock'
-        - path: .xcode.env.local
-          patterns:
-            - '**/.xcode.env.local'
+      - paths:
+          - Pods/**
+          - .xcode.env.local
     scripts:
       - name: Install Node.js and Dependencies
         script: |
