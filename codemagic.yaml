@@ -3,6 +3,7 @@ workflows:
     name: iOS TestFlight Deployment
     max_build_duration: 120
     instance_type: mac_mini_m1
+    ssh: true
     triggering:
       events:
         - push
@@ -37,9 +38,9 @@ workflows:
         bundle_identifier: "com.highestwash.merchants"
     
     cache:
-      - paths:
-          - Pods/**
-          - .xcode.env.local
+      cache_paths:
+        - Pods/**
+        - .xcode.env.local
     scripts:
       - name: Install Node.js and Dependencies
         script: |
