@@ -134,7 +134,10 @@ function Dashboard() {
   return (
     <div>
       {/* Header */}
-      <header className="px-5 pt-6 pb-4 bg-gradient-hero text-primary-foreground rounded-b-3xl shadow-brand">
+      <header
+        className="px-5 pb-4 bg-gradient-hero text-primary-foreground rounded-b-3xl shadow-brand"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-xs text-white/75 font-medium">Welcome back</div>
