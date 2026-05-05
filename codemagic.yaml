@@ -1,0 +1,102 @@
+workflows:
+  ios-testflight-workflow:
+    name: iOS TestFlight Deployment
+    max_build_duration: 120
+    instance_type: mac_mini_m1
+    environment:
+      vars:
+        BUNDLE_ID: "com.highestwash.merchants"
+        APP_STORE_CONNECT_API_KEY_ID: "W8RCTZ59R2"
+        APP_STORE_CONNECT_API_ISSUER_ID: "07922d40-426a-4a77-bc97-4d2959bfb708"
+        APP_STORE_CONNECT_API_KEY_CONTENT: |
+          -----BEGIN PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQglRLd4QgnJHPPaM8r
+          67Cu7McnleQ6TFtFBSbl2igMaC2gCgYIKoZIzj0DAQehRANCAAQ0o/M59ok6PMhU
+          9j9ITnZVsuUEUtkqBFEi9Rwhl3ASWdMjXKNcMDF9Du0zlj0JZqtF5ly0CVdIMuQK
+          0X90+Twp
+          -----END PRIVATE KEY-----
+        XCODE_WORKSPACE: "App.xcworkspace"
+        XCODE_SCHEME: "App"
+        IPA_NAME: "Merchants.ipa"
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+        - pattern: 'release/*'
+          include: true
+          source: true
+        - pattern: 'v*'
+          include: true
+          source: true
+    signing:
+      ios:
+        automatic: true
+        bundle_identifier: "com.highestwash.merchants"
+    
+    cache:
+      caching_patterns:
+        - path: Pods
+          patterns:
+            - '**/Podfile.lock'
+        - path: .xcode.env.local
+          patterns:
+            - '**/.xcode.env.local'
+    scripts:
+      - name: Install Node.js and Dependencies
+        script: |
+          #!/bin/sh
+          set -ex
+          brew install node@20 || true
+          npm ci
+          npm run build
+
+      - name: Sync Capacitor iOS
+        script: |
+          #!/bin/sh
+          set -ex
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        script: |
+          #!/bin/sh
+          set -ex
+          cd ios/App
+          pod install
+
+      - name: Set Code Signing Settings
+        script: |
+          #!/bin/sh
+          set -ex
+          xcode-project use-profiles
+
+      - name: Build and Archive
+        script: |
+          #!/bin/sh
+          set -ex
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME" \
+            --configuration Release \
+            --archive-path /tmp/build.xcarchive \
+            --export-method app-store \
+            --output-path /tmp/$IPA_NAME
+
+      - name: Upload to TestFlight
+        script: |
+          #!/bin/sh
+          set -ex
+          app-store-connect publish \
+            --key "$APP_STORE_CONNECT_API_KEY_ID" \
+            --issuer-id "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            --key-content "$APP_STORE_CONNECT_API_KEY_CONTENT" \
+            --path "/tmp/$IPA_NAME" \
+            --submit-to-testflight
+
+    artifacts:
+      - /tmp/*.ipa
+      - /tmp/build.xcarchive/**
+      - build/outputs/**
