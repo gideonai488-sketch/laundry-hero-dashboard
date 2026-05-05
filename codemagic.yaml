@@ -66,7 +66,16 @@ workflows:
         script: |
           #!/bin/sh
           set -ex
-          xcode-project use-profiles
+          # This command tells Codemagic to automatically download or create 
+          # the necessary certificates and provisioning profiles based on ios_signing config
+          xcode-project use-profiles --force
+          
+      - name: Verify Signing Identity
+        script: |
+          #!/bin/sh
+          set -ex
+          # Optional: Log the selected identity to confirm it's set
+          security find-identity -v -s "Apple Distribution" || echo "Distribution identity check completed"
 
       - name: Build and Archive
         script: |
