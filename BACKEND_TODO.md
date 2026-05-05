@@ -132,3 +132,29 @@ Please make sure Realtime publishes `hw_orders`, `hw_merchant_bids`,
 |---|---|---|
 | Merchant marks `ready_for_rider` | `broadcast-rider-bids` | `{ order_id }` |
 | Onboarding / Settings → bank setup | `register-merchant-subaccount` | `{ merchant_id, bank_code, account_number }` |
+
+## 🔔 Realtime publication (URGENT — incoming jobs not appearing)
+
+Frontend `useIncomingFeed`, `useMyOrders`, `useChatThread`, `useMyChats`,
+and `useMyBidsWatcher` all subscribe to `postgres_changes`. They fire but
+receive no events because the tables aren't on the realtime publication.
+
+Run once:
+
+```sql
+ALTER PUBLICATION supabase_realtime ADD TABLE
+  public.hw_orders,
+  public.hw_merchant_bids,
+  public.chats,
+  public.messages,
+  public.merchants;
+
+ALTER TABLE public.hw_orders REPLICA IDENTITY FULL;
+ALTER TABLE public.hw_merchant_bids REPLICA IDENTITY FULL;
+ALTER TABLE public.chats REPLICA IDENTITY FULL;
+ALTER TABLE public.messages REPLICA IDENTITY FULL;
+ALTER TABLE public.merchants REPLICA IDENTITY FULL;
+```
+
+Without this, the merchant dashboard never sees new broadcast orders in
+real-time and the bell-icon notifications counter stays at 0.
