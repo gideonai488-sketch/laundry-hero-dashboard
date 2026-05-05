@@ -33,7 +33,7 @@ workflows:
         XCODE_SCHEME: "App"
         IPA_NAME: "Merchants.ipa"
       ios_signing:
-        distribution_type: automatic
+        distribution_type: app_store
         bundle_identifier: "com.highestwash.merchants"
     
     cache:
