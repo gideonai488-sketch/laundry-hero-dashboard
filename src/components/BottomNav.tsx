@@ -19,7 +19,10 @@ export function BottomNav() {
   const unread = chats.reduce((sum: number, c: any) => sum + (c.unread_count ?? 0), 0);
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 px-3 pb-3 pt-2">
+    <nav
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 px-3 pt-2"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
+    >
       <div className="bg-card/95 backdrop-blur-xl border border-border rounded-3xl shadow-card px-1.5 py-2 flex items-center justify-around">
         {items.map((item) => {
           const Icon = item.icon;
@@ -29,7 +32,7 @@ export function BottomNav() {
             <Link
               key={item.to}
               to={item.to}
-              className={`relative flex flex-col items-center justify-center gap-0.5 px-2.5 py-1.5 rounded-2xl transition-smooth min-w-[56px] ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-2xl transition-smooth min-w-[56px] min-h-[52px] active:scale-95 ${
                 isActive
                   ? "bg-gradient-brand text-primary-foreground shadow-brand"
                   : "text-muted-foreground hover:text-foreground"

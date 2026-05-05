@@ -1,12 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
+import { AlertTriangle, Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
@@ -33,6 +41,8 @@ function SettingsPage() {
     lng: "",
   });
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePhrase, setDeletePhrase] = useState("");
   const [linkOpen, setLinkOpen] = useState(false);
   const [bankInfo, setBankInfo] = useState<BankInfo | null>(null);
 
@@ -95,8 +105,10 @@ function SettingsPage() {
       toast.error("Please sign in again before deleting your account.");
       return;
     }
-    const phrase = window.prompt("Type DELETE to permanently delete your account.");
-    if (phrase !== "DELETE") return;
+    if (deletePhrase.trim().toUpperCase() !== "DELETE") {
+      toast.error('Type DELETE to confirm.');
+      return;
+    }
     setDeletingAccount(true);
     try {
       await deleteAccountFn({ data: { accessToken: session.access_token } });
@@ -107,6 +119,8 @@ function SettingsPage() {
       toast.error(err?.message ?? "Couldn't delete account.");
     } finally {
       setDeletingAccount(false);
+      setDeleteOpen(false);
+      setDeletePhrase("");
     }
   };
 
@@ -221,12 +235,12 @@ function SettingsPage() {
             </div>
           </div>
           <button
-            onClick={confirmDeleteAccount}
+            onClick={() => setDeleteOpen(true)}
             disabled={deletingAccount}
-            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold disabled:opacity-50"
+            className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-bold disabled:opacity-50 active:scale-[0.99] transition-smooth"
           >
-            {deletingAccount ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
-            {deletingAccount ? "Deleting…" : "Delete my account"}
+            <Trash2 size={16} />
+            Delete my account
           </button>
         </div>
         <p className="text-center text-[10px] text-muted-foreground mt-3">
@@ -242,6 +256,62 @@ function SettingsPage() {
           setBankInfo(raw ? JSON.parse(raw) : null);
         }}
       />
+
+      <Dialog
+        open={deleteOpen}
+        onOpenChange={(v) => {
+          if (deletingAccount) return;
+          setDeleteOpen(v);
+          if (!v) setDeletePhrase("");
+        }}
+      >
+        <DialogContent className="sm:max-w-sm rounded-2xl">
+          <DialogHeader>
+            <div className="mx-auto mb-2 h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <AlertTriangle size={22} />
+            </div>
+            <DialogTitle className="text-center">Delete your account?</DialogTitle>
+            <DialogDescription className="text-center">
+              This permanently removes your login, merchant profile, payouts and message history.
+              This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="confirm-delete" className="text-xs">
+              Type <span className="font-bold text-destructive">DELETE</span> to confirm
+            </Label>
+            <Input
+              id="confirm-delete"
+              value={deletePhrase}
+              onChange={(e) => setDeletePhrase(e.target.value)}
+              placeholder="DELETE"
+              autoComplete="off"
+              autoCapitalize="characters"
+              className="h-12 rounded-xl text-center font-bold tracking-widest"
+              disabled={deletingAccount}
+            />
+          </div>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deletingAccount}
+              className="h-11 px-4 rounded-xl border border-border font-semibold text-sm flex-1"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={confirmDeleteAccount}
+              disabled={deletingAccount || deletePhrase.trim().toUpperCase() !== "DELETE"}
+              className="h-11 px-4 rounded-xl bg-destructive text-destructive-foreground font-bold text-sm flex-1 inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {deletingAccount ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+              {deletingAccount ? "Deleting…" : "Delete forever"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

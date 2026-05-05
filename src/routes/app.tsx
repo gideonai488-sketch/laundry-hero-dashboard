@@ -69,7 +69,10 @@ function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
       <OfflineBanner />
-      <div className="mx-auto w-full max-w-md min-h-screen pb-28 relative">
+      <div
+        className="mx-auto w-full max-w-md min-h-screen relative"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 7rem)" }}
+      >
         <Outlet />
       </div>
       <BottomNav />
