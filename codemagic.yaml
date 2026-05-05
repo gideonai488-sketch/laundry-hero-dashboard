@@ -33,7 +33,7 @@ workflows:
         XCODE_SCHEME: "App"
         IPA_NAME: "Merchants.ipa"
       ios_signing:
-        distribution_type: app_store
+        distribution_type: ad_hoc
         bundle_identifier: "com.highestwash.merchants"
     
     cache:
@@ -86,7 +86,7 @@ workflows:
             --scheme "$XCODE_SCHEME" \
             --configuration Release \
             --archive-path /tmp/build.xcarchive \
-            --export-method app-store \
+            --export-method ad-hoc \
             --output-path /tmp/$IPA_NAME
 
       - name: Upload to TestFlight
