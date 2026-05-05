@@ -1,12 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
+import { AlertTriangle, Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
