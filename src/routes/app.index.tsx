@@ -148,19 +148,22 @@ function Dashboard() {
             </div>
           </div>
 
-          <button
-            onClick={() => setOnline(!merchant?.online)}
-            disabled={toggleOnline.isPending}
-            className={`flex items-center gap-2 px-3 h-10 rounded-full text-xs font-bold transition-smooth border ${
-              merchant?.online
-                ? "bg-success/20 border-success/30 text-white"
-                : "bg-white/10 border-white/30 text-white/85"
-            }`}
-          >
-            <span className={`h-2 w-2 rounded-full ${merchant?.online ? "bg-success animate-pulse" : "bg-white/60"}`} />
-            <Power size={14} />
-            {merchant?.online ? "Online" : "Offline"}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell variant="onHero" />
+            <button
+              onClick={() => setOnline(!merchant?.online)}
+              disabled={toggleOnline.isPending}
+              className={`flex items-center gap-2 px-3 h-10 rounded-full text-xs font-bold transition-smooth border ${
+                merchant?.online
+                  ? "bg-success/20 border-success/30 text-white"
+                  : "bg-white/10 border-white/30 text-white/85"
+              }`}
+            >
+              <span className={`h-2 w-2 rounded-full ${merchant?.online ? "bg-success animate-pulse" : "bg-white/60"}`} />
+              <Power size={14} />
+              {merchant?.online ? "Online" : "Offline"}
+            </button>
+          </div>
         </div>
 
         {/* Stats grid */}
