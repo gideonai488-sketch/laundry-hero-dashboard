@@ -29,8 +29,8 @@ function Landing() {
     if (!loading && session) navigate({ to: "/app", replace: true });
   }, [loading, session, navigate]);
 
-function Landing() {
   return (
+
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
