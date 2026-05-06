@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, Banknote, Bell, CheckCircle2, ClipboardList, Shield, Smartphone, Star, Users, Zap } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import heroImg from "@/assets/hero-merchant.jpg";
 import dashImg from "@/assets/dashboard-preview.jpg";
 import pickupImg from "@/assets/feature-pickup.jpg";
@@ -19,6 +21,13 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
+
+function Landing() {
+  const { session, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && session) navigate({ to: "/app", replace: true });
+  }, [loading, session, navigate]);
 
 function Landing() {
   return (
