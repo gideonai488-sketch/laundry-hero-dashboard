@@ -130,7 +130,7 @@ export function useIncomingFeed(myMerchantId: string | undefined) {
 
   useEffect(() => {
     const ch = supabase
-      .channel("merchant:incoming")
+      .channel(`merchant:incoming:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "hw_orders", filter: "merchant_status=eq.pending" },
