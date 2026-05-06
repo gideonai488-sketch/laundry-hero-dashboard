@@ -66,13 +66,6 @@ function Login() {
           <Button type="submit" disabled={busy} className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
             {busy ? <Loader2 className="animate-spin" /> : "Log in"}
           </Button>
-          <div className="relative text-center text-xs text-muted-foreground">
-            <span className="px-2 bg-background relative z-10">or</span>
-            <div className="absolute inset-x-0 top-1/2 h-px bg-border" />
-          </div>
-          <Button type="button" variant="outline" onClick={google} className="w-full h-12 rounded-xl text-base font-semibold">
-            Continue with Google
-          </Button>
           <div className="text-center text-sm text-muted-foreground">
             New here? <Link to="/auth/signup" className="font-semibold text-primary">Create merchant account</Link>
           </div>
