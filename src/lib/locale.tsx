@@ -6,7 +6,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 export type CurrencyCode =
   | "USD" | "EUR" | "GBP" | "JPY" | "AUD" | "CAD"
   | "INR" | "AED" | "SGD" | "BRL" | "MXN" | "ZAR"
-  | "GHS" | "NGN" | "KES" | "CNY";
+  | "GHS" | "NGN" | "KES" | "CNY"
+  | "MAD" | "QAR" | "SAR" | "EGP" | "MYR" | "PHP" | "KWD" | "XOF" | "CHF";
 
 export interface Currency {
   code: CurrencyCode;
@@ -32,6 +33,15 @@ export const currencies: Record<CurrencyCode, Currency> = {
   NGN: { code: "NGN", symbol: "₦",   rate: 1620,    decimals: 0 },
   KES: { code: "KES", symbol: "KSh ",rate: 130,     decimals: 0 },
   CNY: { code: "CNY", symbol: "¥",   rate: 7.24,    decimals: 0 },
+  MAD: { code: "MAD", symbol: "MAD ",rate: 9.95,    decimals: 2 },
+  QAR: { code: "QAR", symbol: "QR ", rate: 3.64,    decimals: 2 },
+  SAR: { code: "SAR", symbol: "SR ", rate: 3.75,    decimals: 2 },
+  EGP: { code: "EGP", symbol: "E£",  rate: 48.5,    decimals: 2 },
+  MYR: { code: "MYR", symbol: "RM ", rate: 4.45,    decimals: 2 },
+  PHP: { code: "PHP", symbol: "₱",   rate: 57.8,    decimals: 2 },
+  KWD: { code: "KWD", symbol: "KD ", rate: 0.31,    decimals: 3 },
+  XOF: { code: "XOF", symbol: "CFA ",rate: 605,     decimals: 0 },
+  CHF: { code: "CHF", symbol: "CHF ",rate: 0.89,    decimals: 2 },
 };
 
 export const languages = ["en", "es", "fr", "ar", "pt", "hi", "zh", "ja"] as const;
@@ -70,6 +80,16 @@ export const countries: CountryProfile[] = [
   { code: "NG", name: "Nigeria", flag: "🇳🇬", currency: "NGN", language: "en" },
   { code: "KE", name: "Kenya", flag: "🇰🇪", currency: "KES", language: "en" },
   { code: "CN", name: "China", flag: "🇨🇳", currency: "CNY", language: "zh" },
+  { code: "MA", name: "Morocco", flag: "🇲🇦", currency: "MAD", language: "fr" },
+  { code: "QA", name: "Qatar", flag: "🇶🇦", currency: "QAR", language: "ar" },
+  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦", currency: "SAR", language: "ar" },
+  { code: "EG", name: "Egypt", flag: "🇪🇬", currency: "EGP", language: "ar" },
+  { code: "MY", name: "Malaysia", flag: "🇲🇾", currency: "MYR", language: "en" },
+  { code: "FI", name: "Finland", flag: "🇫🇮", currency: "EUR", language: "en" },
+  { code: "PH", name: "Philippines", flag: "🇵🇭", currency: "PHP", language: "en" },
+  { code: "KW", name: "Kuwait", flag: "🇰🇼", currency: "KWD", language: "ar" },
+  { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF", language: "fr" },
+  { code: "CH", name: "Switzerland", flag: "🇨🇭", currency: "CHF", language: "fr" },
 ];
 
 // Tiny i18n dictionary — only the most-used UI strings. Everything else

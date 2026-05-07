@@ -3,38 +3,88 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { supportedCountries, findCountry } from "@/lib/countries";
+import { useLocale, currencies } from "@/lib/locale";
 
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({ meta: [{ title: "Sign up — Highest Wash Merchant" }] }),
   component: Signup,
 });
 
+const SIGNUP_LOCALE_KEY = "hw-signup-locale-v1";
+
 function Signup() {
   const navigate = useNavigate();
+  const { setCountry } = useLocale();
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<"details" | "otp">("details");
   const [otp, setOtp] = useState("");
-  const [form, setForm] = useState({ full_name: "", phone: "", email: "", password: "" });
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((p) => ({ ...p, [k]: e.target.value }));
+  const [form, setForm] = useState({
+    full_name: "",
+    countryCode: "GH",
+    city: "",
+    area: "",
+    phoneLocal: "",
+    email: "",
+    password: "",
+  });
+
+  const country = useMemo(
+    () => findCountry(form.countryCode) ?? supportedCountries[0],
+    [form.countryCode]
+  );
+  const currency = currencies[country.currency];
+
+  const set = (k: keyof typeof form) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const fullPhone = `${country.dial}${form.phoneLocal.replace(/[^0-9]/g, "")}`;
 
   const sendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.phone.startsWith("+")) {
-      toast.error("Phone must be in international format e.g. +233...");
+    if (!form.phoneLocal.trim()) {
+      toast.error("Phone number is required.");
       return;
     }
+    if (!form.city.trim() || !form.area.trim()) {
+      toast.error("Please add your city and area so customers can find you.");
+      return;
+    }
+
+    // Persist signup locale so onboarding + dashboard pick the same country.
+    try {
+      localStorage.setItem(
+        SIGNUP_LOCALE_KEY,
+        JSON.stringify({
+          countryCode: country.code,
+          city: form.city.trim(),
+          area: form.area.trim(),
+        })
+      );
+    } catch { /* noop */ }
+    setCountry(country.code);
+
     setBusy(true);
     const { error } = await supabase.auth.signUp({
-      phone: form.phone,
+      phone: fullPhone,
       password: form.password,
       options: {
-        data: { full_name: form.full_name, email: form.email },
+        data: {
+          full_name: form.full_name,
+          email: form.email,
+          country_code: country.code,
+          city: form.city.trim(),
+          area: form.area.trim(),
+        },
       },
     });
     setBusy(false);
@@ -51,7 +101,7 @@ function Signup() {
     if (otp.length !== 6) return;
     setBusy(true);
     const { error } = await supabase.auth.verifyOtp({
-      phone: form.phone,
+      phone: fullPhone,
       token: otp,
       type: "sms",
     });
@@ -65,7 +115,7 @@ function Signup() {
   };
 
   const resend = async () => {
-    const { error } = await supabase.auth.resend({ type: "sms", phone: form.phone });
+    const { error } = await supabase.auth.resend({ type: "sms", phone: fullPhone });
     if (error) toast.error(error.message);
     else toast.success("Code re-sent.");
   };
@@ -78,11 +128,13 @@ function Signup() {
           <ArrowLeft size={16} /> Back
         </Link>
         <div className="mt-10"><Logo size="lg" variant="light" /></div>
-        <h1 className="mt-8 text-3xl font-bold">{step === "details" ? "Become a merchant" : "Verify your phone"}</h1>
+        <h1 className="mt-8 text-3xl font-bold">
+          {step === "details" ? "Become a merchant" : "Verify your phone"}
+        </h1>
         <p className="mt-2 text-white/85">
           {step === "details"
-            ? "Win laundry orders in real-time across Ghana."
-            : `We sent a 6-digit code to ${form.phone}.`}
+            ? `Win laundry orders in ${country.name}. You'll earn in ${currency.symbol.trim()} ${currency.code}.`
+            : `We sent a 6-digit code to ${fullPhone}.`}
         </p>
       </div>
 
@@ -93,10 +145,68 @@ function Signup() {
               <Label htmlFor="name">Your name</Label>
               <Input id="name" required value={form.full_name} onChange={set("full_name")} placeholder="Full name" className="h-12 rounded-xl" />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" type="tel" required value={form.phone} onChange={set("phone")} placeholder="+233 20 000 0000" className="h-12 rounded-xl" />
+              <Label>Country</Label>
+              <Select
+                value={form.countryCode}
+                onValueChange={(v) => setForm((p) => ({ ...p, countryCode: v, city: "", area: "" }))}
+              >
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {supportedCountries.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      <span className="mr-2">{c.flag}</span> {c.name}
+                      <span className="text-muted-foreground ml-2 text-xs">{c.dial} · {c.currency}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Select
+                  value={form.city}
+                  onValueChange={(v) => setForm((p) => ({ ...p, city: v }))}
+                >
+                  <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Pick a city" /></SelectTrigger>
+                  <SelectContent>
+                    {country.cities.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="area">Area / suburb</Label>
+                <Input id="area" required value={form.area} onChange={set("area")} placeholder="e.g. East Legon" className="h-12 rounded-xl" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (we'll text a code)</Label>
+              <div className="flex gap-2">
+                <div className="h-12 px-3 rounded-xl border border-input bg-muted flex items-center text-sm font-semibold whitespace-nowrap">
+                  {country.flag} {country.dial}
+                </div>
+                <Input
+                  id="phone"
+                  type="tel"
+                  required
+                  inputMode="tel"
+                  value={form.phoneLocal}
+                  onChange={set("phoneLocal")}
+                  placeholder="20 000 0000"
+                  className="h-12 rounded-xl flex-1"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">SMS verification is required.</p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email (optional)</Label>
               <Input id="email" type="email" value={form.email} onChange={set("email")} placeholder="you@business.com" className="h-12 rounded-xl" />
@@ -108,9 +218,9 @@ function Signup() {
 
             <div className="rounded-xl bg-gradient-brand-soft p-4 space-y-2">
               {[
-                "Live incoming orders from the customer app",
+                `Live incoming orders in ${country.name}`,
+                `Earn in ${currency.code} (${currency.symbol.trim()}) — auto FX in app`,
                 "Bid your own price — win the jobs you want",
-                "Paystack settlement to your bank",
               ].map((b) => (
                 <div key={b} className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <CheckCircle2 size={16} className="text-success" /> {b}
