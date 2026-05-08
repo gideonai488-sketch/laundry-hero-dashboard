@@ -8,9 +8,10 @@ the customer + rider apps.
 > **Read these files in order:**
 > 1. `PROMPT.md` — full context + non-negotiables (start here)
 > 2. `SCHEMA.md` — every table, column, index, RLS the merchant app needs
-> 3. `EDGE_FUNCTIONS.md` — every edge function + payload contract
-> 4. `REALTIME.md` — publication + replica identity setup
-> 5. `TODO.md` — ordered checklist (tick as you ship)
+> 3. `GEO_ROUTING.md` — country/city/area job-routing rules (READ THIS)
+> 4. `EDGE_FUNCTIONS.md` — every edge function + payload contract
+> 5. `REALTIME.md` — publication + replica identity setup
+> 6. `TODO.md` — ordered checklist (tick as you ship)
 
 If anything in the merchant frontend (`src/`) references a table/RPC/edge
 function that isn't in these docs, **stop and ask** — don't guess.
