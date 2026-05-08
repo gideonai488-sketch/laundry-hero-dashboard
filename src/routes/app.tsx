@@ -71,11 +71,11 @@ function AppLayout() {
       <OfflineBanner />
       <div
         className="mx-auto w-full max-w-md min-h-screen relative"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 7rem)" }}
+        style={{ paddingBottom: onOnboarding ? "env(safe-area-inset-bottom)" : "calc(env(safe-area-inset-bottom) + 7rem)" }}
       >
         <Outlet />
       </div>
-      <BottomNav />
+      {!onOnboarding && <BottomNav />}
     </div>
   );
 }
