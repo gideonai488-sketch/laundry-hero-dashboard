@@ -57,11 +57,6 @@ function Landing() {
               <div className="text-white/70 text-[10px] tracking-[0.2em] font-semibold">MERCHANT</div>
             </div>
           </div>
-            <div className="leading-tight">
-              <div className="text-white font-bold text-base">HighestWash</div>
-              <div className="text-white/70 text-[10px] tracking-[0.2em] font-semibold">MERCHANT</div>
-            </div>
-          </div>
           <Link to="/auth/login">
             <button className="h-10 px-5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-sm font-semibold active:scale-95 transition-smooth">
               Sign in
