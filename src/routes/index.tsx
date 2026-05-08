@@ -4,7 +4,7 @@ import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, Banknote, Bell, CheckCircle2, ClipboardList, Shield, Smartphone, Star, Users, Zap } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import heroImg from "@/assets/hero-merchant.jpg";
+import heroImg from "@/assets/hero-merchant-woman.jpg";
 import dashImg from "@/assets/dashboard-preview.jpg";
 import pickupImg from "@/assets/feature-pickup.jpg";
 import payoutsImg from "@/assets/feature-payouts.jpg";
