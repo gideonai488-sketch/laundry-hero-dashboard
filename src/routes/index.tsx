@@ -49,9 +49,14 @@ function Landing() {
           style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
         >
           <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-soft">
-              <Logo size="sm" iconOnly />
+            <div className="h-10 w-10 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-brand text-white font-black text-base">
+              H
             </div>
+            <div className="leading-tight">
+              <div className="text-white font-bold text-base">HighestWash</div>
+              <div className="text-white/70 text-[10px] tracking-[0.2em] font-semibold">MERCHANT</div>
+            </div>
+          </div>
             <div className="leading-tight">
               <div className="text-white font-bold text-base">HighestWash</div>
               <div className="text-white/70 text-[10px] tracking-[0.2em] font-semibold">MERCHANT</div>
