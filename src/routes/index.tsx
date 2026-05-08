@@ -32,78 +32,92 @@ function Landing() {
   return (
 
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
-          <div className="flex flex-col leading-none">
-            <Logo size="sm" />
-            <span className="text-[9px] text-muted-foreground tracking-wide mt-0.5 pl-0.5">
-              A product of Genesis Holdings Inc, USA
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to="/auth/login">
-              <Button variant="ghost" size="sm">Log in</Button>
-            </Link>
-            <Link to="/auth/signup">
-              <Button size="sm" className="bg-gradient-brand text-primary-foreground border-0 shadow-brand hover:opacity-95">
-                Get started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Hero — full-bleed image, rider-style */}
+      <section className="relative isolate overflow-hidden min-h-[100svh] flex flex-col">
+        {/* Background photo */}
+        <img
+          src={heroImg}
+          alt="Laundry shop owner folding fresh towels"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Gradient wash for legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/85" />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-95" />
-        <div className="absolute inset-0 opacity-30 mix-blend-overlay">
-          <img src={heroImg} alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="relative mx-auto max-w-6xl px-5 py-20 md:py-28 text-primary-foreground">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur border border-white/20 text-xs font-semibold mb-6">
-            <Star size={12} fill="currentColor" />
-            Trusted by 12,000+ laundry merchants in 30+ countries
+        {/* Top header overlay */}
+        <header
+          className="relative z-10 px-5 pt-3 pb-3 flex items-center justify-between"
+          style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="h-10 w-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-soft">
+              <Logo size="sm" iconOnly />
+            </div>
+            <div className="leading-tight">
+              <div className="text-white font-bold text-base">HighestWash</div>
+              <div className="text-white/70 text-[10px] tracking-[0.2em] font-semibold">MERCHANT</div>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight max-w-3xl">
-            Run your laundry business <span className="text-white/80">like a fintech</span>
+          <Link to="/auth/login">
+            <button className="h-10 px-5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-sm font-semibold active:scale-95 transition-smooth">
+              Sign in
+            </button>
+          </Link>
+        </header>
+
+        {/* Spacer pushes content to bottom */}
+        <div className="flex-1" />
+
+        {/* Bottom hero content */}
+        <div className="relative z-10 px-6 pb-8 text-white">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-[11px] font-bold tracking-wide mb-5">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            LIVE IN 18 COUNTRIES
+          </div>
+
+          <h1 className="text-[44px] leading-[1.02] font-black tracking-tight">
+            Your shop.<br />
+            Your hours.<br />
+            <span className="text-[hsl(var(--primary))]">Your money.</span>
           </h1>
-          <p className="mt-5 text-lg md:text-xl text-white/85 max-w-2xl">
-            Accept the orders customers send you, manage your staff, track every dollar, and get paid weekly to your bank or mobile wallet — all from one beautiful app.
+
+          <p className="mt-4 text-white/85 text-[15px] leading-relaxed max-w-md">
+            Run your laundry on your schedule. Get paid in your local currency.
+            No middlemen — just clean clothes and clean payouts.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/auth/signup">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/95 shadow-soft font-semibold">
-                Start free <ArrowRight className="ml-2" size={18} />
-              </Button>
+
+          <div className="mt-7 space-y-3">
+            <Link to="/auth/signup" className="block">
+              <button className="w-full h-14 rounded-2xl bg-white text-foreground font-bold text-base shadow-soft active:scale-[0.98] transition-smooth flex items-center justify-center gap-2">
+                Get started <ArrowRight size={18} />
+              </button>
             </Link>
-            <Link to="/app">
-              <Button size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur">
-                See live demo
-              </Button>
+            <Link to="/auth/login" className="block">
+              <button className="w-full h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/25 text-white font-semibold text-base active:scale-[0.98] transition-smooth">
+                I already have an account
+              </button>
             </Link>
           </div>
-          <div className="mt-10 grid grid-cols-3 gap-6 max-w-xl">
+
+          <div className="mt-6 flex items-center justify-center gap-2 text-white/70 text-xs">
+            <Shield size={14} />
+            Verified merchants · Insured orders
+          </div>
+
+          <div className="mt-7 grid grid-cols-3 gap-4 pt-6 border-t border-white/15">
             {[
-              { v: "12k+", l: "Active merchants" },
-              { v: "$84M", l: "Paid out" },
-              { v: "4.9★", l: "Avg rating" },
+              { v: "12k+", l: "Merchants" },
+              { v: "18", l: "Countries" },
+              { v: "Weekly", l: "Payouts" },
             ].map((s) => (
-              <div key={s.l}>
-                <div className="text-2xl md:text-3xl font-bold">{s.v}</div>
-                <div className="text-xs text-white/70 mt-1">{s.l}</div>
+              <div key={s.l} className="text-center">
+                <div className="text-2xl font-black text-white">{s.v}</div>
+                <div className="text-[10px] text-white/65 mt-0.5 uppercase tracking-wider">{s.l}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Dashboard preview */}
-      <section className="mx-auto max-w-6xl px-5 -mt-10 md:-mt-16 relative z-10">
-        <div className="rounded-3xl overflow-hidden shadow-brand bg-card border border-border">
-          <img src={dashImg} alt="Merchant dashboard preview" loading="lazy" className="w-full h-auto" />
-        </div>
-      </section>
 
       {/* Features grid */}
       <section className="mx-auto max-w-6xl px-5 py-20 md:py-28">
