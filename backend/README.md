@@ -2,7 +2,7 @@
 
 This folder is the **single source of truth** for the backend agent. The
 merchant frontend (this repo) is shipped and assumes everything below is
-live in the shared Supabase project (ref `eqbogpvabcsngspphjte`) used by
+live in the shared Supabase project (ref `jxilnjudduetykuxiehp`) used by
 the customer + rider apps.
 
 > **Read these files in order:**

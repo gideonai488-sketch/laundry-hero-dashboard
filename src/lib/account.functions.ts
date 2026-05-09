@@ -2,9 +2,9 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const SUPABASE_URL = "https://eqbogpvabcsngspphjte.supabase.co";
+const SUPABASE_URL = "https://jxilnjudduetykuxiehp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYm9ncHZhYmNzbmdzcHBoanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjcxMjMsImV4cCI6MjA5MjM0MzEyM30.EN5bPu66_y5xN1i_EKxMbFKJoKb9jAmuIBxGUTRSMPk";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aWxuanVkZHVldHlrdXhpZWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTQ5NDcsImV4cCI6MjA5Mzc5MDk0N30.iJHSz-8QQ_VoUd25E0890PgBfaC4b8igNSSyy9LZVc4";
 
 const DeleteAccountInput = z.object({
   accessToken: z.string().min(20),
