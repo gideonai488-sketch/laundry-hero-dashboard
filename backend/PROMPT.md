@@ -2,7 +2,7 @@
 
 You are the backend agent for **Highest Wash**, a 3-app marketplace
 (customer · rider · merchant) running on a single Supabase project
-(`eqbogpvabcsngspphjte`). The **merchant frontend is feature-complete**
+(`jxilnjudduetykuxiehp`). The **merchant frontend is feature-complete**
 and shipping. Your job is to make every table, RLS policy, trigger, edge
 function, and realtime publication match what this frontend expects.
 
