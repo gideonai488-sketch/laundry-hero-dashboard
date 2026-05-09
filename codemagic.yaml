@@ -12,8 +12,8 @@ workflows:
       java: 21
       vars:
         # Version — INCREMENT ANDROID_VERSION_CODE before every Play Store upload
-        ANDROID_VERSION_CODE: "5"
-        ANDROID_VERSION_NAME: "1.2"
+        ANDROID_VERSION_CODE: "6"
+        ANDROID_VERSION_NAME: "1.3"
         # Supabase
         SUPABASE_URL: "https://eqbogpvabcsngspphjte.supabase.co"
         SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYm9ncHZhYmNzbmdzcHBoanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjcxMjMsImV4cCI6MjA5MjM0MzEyM30.EN5bPu66_y5xN1i_EKxMbFKJoKb9jAmuIBxGUTRSMPk"
