@@ -18,6 +18,7 @@ import {
 import { deleteCurrentAccount } from "@/lib/account.functions";
 import { useAuth } from "@/lib/auth";
 import { useToggleOnline, useUpdateMerchant } from "@/lib/queries";
+import { getCurrentPosition } from "@/lib/geo";
 import { supabase } from "@/lib/supabase";
 import { LinkedBankCard, type BankInfo } from "@/components/LinkedBankCard";
 import { LinkBankSheet } from "@/components/LinkBankSheet";
@@ -42,29 +43,21 @@ function SettingsPage() {
   });
   const [geoLoading, setGeoLoading] = useState(false);
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Your browser doesn't support location detection.");
-      return;
-    }
+  const detectLocation = async () => {
     setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLoading(false);
-        setForm((p) => ({
-          ...p,
-          lat: pos.coords.latitude.toFixed(6),
-          lng: pos.coords.longitude.toFixed(6),
-        }));
-        toast.success("Location updated — save changes to apply.");
-      },
-      (err) => {
-        setGeoLoading(false);
-        toast.error("Couldn't detect location. Check browser permissions.");
-        console.warn("Geolocation error:", err);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    try {
+      const coords = await getCurrentPosition();
+      setForm((p) => ({
+        ...p,
+        lat: coords.lat.toFixed(6),
+        lng: coords.lng.toFixed(6),
+      }));
+      toast.success("Location updated — save changes to apply.");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't detect location. Check app permissions.");
+    } finally {
+      setGeoLoading(false);
+    }
   };
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);

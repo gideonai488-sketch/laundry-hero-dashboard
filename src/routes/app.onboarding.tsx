@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { getCurrentPosition } from "@/lib/geo";
 
 export const Route = createFileRoute("/app/onboarding")({
   head: () => ({ meta: [{ title: "Set up your shop — Highest Wash" }] }),
@@ -29,29 +30,21 @@ function OnboardingPage() {
   });
   const [geoLoading, setGeoLoading] = useState(false);
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Your browser doesn't support location detection.");
-      return;
-    }
+  const detectLocation = async () => {
     setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLoading(false);
-        setForm((p) => ({
-          ...p,
-          lat: pos.coords.latitude.toFixed(6),
-          lng: pos.coords.longitude.toFixed(6),
-        }));
-        toast.success("Location detected!");
-      },
-      (err) => {
-        setGeoLoading(false);
-        toast.error("Couldn't detect location — please enter coordinates manually.");
-        console.warn("Geolocation error:", err);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    try {
+      const coords = await getCurrentPosition();
+      setForm((p) => ({
+        ...p,
+        lat: coords.lat.toFixed(6),
+        lng: coords.lng.toFixed(6),
+      }));
+      toast.success("Location detected!");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't detect location — enter coordinates manually.");
+    } finally {
+      setGeoLoading(false);
+    }
   };
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
