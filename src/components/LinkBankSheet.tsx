@@ -92,6 +92,7 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
     setSubmitting(true);
     try {
       const r = await createSubaccount({
+        merchant_id: merchant.id,
         business_name: merchant.business_name ?? "Highest Wash Merchant",
         bank_code: selectedBank.code,
         account_number: accountNumber,
@@ -250,8 +251,8 @@ export function LinkBankSheet({ open, onClose, onLinked }: Props) {
               )}
               {!resolving && resolveError && (
                 <>
-                  <div className="text-xs text-amber-600 font-medium">
-                    Auto-verify unavailable — enter your account name manually to continue.
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Enter your account name to continue.
                   </div>
                   <input
                     value={manualName}
