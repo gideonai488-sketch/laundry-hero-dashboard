@@ -12,7 +12,7 @@ workflows:
       java: 21
       vars:
         # Version — INCREMENT ANDROID_VERSION_CODE before every Play Store upload
-        ANDROID_VERSION_CODE: "8"
+        ANDROID_VERSION_CODE: "9"
         ANDROID_VERSION_NAME: "1.4"
         # Supabase — VITE_ prefix required so Vite exposes them to the browser bundle
         VITE_SUPABASE_URL: "https://jxilnjudduetykuxiehp.supabase.co"

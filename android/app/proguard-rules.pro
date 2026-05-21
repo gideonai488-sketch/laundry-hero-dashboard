@@ -1,21 +1,32 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep line numbers for readable crash reports in Play Console
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── Capacitor core ──────────────────────────────────────────────────────────
+-keep class com.getcapacitor.** { *; }
+-keep class com.getcapacitor.plugin.** { *; }
+-keepclassmembers class * extends com.getcapacitor.Plugin {
+    @com.getcapacitor.PluginMethod public *;
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── WebView JS bridge ────────────────────────────────────────────────────────
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── AndroidX / AppCompat ─────────────────────────────────────────────────────
+-keep class androidx.appcompat.** { *; }
+-keep class androidx.core.** { *; }
+-keep class androidx.coordinatorlayout.** { *; }
+
+# ── Splash screen ────────────────────────────────────────────────────────────
+-keep class androidx.core.splashscreen.** { *; }
+
+# ── Highestwash app package ──────────────────────────────────────────────────
+-keep class com.highestwash.merchants.** { *; }
+
+# ── Suppress warnings for missing optional deps ──────────────────────────────
+-dontwarn com.google.android.gms.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
