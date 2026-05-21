@@ -637,6 +637,52 @@ export async function ensureChat(opts: {
   return (data?.id as string) ?? null;
 }
 
+// ───────────────────────── Payouts ─────────────────────────
+
+export function usePayouts(merchantId: string | undefined) {
+  return useQuery({
+    queryKey: ["payouts", merchantId],
+    enabled: !!merchantId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payouts")
+        .select("id, merchant_id, amount, currency, status, reference, created_at, settled_at")
+        .eq("merchant_id", merchantId!)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) {
+        // Table may not be live yet — return empty list rather than crash
+        console.warn("payouts query failed:", error.message);
+        return [] as AnyRow[];
+      }
+      return (data ?? []) as AnyRow[];
+    },
+  });
+}
+
+export function useRequestPayout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      merchantId,
+      amount,
+      currency,
+    }: {
+      merchantId: string;
+      amount: number;
+      currency: string;
+    }) => {
+      const { error } = await supabase.functions.invoke("request-payout", {
+        body: { merchant_id: merchantId, amount, currency },
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["payouts", vars.merchantId] });
+    },
+  });
+}
+
 // ───────────────────────── Disputes ─────────────────────────
 
 export function useOrderDispute(orderId: string | undefined) {
