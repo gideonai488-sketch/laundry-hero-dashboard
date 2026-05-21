@@ -1,6 +1,15 @@
 import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "./supabase";
+
+const CURRENCY_SYM: Record<string, string> = {
+  GHS: "₵", NGN: "₦", KES: "KSh ", ZAR: "R", USD: "$", GBP: "£", EUR: "€",
+};
+function fmtAmt(amount: number, currency?: string | null) {
+  const sym = CURRENCY_SYM[currency ?? "GHS"] ?? (currency ? `${currency} ` : "₵");
+  return `${sym}${amount.toFixed(2)}`;
+}
 
 // Lazy import push so SSR never touches browser-only APIs
 const notifyLocal = (title: string, opts: { body?: string; tag?: string; url?: string }) => {
@@ -203,7 +212,38 @@ export function useMyOrders(merchantId: string | undefined) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "hw_orders", filter: `merchant_id=eq.${merchantId}` },
-        () => qc.invalidateQueries({ queryKey: ["my-orders", merchantId] })
+        (payload: AnyRow) => {
+          qc.invalidateQueries({ queryKey: ["my-orders", merchantId] });
+
+          // Fire payment notification when payment_status flips to "paid"
+          const prev = payload.old?.payment_status;
+          const next = payload.new?.payment_status;
+          if (next === "paid" && prev !== "paid") {
+            const order = payload.new as AnyRow;
+            const amount = fmtAmt(Number(order.subtotal ?? 0), order.currency);
+
+            // Look up customer name from cache; fall back to "Customer"
+            const cached = qc.getQueryData<AnyRow[]>(["my-orders", merchantId]) ?? [];
+            const cached_order = cached.find((o) => o.id === order.id);
+            const customerName: string =
+              (cached_order?.customer as AnyRow | null)?.full_name ?? "Customer";
+
+            const orderId = String(order.id).slice(0, 6);
+
+            // In-app toast (always fires — foreground or background tab)
+            toast.success(`💳 Payment received — ${amount}`, {
+              description: `${customerName} · Order #${orderId}\nYour bank settlement arrives within 24 hours.`,
+              duration: 8000,
+            });
+
+            // OS-level push notification (fires when tab is hidden / app backgrounded)
+            notifyLocal(`💳 Payment received — ${amount}`, {
+              body: `${customerName} · Order #${orderId} · Bank settlement within 24 hours.`,
+              tag: `payment-${order.id}`,
+              url: `/app/order/${order.id}`,
+            });
+          }
+        }
       )
       .subscribe();
     return () => {
