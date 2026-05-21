@@ -50,8 +50,9 @@ function OnboardingPage() {
       console.warn("user_roles insert:", roleErr);
     }
 
-    // Read signup locale so RLS broadcast filter (country_code + city + area) works
-    let signupLocale: { countryCode?: string; city?: string; area?: string } = {};
+    // Read signup locale for country_code only (city/area no longer needed —
+    // job matching uses GPS 15 km radius, not text-based city/area filtering)
+    let signupLocale: { countryCode?: string } = {};
     try {
       const raw = localStorage.getItem("hw-signup-locale-v1");
       if (raw) signupLocale = JSON.parse(raw);
@@ -67,8 +68,6 @@ function OnboardingPage() {
       lng: form.lng ? Number(form.lng) : null,
       online: false,
       country_code: signupLocale.countryCode ?? null,
-      city: signupLocale.city ?? null,
-      area: signupLocale.area ?? null,
     });
     if (mErr && mErr.code !== "23505") {
       setBusy(false);

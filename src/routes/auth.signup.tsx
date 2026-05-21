@@ -31,8 +31,6 @@ function Signup() {
   const [form, setForm] = useState({
     full_name: "",
     countryCode: "GH",
-    city: "",
-    area: "",
     phoneLocal: "",
     email: "",
     password: "",
@@ -58,23 +56,14 @@ function Signup() {
       toast.error("Phone number is required.");
       return;
     }
-    if (!form.city.trim() || !form.area.trim()) {
-      toast.error("Please add your city and area so customers can find you.");
-      return;
-    }
-
     const phone = `${country.dial}${form.phoneLocal.replace(/[^0-9]/g, "")}`;
     setFullPhone(phone);
 
-    // Persist signup locale so onboarding picks the same country/city/area.
+    // Persist signup locale so onboarding picks up the country_code.
     try {
       localStorage.setItem(
         SIGNUP_LOCALE_KEY,
-        JSON.stringify({
-          countryCode: country.code,
-          city: form.city.trim(),
-          area: form.area.trim(),
-        })
+        JSON.stringify({ countryCode: country.code })
       );
     } catch { /* noop */ }
     setCountry(country.code);
@@ -180,7 +169,7 @@ function Signup() {
               <Label>Country</Label>
               <Select
                 value={form.countryCode}
-                onValueChange={(v) => setForm((p) => ({ ...p, countryCode: v, city: "", area: "" }))}
+                onValueChange={(v) => setForm((p) => ({ ...p, countryCode: v }))}
               >
                 <SelectTrigger className="h-12 rounded-xl">
                   <SelectValue />
@@ -194,27 +183,6 @@ function Signup() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>City</Label>
-                <Select
-                  value={form.city}
-                  onValueChange={(v) => setForm((p) => ({ ...p, city: v }))}
-                >
-                  <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Pick a city" /></SelectTrigger>
-                  <SelectContent>
-                    {country.cities.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="area">Area / suburb</Label>
-                <Input id="area" required value={form.area} onChange={set("area")} placeholder="e.g. East Legon" className="h-12 rounded-xl" />
-              </div>
             </div>
 
             <div className="space-y-2">
