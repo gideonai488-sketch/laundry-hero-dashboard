@@ -347,11 +347,34 @@ function IncomingCard({
               </span>
             )}
           </div>
-          <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
+          <div className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
             <MapPin size={11} className="shrink-0" /> {order.pickup_address ?? "No address"}
           </div>
-          <div className="text-xs mt-1 line-clamp-2">{services}</div>
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1">
+
+          {/* Service name badge */}
+          {order.service_name && (
+            <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {order.service_name}
+            </span>
+          )}
+
+          {/* Item chips */}
+          {(order.items as any[])?.length > 0 ? (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {(order.items as any[]).map((item: any, i: number) => (
+                <span
+                  key={i}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border font-medium"
+                >
+                  {item.qty && item.qty > 1 ? `${item.qty}× ` : ""}{item.description}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground mt-1">{services}</div>
+          )}
+
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1.5">
             {order.estimated_weight_kg && <span>~{order.estimated_weight_kg} kg</span>}
             {order.pickup_date && <span className="inline-flex items-center gap-1"><Clock size={10} /> {order.pickup_date}</span>}
           </div>
