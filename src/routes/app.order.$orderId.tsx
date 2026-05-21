@@ -18,6 +18,7 @@ import {
   ensureChat,
   useOrder,
   useOrderDispute,
+  useOrderStatusEvents,
   useSubmitDispute,
   useUpdateDeliveryStatus,
 } from "@/lib/queries";
@@ -46,9 +47,11 @@ function OrderDetailPage() {
   const { data: dispute } = useOrderDispute(orderId);
   const update = useUpdateDeliveryStatus();
   const submitDispute = useSubmitDispute();
+  const { data: statusEvents = [] } = useOrderStatusEvents(orderId);
   const [openingChat, setOpeningChat] = useState(false);
   const [showDisputeForm, setShowDisputeForm] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
+  const [disputeCategory, setDisputeCategory] = useState("");
 
   if (isLoading || !order) {
     return (
@@ -91,11 +94,17 @@ function OrderDetailPage() {
     e.preventDefault();
     if (!disputeReason.trim()) return;
     submitDispute.mutate(
-      { orderId, reason: disputeReason.trim() },
+      {
+        orderId,
+        reason: disputeReason.trim(),
+        category: disputeCategory || undefined,
+        raisedBy: user?.id,
+      },
       {
         onSuccess: () => {
           toast.success("Dispute submitted. Support will reach out.");
           setDisputeReason("");
+          setDisputeCategory("");
           setShowDisputeForm(false);
         },
         onError: (err: any) => toast.error(err.message ?? "Couldn't submit dispute"),
@@ -336,12 +345,7 @@ function OrderDetailPage() {
           Job history
         </div>
         <ol className="relative border-l-2 border-border ml-3 space-y-4 pb-2">
-          <TimelineEvent
-            label="Order placed"
-            iso={order.created_at}
-            done
-            tone="primary"
-          />
+          <TimelineEvent label="Order placed" iso={order.created_at} done tone="primary" />
           {order.merchant_id && (
             <TimelineEvent
               label="Bid accepted"
@@ -351,24 +355,37 @@ function OrderDetailPage() {
               hint="You won this order"
             />
           )}
-          {order.delivered_at && (
-            <TimelineEvent label="Delivered" iso={order.delivered_at} done tone="success" />
+          {(statusEvents as any[]).map((ev: any) => {
+            const isDone = true;
+            const isSuccess = ["delivered", "customer_confirmed"].includes(ev.status);
+            const isCancel = ev.status === "cancelled";
+            return (
+              <TimelineEvent
+                key={ev.id}
+                label={String(ev.status).replace(/_/g, " ")}
+                iso={ev.created_at}
+                done={isDone}
+                tone={isSuccess ? "success" : isCancel ? "destructive" : "primary"}
+                hint={ev.changed_by_role ? `by ${ev.changed_by_role}` : undefined}
+              />
+            );
+          })}
+          {(statusEvents as any[]).length === 0 && (
+            <>
+              {order.delivered_at && (
+                <TimelineEvent label="Delivered" iso={order.delivered_at} done tone="success" />
+              )}
+              {order.customer_confirmed_at && (
+                <TimelineEvent label="Customer confirmed" iso={order.customer_confirmed_at} done tone="success" />
+              )}
+              <TimelineEvent
+                label={`Currently: ${String(order.delivery_status ?? "pending").replace(/_/g, " ")}`}
+                iso={order.updated_at}
+                done={String(order.delivery_status) === "delivered"}
+                tone={String(order.delivery_status) === "cancelled" ? "destructive" : "muted"}
+              />
+            </>
           )}
-          {order.customer_confirmed_at && (
-            <TimelineEvent
-              label="Customer confirmed"
-              iso={order.customer_confirmed_at}
-              done
-              tone="success"
-            />
-          )}
-          <TimelineEvent
-            label={`Currently: ${String(order.delivery_status ?? "pending").replace(/_/g, " ")}`}
-            iso={order.updated_at}
-            done={String(order.delivery_status) === "delivered"}
-            tone={String(order.delivery_status) === "cancelled" ? "destructive" : "muted"}
-            hint="Detailed per-stage timestamps need backend status events"
-          />
         </ol>
       </section>
 
@@ -391,13 +408,18 @@ function OrderDetailPage() {
                 <AlertTriangle size={14} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold capitalize">
+                <div className="text-sm font-bold capitalize flex items-center gap-2">
                   Dispute · {dispute.status ?? "open"}
+                  {dispute.category && (
+                    <span className="text-[10px] font-normal bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground capitalize">
+                      {String(dispute.category).replace(/_/g, " ")}
+                    </span>
+                  )}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
-                  Filed {new Date(dispute.created_at).toLocaleString()}
+                  Filed {new Date(dispute.created_at).toLocaleString("en-US")}
                   {dispute.resolved_at
-                    ? ` · resolved ${new Date(dispute.resolved_at).toLocaleString()}`
+                    ? ` · resolved ${new Date(dispute.resolved_at).toLocaleString("en-US")}`
                     : ""}
                 </div>
               </div>
@@ -405,6 +427,12 @@ function OrderDetailPage() {
             <div className="mt-3 text-sm bg-muted/50 rounded-xl p-3 whitespace-pre-wrap">
               {dispute.reason}
             </div>
+            {dispute.resolution && (
+              <div className="mt-2 text-sm bg-success/10 border border-success/20 rounded-xl p-3">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-success mb-1">Resolution</div>
+                {dispute.resolution}
+              </div>
+            )}
           </div>
         ) : !showDisputeForm ? (
           <button
@@ -419,14 +447,37 @@ function OrderDetailPage() {
             className="rounded-2xl bg-card border border-border p-4 shadow-card space-y-3"
           >
             <div className="text-xs text-muted-foreground">
-              Tell support what happened — wrong items, damage, customer no-show, payment problem, etc.
+              Tell support what happened. Pick a category so we can route it faster.
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: "wrong_items", label: "Wrong items" },
+                { value: "damage", label: "Damage" },
+                { value: "no_show", label: "Customer no-show" },
+                { value: "payment", label: "Payment problem" },
+                { value: "late_delivery", label: "Late delivery" },
+                { value: "other", label: "Other" },
+              ].map((cat) => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setDisputeCategory(cat.value)}
+                  className={`h-9 rounded-xl text-xs font-semibold border transition-colors ${
+                    disputeCategory === cat.value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-accent"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
             <textarea
               value={disputeReason}
               onChange={(e) => setDisputeReason(e.target.value)}
               maxLength={1000}
-              rows={5}
-              placeholder="Describe the issue…"
+              rows={4}
+              placeholder="Describe what happened in detail…"
               className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
               required
             />
@@ -436,6 +487,7 @@ function OrderDetailPage() {
                 onClick={() => {
                   setShowDisputeForm(false);
                   setDisputeReason("");
+                  setDisputeCategory("");
                 }}
                 className="flex-1 h-11 rounded-xl border border-border text-sm font-semibold"
               >
@@ -449,7 +501,7 @@ function OrderDetailPage() {
                 {submitDispute.isPending ? (
                   <Loader2 className="animate-spin" size={16} />
                 ) : (
-                  "Submit"
+                  "Submit dispute"
                 )}
               </button>
             </div>

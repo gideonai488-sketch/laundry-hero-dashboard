@@ -646,7 +646,7 @@ export function useOrderDispute(orderId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, order_id, reason, status, created_at, resolved_at")
+        .select("id, order_id, reason, status, category, raised_by_role, created_at, resolved_at, resolution")
         .eq("order_id", orderId!)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -660,11 +660,24 @@ export function useOrderDispute(orderId: string | undefined) {
 export function useSubmitDispute() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
+    mutationFn: async ({
+      orderId,
+      reason,
+      category,
+      raisedBy,
+    }: {
+      orderId: string;
+      reason: string;
+      category?: string;
+      raisedBy?: string;
+    }) => {
       const { error } = await supabase.from("disputes").insert({
         order_id: orderId,
         reason,
         status: "open",
+        raised_by_role: "merchant",
+        ...(raisedBy ? { raised_by: raisedBy } : {}),
+        ...(category ? { category } : {}),
       });
       if (error) throw error;
     },
@@ -672,4 +685,36 @@ export function useSubmitDispute() {
       qc.invalidateQueries({ queryKey: ["dispute", vars.orderId] });
     },
   });
+}
+
+export function useOrderStatusEvents(orderId: string | undefined) {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: ["status-events", orderId],
+    enabled: !!orderId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("hw_order_status_events")
+        .select("id, status, changed_by_role, note, created_at")
+        .eq("order_id", orderId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as AnyRow[];
+    },
+  });
+
+  useEffect(() => {
+    if (!orderId) return;
+    const ch = supabase
+      .channel(`status-events:${orderId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "hw_order_status_events", filter: `order_id=eq.${orderId}` },
+        () => qc.invalidateQueries({ queryKey: ["status-events", orderId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [orderId, qc]);
+
+  return query;
 }
