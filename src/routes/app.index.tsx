@@ -6,16 +6,21 @@ import {
   Activity,
   ArrowRight,
   Banknote,
+  CalendarDays,
   CheckCircle2,
   ClipboardList,
   Clock,
   Loader2,
   MapPin,
+  Navigation2,
   PackageOpen,
   Power,
   Radio,
+  Scale,
+  StickyNote,
   Sparkles,
   Trophy,
+  User,
   X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -278,7 +283,16 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
   );
 }
 
-const COUNTDOWN_SECONDS = 90;
+const COUNTDOWN_SECONDS = 6 * 60 * 60; // 6 hours
+
+function formatCountdown(secs: number) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = Math.floor(secs % 60);
+  if (h > 0) return `${h}h ${String(m).padStart(2, "0")}m`;
+  if (m > 0) return `${m}m ${String(s).padStart(2, "0")}s`;
+  return `${s}s`;
+}
 
 function IncomingCard({
   order,
@@ -293,116 +307,217 @@ function IncomingCard({
   onBid: () => void;
   onSkip: () => void;
 }) {
-  // Countdown anchored on order.created_at
-  // useState(0) avoids SSR/client hydration mismatch (Date.now() differs server vs client)
   const createdMs = new Date(order.created_at).getTime();
   const [now, setNow] = useState(0);
   useEffect(() => {
     setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 500);
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
   const elapsed = (now - createdMs) / 1000;
   const remaining = Math.max(0, COUNTDOWN_SECONDS - elapsed);
   const pct = remaining / COUNTDOWN_SECONDS;
   const expired = remaining <= 0;
+  const urgentSoon = remaining < 1800; // last 30 min turns amber
 
   const distKm = haversineKm(myLat, myLng, order.pickup_lat, order.pickup_lng);
-  const services = (order.items as any[])?.map((i) => i.description).filter(Boolean).join(", ") || order.service_name || "Laundry order";
-  const customerName = order.customer?.full_name?.split(" ")?.[0] ?? "New customer";
+  const customerName = order.customer?.full_name ?? "New customer";
+  const customerInitials = customerName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
   const photos = (order.photo_urls as string[] | null) ?? [];
+  const items = (order.items as any[]) ?? [];
+  const suggestedPrice = order.estimated_weight_kg
+    ? Math.round(Number(order.estimated_weight_kg) * 25)
+    : null;
+
+  const ringColor = expired
+    ? "hsl(var(--destructive))"
+    : urgentSoon
+    ? "#f59e0b"
+    : "hsl(var(--primary))";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      className="bg-card rounded-2xl border border-border shadow-card overflow-hidden"
+      initial={{ opacity: 0, y: 16, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      className="bg-card rounded-3xl border border-border shadow-card overflow-hidden"
     >
-      <div className="p-4 flex items-start gap-3">
-        {/* Countdown ring */}
-        <div className="relative h-14 w-14 shrink-0">
-          <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90">
-            <circle cx="18" cy="18" r="16" stroke="hsl(var(--border))" strokeWidth="3" fill="none" />
-            <motion.circle
-              cx="18" cy="18" r="16"
-              stroke={expired ? "hsl(var(--destructive))" : "hsl(var(--primary))"}
-              strokeWidth="3" fill="none" strokeLinecap="round"
-              strokeDasharray={2 * Math.PI * 16}
-              animate={{ strokeDashoffset: 2 * Math.PI * 16 * (1 - pct) }}
-              transition={{ duration: 0.5, ease: "linear" }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center text-xs font-bold">
-            {Math.ceil(remaining)}s
-          </div>
-        </div>
-
+      {/* ── Header strip ── */}
+      <div className="bg-gradient-hero px-4 pt-4 pb-3 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="font-bold text-sm truncate">{customerName}</div>
-            {distKm != null && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-brand-soft text-primary">
-                {distKm.toFixed(1)} km
-              </span>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-0.5">
-            <MapPin size={11} className="shrink-0" /> {order.pickup_address ?? "No address"}
-          </div>
-
-          {/* Service name badge */}
           {order.service_name && (
-            <span className="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-1.5">
               {order.service_name}
             </span>
           )}
-
-          {/* Item chips */}
-          {(order.items as any[])?.length > 0 ? (
-            <div className="flex flex-wrap gap-1 mt-1.5">
-              {(order.items as any[]).map((item: any, i: number) => (
-                <span
-                  key={i}
-                  className="text-[11px] px-2 py-0.5 rounded-full bg-muted border border-border font-medium"
-                >
-                  {item.qty && item.qty > 1 ? `${item.qty}× ` : ""}{item.description}
-                </span>
-              ))}
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-white/25 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {customerInitials || <User size={14} />}
             </div>
-          ) : (
-            <div className="text-xs text-muted-foreground mt-1">{services}</div>
-          )}
-
-          <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-1.5">
-            {order.estimated_weight_kg && <span>~{order.estimated_weight_kg} kg</span>}
-            {order.pickup_date && <span className="inline-flex items-center gap-1"><Clock size={10} /> {order.pickup_date}</span>}
+            <div className="min-w-0">
+              <div className="text-white font-bold text-sm truncate">{customerName}</div>
+              {distKm != null && (
+                <div className="text-white/75 text-[10px] flex items-center gap-0.5">
+                  <Navigation2 size={9} /> {distKm.toFixed(1)} km away
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Countdown ring */}
+        <div className="flex flex-col items-center gap-0.5 shrink-0">
+          <div className="relative h-14 w-14">
+            <svg viewBox="0 0 36 36" className="absolute inset-0 -rotate-90 w-full h-full">
+              <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.2)" strokeWidth="3" fill="none" />
+              <motion.circle
+                cx="18" cy="18" r="15"
+                stroke={expired ? "#ef4444" : urgentSoon ? "#f59e0b" : "white"}
+                strokeWidth="3" fill="none" strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 15}
+                animate={{ strokeDashoffset: 2 * Math.PI * 15 * (1 - pct) }}
+                transition={{ duration: 1, ease: "linear" }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <Clock size={10} className="text-white/80" />
+              <span className="text-white text-[9px] font-bold leading-tight">
+                {expired ? "Done" : formatCountdown(remaining)}
+              </span>
+            </div>
+          </div>
+          <span className={`text-[8px] font-bold uppercase ${expired ? "text-red-300" : "text-white/60"}`}>
+            {expired ? "expired" : "open"}
+          </span>
         </div>
       </div>
 
+      {/* ── Addresses ── */}
+      <div className="px-4 pt-3 space-y-1.5">
+        <div className="flex items-start gap-2 text-xs">
+          <div className="mt-0.5 h-4 w-4 rounded-full bg-success/15 flex items-center justify-center shrink-0">
+            <div className="h-1.5 w-1.5 rounded-full bg-success" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Pickup</div>
+            <div className="font-medium text-foreground truncate">{order.pickup_address ?? "Address not set"}</div>
+          </div>
+        </div>
+        {order.delivery_address && (
+          <>
+            <div className="ml-[7px] h-4 w-px bg-border" />
+            <div className="flex items-start gap-2 text-xs">
+              <div className="mt-0.5 h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <MapPin size={9} className="text-primary" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Delivery</div>
+                <div className="font-medium text-foreground truncate">{order.delivery_address}</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Items ── */}
+      <div className="px-4 pt-3">
+        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">
+          Items
+        </div>
+        {items.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {items.map((item: any, i: number) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full bg-muted border border-border font-semibold"
+              >
+                {item.qty && Number(item.qty) > 1 && (
+                  <span className="bg-primary/15 text-primary rounded-full px-1 text-[9px] font-black">
+                    {item.qty}×
+                  </span>
+                )}
+                {item.description}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground italic">
+            {order.service_name ?? "Laundry order"}
+          </div>
+        )}
+      </div>
+
+      {/* ── Order details row ── */}
+      <div className="px-4 pt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+        {order.pickup_date && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays size={12} className="text-primary shrink-0" />
+            <span className="font-medium">{order.pickup_date}</span>
+          </div>
+        )}
+        {order.pickup_time_slot && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock size={12} className="text-primary shrink-0" />
+            <span className="font-medium">{order.pickup_time_slot}</span>
+          </div>
+        )}
+        {order.estimated_weight_kg && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Scale size={12} className="text-primary shrink-0" />
+            <span className="font-medium">~{order.estimated_weight_kg} kg</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Notes ── */}
+      {order.notes && (
+        <div className="mx-4 mt-3 flex items-start gap-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-xl px-3 py-2">
+          <StickyNote size={13} className="text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800 dark:text-amber-300 font-medium line-clamp-2">{order.notes}</p>
+        </div>
+      )}
+
+      {/* ── Photos ── */}
       {photos.length > 0 && (
-        <div className="px-4 pb-3 flex gap-2 overflow-x-auto">
-          {photos.slice(0, 4).map((src, i) => (
-            <img key={i} src={src} alt="" className="h-14 w-14 rounded-lg object-cover border border-border shrink-0" />
+        <div className="px-4 pt-3 flex gap-2 overflow-x-auto pb-1">
+          {photos.slice(0, 6).map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt=""
+              className="h-16 w-16 rounded-xl object-cover border border-border shrink-0"
+            />
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 p-3 border-t border-border bg-muted/30">
-        <button
-          onClick={onSkip}
-          className="h-11 rounded-xl border border-border bg-card font-semibold text-sm flex items-center justify-center gap-1.5"
-        >
-          <X size={14} /> Skip
-        </button>
-        <button
-          onClick={onBid}
-          disabled={expired}
-          className="h-11 rounded-xl bg-gradient-brand text-primary-foreground font-bold text-sm shadow-brand flex items-center justify-center gap-1.5 disabled:opacity-40"
-        >
-          <Banknote size={14} /> {expired ? "Expired" : "Bid"}
-        </button>
+      {/* ── Footer ── */}
+      <div className="p-4 mt-2 border-t border-border bg-muted/20">
+        {suggestedPrice && (
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] text-muted-foreground">Suggested bid</span>
+            <span className="text-sm font-black text-foreground">
+              ≈ {order.currency ?? "GHS"} {suggestedPrice}
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">(₵25/kg)</span>
+            </span>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            onClick={onSkip}
+            className="h-12 rounded-2xl border-2 border-border bg-card font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+          >
+            <X size={15} /> Pass
+          </button>
+          <button
+            onClick={onBid}
+            disabled={expired}
+            className="h-12 rounded-2xl bg-gradient-brand text-primary-foreground font-black text-sm shadow-brand flex items-center justify-center gap-1.5 disabled:opacity-40 active:scale-95 transition-transform"
+          >
+            <Banknote size={15} /> {expired ? "Expired" : "Place bid"}
+          </button>
+        </div>
       </div>
     </motion.div>
   );
