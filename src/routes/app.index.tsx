@@ -72,14 +72,19 @@ function Dashboard() {
     toast.success(`🎉 You won order #${orderId.slice(0, 6)}!`);
     refresh();
     if (!merchantId) return;
-    // Look up customer for this order, then ensure a chat exists
+    // Look up customer + rider for this order, then ensure a chat exists
     const { data } = await supabase
       .from("hw_orders")
-      .select("customer_id")
+      .select("customer_id, rider_id")
       .eq("id", orderId)
       .maybeSingle();
     if (data?.customer_id) {
-      await ensureChat({ orderId, customerId: data.customer_id, merchantId });
+      await ensureChat({
+        orderId,
+        customerId: data.customer_id,
+        merchantId,
+        riderId: data.rider_id ?? null,
+      });
     }
   });
 

@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Phone,
   Sparkles,
+  Truck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -79,6 +80,7 @@ function OrderDetailPage() {
       orderId,
       customerId: order.customer_id,
       merchantId: merchant.id,
+      riderId: order.rider_id ?? null,
     });
     setOpeningChat(false);
     if (chatId) navigate({ to: "/app/messages/$chatId", params: { chatId } });
@@ -103,6 +105,9 @@ function OrderDetailPage() {
 
   const customerName = order.customer?.full_name ?? "Customer";
   const phone = order.customer?.phone;
+  const riderName = order.rider?.full_name ?? "Rider";
+  const riderPhone = order.rider?.phone;
+  const hasRider = !!order.rider_id;
   const items: any[] = order.items ?? [];
   const photos: string[] = order.photo_urls ?? [];
 
@@ -148,7 +153,11 @@ function OrderDetailPage() {
               {openingChat ? <Loader2 className="animate-spin" size={14} /> : <MessageSquare size={16} />}
             </button>
             {phone && (
-              <a href={`tel:${phone}`} className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center" aria-label="Call">
+              <a
+                href={`tel:${phone}`}
+                className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center"
+                aria-label="Call customer"
+              >
                 <Phone size={16} />
               </a>
             )}
@@ -163,6 +172,50 @@ function OrderDetailPage() {
           </button>
         </div>
       </section>
+
+      {/* Rider — shown once a rider is assigned */}
+      {hasRider && (
+        <section className="px-5 mt-3">
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold">
+                {riderName.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate">{riderName}</div>
+                <div className="text-xs text-amber-600 flex items-center gap-1 mt-0.5">
+                  <Truck size={11} /> Rider assigned
+                </div>
+              </div>
+              {riderPhone && (
+                <a
+                  href={`tel:${riderPhone}`}
+                  className="h-10 w-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"
+                  aria-label="Call rider"
+                >
+                  <Phone size={16} />
+                </a>
+              )}
+              <button
+                onClick={openChat}
+                disabled={openingChat}
+                className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center disabled:opacity-50"
+                aria-label="Open group chat"
+              >
+                {openingChat ? <Loader2 className="animate-spin" size={14} /> : <MessageSquare size={16} />}
+              </button>
+            </div>
+            <button
+              onClick={openChat}
+              disabled={openingChat}
+              className="mt-3 w-full h-10 rounded-xl bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <MessageSquare size={14} />
+              {openingChat ? "Opening chat…" : "Open group chat"}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Pickup */}
       <section className="px-5 mt-4">

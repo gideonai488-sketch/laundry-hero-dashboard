@@ -227,13 +227,21 @@ export function useOrder(orderId: string | undefined) {
         .maybeSingle();
       if (error) throw error;
       if (!order) return null;
-      const [itemsRes, profileRes] = await Promise.all([
+      const [itemsRes, profileRes, riderRes] = await Promise.all([
         supabase.from("hw_order_items").select("*").eq("order_id", orderId!),
         order.customer_id
-          ? supabase.from("profiles").select("id, full_name, phone").eq("id", order.customer_id).maybeSingle()
+          ? supabase.from("profiles").select("id, full_name, phone, avatar_url").eq("id", order.customer_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        order.rider_id
+          ? supabase.from("profiles").select("id, full_name, phone, avatar_url").eq("id", order.rider_id).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
       ]);
-      return { ...order, items: itemsRes.data ?? [], customer: profileRes.data ?? null };
+      return {
+        ...order,
+        items: itemsRes.data ?? [],
+        customer: profileRes.data ?? null,
+        rider: riderRes.data ?? null,
+      };
     },
   });
 
@@ -495,25 +503,29 @@ export function useChatThread(chatId: string | undefined) {
       if (chatRes.error) throw chatRes.error;
       if (msgsRes.error) throw msgsRes.error;
       const chat = chatRes.data as AnyRow | null;
-      let customer: AnyRow | null = null;
-      let order: AnyRow | null = null;
-      if (chat?.customer_id) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("id, full_name, phone, avatar_url")
-          .eq("id", chat.customer_id)
-          .maybeSingle();
-        customer = data;
-      }
-      if (chat?.order_id) {
-        const { data } = await supabase
-          .from("hw_orders")
-          .select("id, service_name, delivery_status, subtotal, pickup_address")
-          .eq("id", chat.order_id)
-          .maybeSingle();
-        order = data;
-      }
-      return { chat, customer, order, messages: (msgsRes.data ?? []) as AnyRow[] };
+
+      const profileIds = [chat?.customer_id, chat?.rider_id].filter(Boolean) as string[];
+      const [profilesRes, orderRes] = await Promise.all([
+        profileIds.length
+          ? supabase.from("profiles").select("id, full_name, phone, avatar_url").in("id", profileIds)
+          : Promise.resolve({ data: [] as AnyRow[], error: null }),
+        chat?.order_id
+          ? supabase
+              .from("hw_orders")
+              .select("id, service_name, delivery_status, subtotal, pickup_address")
+              .eq("id", chat.order_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      const profileMap = new Map<string, AnyRow>(
+        ((profilesRes.data ?? []) as AnyRow[]).map((p: AnyRow) => [p.id, p])
+      );
+      const customer = chat?.customer_id ? (profileMap.get(chat.customer_id) ?? null) : null;
+      const rider = chat?.rider_id ? (profileMap.get(chat.rider_id) ?? null) : null;
+      const order = orderRes.data ?? null;
+
+      return { chat, customer, rider, order, messages: (msgsRes.data ?? []) as AnyRow[] };
     },
   });
 
@@ -589,20 +601,31 @@ export async function ensureChat(opts: {
   orderId: string;
   customerId: string;
   merchantId: string;
+  riderId?: string | null;
 }): Promise<string | null> {
   const { data: existing } = await supabase
     .from("chats")
-    .select("id")
+    .select("id, rider_id")
     .eq("order_id", opts.orderId)
     .eq("merchant_id", opts.merchantId)
     .maybeSingle();
-  if (existing?.id) return existing.id as string;
+  if (existing?.id) {
+    // If we now have a rider but the chat doesn't yet, patch it
+    if (opts.riderId && !existing.rider_id) {
+      await supabase
+        .from("chats")
+        .update({ rider_id: opts.riderId })
+        .eq("id", existing.id);
+    }
+    return existing.id as string;
+  }
   const { data, error } = await supabase
     .from("chats")
     .insert({
       order_id: opts.orderId,
       customer_id: opts.customerId,
       merchant_id: opts.merchantId,
+      ...(opts.riderId ? { rider_id: opts.riderId } : {}),
       last_message_at: new Date().toISOString(),
     })
     .select("id")

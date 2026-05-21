@@ -1,18 +1,28 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2, Phone, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Phone, Send, Truck, User } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { useChatThread, useMarkChatRead, useSendMessage } from "@/lib/queries";
 
 export const Route = createFileRoute("/app/messages/$chatId")({
-  head: ({ params }) => ({ meta: [{ title: `Chat — Highest Wash` }] }),
+  head: () => ({ meta: [{ title: `Chat — Highest Wash` }] }),
   component: ChatThreadPage,
 });
 
 function fmtTime(iso?: string | null) {
   if (!iso) return "";
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+}
+
+function Avatar({ name, size = 10 }: { name: string; size?: number }) {
+  return (
+    <div
+      className={`h-${size} w-${size} rounded-full bg-gradient-brand text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0`}
+    >
+      {name.slice(0, 2).toUpperCase()}
+    </div>
+  );
 }
 
 function ChatThreadPage() {
@@ -42,7 +52,8 @@ function ChatThreadPage() {
   }
 
   const customerName = data.customer?.full_name ?? "Customer";
-  const phone = data.customer?.phone;
+  const riderName = data.rider?.full_name ?? "Rider";
+  const hasRider = !!data.chat?.rider_id;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,8 +75,21 @@ function ChatThreadPage() {
     "Your laundry is ready for delivery.",
   ];
 
+  const getSenderLabel = (senderId: string) => {
+    if (senderId === data.chat?.customer_id) return customerName.split(" ")[0];
+    if (senderId === data.chat?.rider_id) return riderName.split(" ")[0];
+    return null;
+  };
+
+  const getSenderIcon = (senderId: string) => {
+    if (senderId === data.chat?.rider_id) return <Truck size={10} className="inline mr-0.5" />;
+    if (senderId === data.chat?.customer_id) return <User size={10} className="inline mr-0.5" />;
+    return null;
+  };
+
   return (
     <div className="flex flex-col h-screen">
+      {/* Header */}
       <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/50">
         <div className="px-4 py-3 flex items-center gap-3">
           <button
@@ -75,53 +99,125 @@ function ChatThreadPage() {
           >
             <ArrowLeft size={20} />
           </button>
-          <div className="h-10 w-10 rounded-full bg-gradient-brand text-primary-foreground flex items-center justify-center font-bold text-sm">
-            {customerName.slice(0, 2).toUpperCase()}
+
+          {/* Stacked avatars when rider present */}
+          <div className="relative flex items-center">
+            <Avatar name={customerName} size={10} />
+            {hasRider && (
+              <div className="absolute left-6 h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm border-2 border-background">
+                {riderName.slice(0, 2).toUpperCase()}
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold truncate">{customerName}</div>
+
+          <div className={`flex-1 min-w-0 ${hasRider ? "ml-5" : ""}`}>
+            <div className="text-sm font-bold truncate">
+              {customerName}
+              {hasRider && <span className="text-muted-foreground font-normal"> + {riderName.split(" ")[0]}</span>}
+            </div>
             {data.order && (
               <button
-                onClick={() => navigate({ to: "/app/order/$orderId", params: { orderId: data.order!.id } })}
+                onClick={() =>
+                  navigate({ to: "/app/order/$orderId", params: { orderId: data.order!.id } })
+                }
                 className="text-[11px] text-muted-foreground truncate underline-offset-2 hover:underline text-left"
               >
-                Order #{String(data.order.id).slice(0, 6)} · {String(data.order.delivery_status ?? "").replace(/_/g, " ")}
+                Order #{String(data.order.id).slice(0, 6)} ·{" "}
+                {String(data.order.delivery_status ?? "").replace(/_/g, " ")}
               </button>
             )}
           </div>
-          {phone && (
-            <a
-              href={`tel:${phone}`}
-              className="h-10 w-10 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center"
-              aria-label="Call customer"
-            >
-              <Phone size={16} />
-            </a>
-          )}
-        </div>
-      </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-2">
-        {data.messages.length === 0 && (
-          <div className="text-center py-10 text-xs text-muted-foreground">
-            Say hi to {customerName.split(" ")[0]} — they'll get a notification.
+          {/* Call buttons */}
+          <div className="flex items-center gap-1.5">
+            {data.customer?.phone && (
+              <a
+                href={`tel:${data.customer.phone}`}
+                className="h-9 w-9 rounded-full bg-gradient-brand-soft text-primary flex items-center justify-center"
+                aria-label="Call customer"
+                title={`Call ${customerName}`}
+              >
+                <Phone size={15} />
+              </a>
+            )}
+            {hasRider && data.rider?.phone && (
+              <a
+                href={`tel:${data.rider.phone}`}
+                className="h-9 w-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"
+                aria-label="Call rider"
+                title={`Call rider ${riderName}`}
+              >
+                <Truck size={14} />
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Participants strip when rider is in chat */}
+        {hasRider && (
+          <div className="px-4 pb-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <User size={10} className="text-primary" />
+              {customerName.split(" ")[0]}
+            </span>
+            <span className="text-border">·</span>
+            <span className="flex items-center gap-1">
+              <Truck size={10} className="text-amber-500" />
+              {riderName.split(" ")[0]}
+            </span>
+            <span className="text-border">·</span>
+            <span>You (merchant)</span>
           </div>
         )}
+      </header>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-36 space-y-2">
+        {data.messages.length === 0 && (
+          <div className="text-center py-10 text-xs text-muted-foreground">
+            {hasRider
+              ? `Say hi to ${customerName.split(" ")[0]} and ${riderName.split(" ")[0]} — they'll get a notification.`
+              : `Say hi to ${customerName.split(" ")[0]} — they'll get a notification.`}
+          </div>
+        )}
+
         {data.messages.map((m: any) => {
           const mine = m.sender_id === user?.id;
+          const isRider = m.sender_id === data.chat?.rider_id;
+          const label = !mine ? getSenderLabel(m.sender_id) : null;
+          const icon = !mine ? getSenderIcon(m.sender_id) : null;
+
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[78%] px-3.5 py-2 rounded-2xl text-sm shadow-sm ${
-                  mine
-                    ? "bg-gradient-brand text-primary-foreground rounded-br-sm"
-                    : "bg-card border border-border rounded-bl-sm"
-                }`}
-              >
-                <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                <div className={`text-[9px] mt-0.5 ${mine ? "text-white/75" : "text-muted-foreground"}`}>
-                  {fmtTime(m.sent_at)}
-                  {mine && m.read_at ? " · read" : ""}
+              <div className="max-w-[78%] space-y-0.5">
+                {!mine && label && (
+                  <div
+                    className={`text-[10px] font-semibold px-1 flex items-center gap-0.5 ${
+                      isRider ? "text-amber-600" : "text-primary"
+                    }`}
+                  >
+                    {icon}
+                    {label}
+                  </div>
+                )}
+                <div
+                  className={`px-3.5 py-2 rounded-2xl text-sm shadow-sm ${
+                    mine
+                      ? "bg-gradient-brand text-primary-foreground rounded-br-sm"
+                      : isRider
+                      ? "bg-amber-50 border border-amber-200 text-foreground rounded-bl-sm"
+                      : "bg-card border border-border rounded-bl-sm"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                  <div
+                    className={`text-[9px] mt-0.5 ${
+                      mine ? "text-white/75" : isRider ? "text-amber-500/70" : "text-muted-foreground"
+                    }`}
+                  >
+                    {fmtTime(m.sent_at)}
+                    {mine && m.read_at ? " · read" : ""}
+                  </div>
                 </div>
               </div>
             </div>
@@ -130,6 +226,7 @@ function ChatThreadPage() {
         <div ref={endRef} />
       </div>
 
+      {/* Input bar */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-background/95 backdrop-blur-xl border-t border-border z-30">
         {data.messages.length === 0 && (
           <div className="px-3 pt-2 flex gap-1.5 overflow-x-auto">
@@ -148,7 +245,11 @@ function ChatThreadPage() {
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type a message…"
+            placeholder={
+              hasRider
+                ? `Message ${customerName.split(" ")[0]} & ${riderName.split(" ")[0]}…`
+                : "Type a message…"
+            }
             className="flex-1 h-11 px-4 rounded-2xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
           <button
