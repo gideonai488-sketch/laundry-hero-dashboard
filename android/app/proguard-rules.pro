@@ -25,6 +25,15 @@
 # ── Highestwash app package ──────────────────────────────────────────────────
 -keep class com.highestwash.merchants.** { *; }
 
+# ── Kotlin coroutines (required by capacitor-geolocation) ────────────────────
+-keep class kotlin.coroutines.** { *; }
+-keep class kotlinx.coroutines.** { *; }
+-keepclassmembers class ** {
+    kotlin.coroutines.Continuation *;
+}
+-dontwarn kotlin.coroutines.jvm.internal.**
+-dontwarn kotlinx.coroutines.**
+
 # ── Suppress warnings for missing optional deps ──────────────────────────────
 -dontwarn com.google.android.gms.**
 -dontwarn org.conscrypt.**

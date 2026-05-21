@@ -1,0 +1,58 @@
+Build Android AAB
+1m 8s
+
+
+
+Show command
+Showing the last 50 lines. Click this button to load the full log
+> Task :capacitor-cordova-android-plugins:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-cordova-android-plugins:copyReleaseJniLibsProjectOnly
+> Task :capacitor-geolocation:mergeReleaseJniLibFolders
+> Task :capacitor-geolocation:mergeReleaseNativeLibs NO-SOURCE
+> Task :capacitor-geolocation:copyReleaseJniLibsProjectOnly
+> Task :app:writeReleaseAppMetadata
+> Task :app:mergeReleaseNativeLibs NO-SOURCE
+> Task :app:stripReleaseDebugSymbols NO-SOURCE
+> Task :app:collectReleaseDependencies
+> Task :app:configureReleaseDependencies
+> Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+> Task :app:validateSigningRelease
+> Task :app:parseReleaseIntegrityConfig
+> Task :capacitor-geolocation:compileReleaseKotlin
+> Task :capacitor-geolocation:compileReleaseJavaWithJavac NO-SOURCE
+> Task :capacitor-geolocation:mergeReleaseGeneratedProguardFiles
+> Task :capacitor-geolocation:exportReleaseConsumerProguardFiles
+> Task :capacitor-geolocation:bundleLibRuntimeToJarRelease
+> Task :capacitor-geolocation:bundleLibCompileToJarRelease
+> Task :capacitor-geolocation:processReleaseJavaRes
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:mergeReleaseGeneratedProguardFiles
+> Task :app:expandReleaseArtProfileWildcards
+> Task :app:mergeReleaseJavaResource
+
+> Task :app:minifyReleaseWithR8 FAILED
+ERROR: Missing classes detected while running R8. Please add the missing classes or apply additional keep rules that are generated in /Users/builder/clone/android/app/build/outputs/mapping/release/missing_rules.txt.
+ERROR: R8: Missing class kotlin.coroutines.jvm.internal.SpillingKt (referenced from: java.lang.Object com.capacitorjs.plugins.geolocation.GeolocationPlugin$getPosition$1.invokeSuspend(java.lang.Object) and 1 other context)
+[Incubating] Problems report is available at: file:///Users/builder/clone/android/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:minifyReleaseWithR8'.
+> A failure occurred while executing com.android.build.gradle.internal.tasks.R8Task$R8Runnable
+   > Compilation failed to complete
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 7s
+94 actionable tasks: 94 executed
+
+
+Build failed :|
+Step 6 script `Build Android AAB` exited with status code 1
+
+P
