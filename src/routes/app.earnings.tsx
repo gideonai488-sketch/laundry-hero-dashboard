@@ -316,9 +316,6 @@ function WalletPage() {
                         month: "short",
                         year: "numeric",
                       })}
-                      {p.settled_at
-                        ? ` · settled ${new Date(p.settled_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}`
-                        : ""}
                     </div>
                   </div>
                   <div className="text-base font-bold">

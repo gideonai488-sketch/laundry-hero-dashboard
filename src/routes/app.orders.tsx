@@ -10,7 +10,13 @@ export const Route = createFileRoute("/app/orders")({
   component: OrdersPage,
 });
 
-const fmt = (n: number) => `₵${n.toFixed(2)}`;
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GHS: "₵", NGN: "₦", KES: "KSh ", ZAR: "R", USD: "$", GBP: "£", EUR: "€",
+};
+const fmt = (n: number, currency?: string | null) => {
+  const sym = CURRENCY_SYMBOLS[currency ?? "GHS"] ?? (currency ? `${currency} ` : "₵");
+  return `${sym}${n.toFixed(2)}`;
+};
 
 function timeAgo(iso?: string | null) {
   if (!iso) return "";
@@ -111,7 +117,7 @@ function OrdersPage() {
                 >
                   {String(o.delivery_status ?? "pending").replace(/_/g, " ")}
                 </span>
-                <span className="text-sm font-bold">{fmt(Number(o.subtotal ?? 0))}</span>
+                <span className="text-sm font-bold">{fmt(Number(o.subtotal ?? 0), o.currency)}</span>
               </div>
             </div>
             <ChevronRight size={16} className="text-muted-foreground shrink-0" />

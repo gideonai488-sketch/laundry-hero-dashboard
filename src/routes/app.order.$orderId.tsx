@@ -5,9 +5,11 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock,
+  ExternalLink,
   Loader2,
   MapPin,
   MessageSquare,
+  Package,
   Phone,
   Sparkles,
   Truck,
@@ -28,7 +30,45 @@ export const Route = createFileRoute("/app/order/$orderId")({
   component: OrderDetailPage,
 });
 
-const fmt = (n: number) => `₵${n.toFixed(2)}`;
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GHS: "₵", NGN: "₦", KES: "KSh ", ZAR: "R", USD: "$", GBP: "£", EUR: "€",
+};
+const fmt = (n: number, currency?: string | null) => {
+  const sym = CURRENCY_SYMBOLS[currency ?? "GHS"] ?? (currency ? `${currency} ` : "₵");
+  return `${sym}${n.toFixed(2)}`;
+};
+
+/** Extract a Google Maps URL from a PostGIS point (GeoJSON or plain object). */
+function pickupMapUrl(point: any): string | null {
+  if (!point) return null;
+  try {
+    const p = typeof point === "string" ? JSON.parse(point) : point;
+    if (p?.type === "Point" && Array.isArray(p.coordinates)) {
+      const [lng, lat] = p.coordinates;
+      return `https://maps.google.com/maps?q=${lat},${lng}`;
+    }
+  } catch { /* noop */ }
+  return null;
+}
+
+/** Render a JSONB item_counts object like {"shirts":3,"trousers":2} as chips. */
+function ItemCountChips({ counts }: { counts: any }) {
+  if (!counts || typeof counts !== "object") return null;
+  const entries = Object.entries(counts).filter(([, v]) => Number(v) > 0);
+  if (!entries.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {entries.map(([label, qty]) => (
+        <span
+          key={label}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold capitalize"
+        >
+          {String(label).replace(/_/g, " ")} × {String(qty)}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 const STAGES: { key: string; label: string; merchantOwned: boolean }[] = [
   { key: "merchant_accepted", label: "Bid accepted", merchantOwned: false },
@@ -136,7 +176,7 @@ function OrderDetailPage() {
             <div className="text-base font-bold">Order #{String(order.id).slice(0, 6)}</div>
             <div className="text-[11px] text-muted-foreground truncate">{order.service_name ?? "Laundry"}</div>
           </div>
-          <div className="ml-auto text-base font-bold">{fmt(Number(order.subtotal ?? 0))}</div>
+          <div className="ml-auto text-base font-bold">{fmt(Number(order.subtotal ?? 0), order.currency)}</div>
         </div>
       </header>
 
@@ -229,21 +269,62 @@ function OrderDetailPage() {
       {/* Pickup */}
       <section className="px-5 mt-4">
         <div className="rounded-2xl bg-card border border-border shadow-card p-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            <MapPin size={12} className="text-primary" /> Pickup
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <MapPin size={12} className="text-primary" /> Pickup
+            </div>
+            {pickupMapUrl(order.pickup_point) && (
+              <a
+                href={pickupMapUrl(order.pickup_point)!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[11px] font-semibold text-primary"
+              >
+                <ExternalLink size={11} /> Open map
+              </a>
+            )}
           </div>
           <div className="mt-1 font-semibold text-sm">{order.pickup_address ?? "—"}</div>
-          {order.pickup_date && (
+          {/* Pickup time — new field takes precedence over old time_slot */}
+          {(order.pickup_time || order.pickup_date) && (
             <div className="text-xs text-muted-foreground mt-1">
-              {order.pickup_date} {order.pickup_time_slot ? `· ${order.pickup_time_slot}` : ""}
+              {order.pickup_time
+                ? new Date(order.pickup_time).toLocaleString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
+                : `${order.pickup_date}${order.pickup_time_slot ? ` · ${order.pickup_time_slot}` : ""}`}
             </div>
           )}
         </div>
       </section>
 
-      {/* Items */}
+      {/* Bag size + item counts (new booking flow) */}
+      {(order.bag_size || order.item_counts) && (
+        <section className="px-5 mt-3">
+          <div className="rounded-2xl bg-card border border-border shadow-card p-4">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Package size={12} className="text-primary" /> Order details
+            </div>
+            {order.bag_size && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Bag size</span>
+                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold capitalize">
+                  {String(order.bag_size).replace(/_/g, " ")}
+                </span>
+              </div>
+            )}
+            <ItemCountChips counts={order.item_counts} />
+          </div>
+        </section>
+      )}
+
+      {/* Legacy items list (from old booking flow) */}
       {items.length > 0 && (
-        <section className="px-5 mt-4">
+        <section className="px-5 mt-3">
           <div className="rounded-2xl bg-card border border-border shadow-card p-4">
             <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Items</div>
             <ul className="mt-2 divide-y divide-border">
@@ -261,9 +342,9 @@ function OrderDetailPage() {
         </section>
       )}
 
-      {/* Photos */}
+      {/* Photos (legacy) */}
       {photos.length > 0 && (
-        <section className="px-5 mt-4">
+        <section className="px-5 mt-3">
           <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Photos</div>
           <div className="flex gap-2 overflow-x-auto">
             {photos.map((src, i) => (
@@ -542,7 +623,7 @@ function TimelineEvent({
       </span>
       <div className="text-sm font-semibold capitalize">{label}</div>
       <div className="text-[11px] text-muted-foreground">
-        {iso ? new Date(iso).toLocaleString() : "—"}
+        {iso ? new Date(iso).toLocaleString("en-US") : "—"}
       </div>
       {hint && <div className="text-[10px] text-muted-foreground mt-0.5 italic">{hint}</div>}
     </li>

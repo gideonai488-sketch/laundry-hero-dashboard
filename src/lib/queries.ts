@@ -646,7 +646,7 @@ export function usePayouts(merchantId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payouts")
-        .select("id, merchant_id, amount, currency, status, created_at, settled_at")
+        .select("id, merchant_id, amount, currency, status, created_at")
         .eq("merchant_id", merchantId!)
         .order("created_at", { ascending: false })
         .limit(30);
