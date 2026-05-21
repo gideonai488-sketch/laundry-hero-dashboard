@@ -15,8 +15,8 @@ workflows:
         ANDROID_VERSION_CODE: "6"
         ANDROID_VERSION_NAME: "1.3"
         # Supabase
-        SUPABASE_URL: "https://eqbogpvabcsngspphjte.supabase.co"
-        SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxYm9ncHZhYmNzbmdzcHBoanRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NjcxMjMsImV4cCI6MjA5MjM0MzEyM30.EN5bPu66_y5xN1i_EKxMbFKJoKb9jAmuIBxGUTRSMPk"
+        SUPABASE_URL: "https://jxilnjudduetykuxiehp.supabase.co"
+        SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aWxuanVkZHVldHlrdXhpZWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTQ5NDcsImV4cCI6MjA5Mzc5MDk0N30.iJHSz-8QQ_VoUd25E0890PgBfaC4b8igNSSyy9LZVc4"
         # Paystack
         PAYSTACK_PUBLIC_KEY: "pk_live_671fccd651daf066804466572cfd0b7c47df2471"
         # Keystore
