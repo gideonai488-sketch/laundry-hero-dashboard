@@ -348,8 +348,8 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     const local = usd * fx;
     const sym = currency.symbol;
     const rounded = currency.decimals === 0
-      ? Math.round(local).toLocaleString()
-      : local.toLocaleString(undefined, { minimumFractionDigits: currency.decimals, maximumFractionDigits: currency.decimals });
+      ? Math.round(local).toLocaleString("en-US")
+      : local.toLocaleString("en-US", { minimumFractionDigits: currency.decimals, maximumFractionDigits: currency.decimals });
     return `${sym}${rounded}`;
   };
 

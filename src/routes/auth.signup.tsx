@@ -72,7 +72,7 @@ function Signup() {
 
     // 1. Create account with email + password. The handle_new_user trigger
     //    creates the profile + user_roles row from the metadata.
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: form.email.trim(),
       password: form.password,
       options: {
@@ -90,6 +90,15 @@ function Signup() {
     if (signUpError) {
       setBusy(false);
       toast.error(signUpError.message);
+      return;
+    }
+
+    // If Supabase requires email confirmation, session is null after signup.
+    // Show a "check your email" message and send them to login once confirmed.
+    if (!signUpData.session) {
+      setBusy(false);
+      toast.success("Account created! Check your email for a confirmation link, then log in.");
+      navigate({ to: "/auth/login" });
       return;
     }
 
