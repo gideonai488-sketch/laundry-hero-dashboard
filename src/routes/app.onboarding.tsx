@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Loader2, Store, MapPin, Phone, Building2, Banknote } from "lucide-react";
+import { CheckCircle2, Loader2, LocateFixed, MapPin, Phone, Store, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,32 @@ function OnboardingPage() {
     bank_code: "",
     account_number: "",
   });
+  const [geoLoading, setGeoLoading] = useState(false);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Your browser doesn't support location detection.");
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLoading(false);
+        setForm((p) => ({
+          ...p,
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+        }));
+        toast.success("Location detected!");
+      },
+      (err) => {
+        setGeoLoading(false);
+        toast.error("Couldn't detect location — please enter coordinates manually.");
+        console.warn("Geolocation error:", err);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -137,15 +163,46 @@ function OnboardingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="lat" className="text-xs">Latitude (optional)</Label>
-                <Input id="lat" inputMode="decimal" value={form.lat} onChange={set("lat")} placeholder="5.5600" className="h-11 rounded-xl" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lng" className="text-xs">Longitude (optional)</Label>
-                <Input id="lng" inputMode="decimal" value={form.lng} onChange={set("lng")} placeholder="-0.2057" className="h-11 rounded-xl" />
-              </div>
+            {/* GPS location — required for 15 km job matching */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5"><LocateFixed size={14} /> Shop location <span className="text-destructive">*</span></Label>
+              {form.lat && form.lng ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-success/10 border border-success/30">
+                  <CheckCircle2 size={16} className="text-success shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-success">Location set</div>
+                    <div className="text-[10px] text-muted-foreground font-mono">{form.lat}, {form.lng}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={geoLoading}
+                    className="text-xs text-primary font-semibold shrink-0"
+                  >
+                    {geoLoading ? "..." : "Re-detect"}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={geoLoading}
+                    className="w-full h-12 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 text-primary font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-50"
+                  >
+                    {geoLoading ? <Loader2 size={16} className="animate-spin" /> : <LocateFixed size={16} />}
+                    {geoLoading ? "Detecting…" : "Detect my location"}
+                  </button>
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    Required for the 15 km job radius — allow location when prompted.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input inputMode="decimal" value={form.lat} onChange={set("lat")} placeholder="Latitude e.g. 5.5600" className="h-10 rounded-xl text-xs" />
+                    <Input inputMode="decimal" value={form.lng} onChange={set("lng")} placeholder="Longitude e.g. -0.2057" className="h-10 rounded-xl text-xs" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center">Or enter coordinates manually above</p>
+                </div>
+              )}
             </div>
           </section>
 

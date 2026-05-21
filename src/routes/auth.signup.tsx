@@ -82,8 +82,6 @@ function Signup() {
           phone,
           country: country.name,
           country_code: country.code,
-          city: form.city.trim(),
-          area: form.area.trim(),
           currency: country.currency,
         },
       },

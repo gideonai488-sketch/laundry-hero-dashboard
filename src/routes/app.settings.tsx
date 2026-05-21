@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { AlertTriangle, Banknote, Loader2, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
+import { AlertTriangle, Banknote, CheckCircle2, Loader2, LocateFixed, LogOut, MapPin, Phone, Power, Store, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,32 @@ function SettingsPage() {
     lat: "",
     lng: "",
   });
+  const [geoLoading, setGeoLoading] = useState(false);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Your browser doesn't support location detection.");
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLoading(false);
+        setForm((p) => ({
+          ...p,
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+        }));
+        toast.success("Location updated — save changes to apply.");
+      },
+      (err) => {
+        setGeoLoading(false);
+        toast.error("Couldn't detect location. Check browser permissions.");
+        console.warn("Geolocation error:", err);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState("");
@@ -173,15 +199,43 @@ function SettingsPage() {
             <Label htmlFor="address" className="flex items-center gap-1.5 text-xs"><MapPin size={12} /> Pickup address</Label>
             <Input id="address" value={form.address} onChange={set("address")} className="h-11 rounded-xl" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="lat" className="text-xs">Latitude</Label>
-              <Input id="lat" inputMode="decimal" value={form.lat} onChange={set("lat")} className="h-11 rounded-xl" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="lng" className="text-xs">Longitude</Label>
-              <Input id="lng" inputMode="decimal" value={form.lng} onChange={set("lng")} className="h-11 rounded-xl" />
-            </div>
+          {/* GPS — powers the 15 km job matching radius */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5 text-xs"><LocateFixed size={12} /> Shop location (15 km job radius)</Label>
+            {form.lat && form.lng ? (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-success/10 border border-success/30">
+                <CheckCircle2 size={15} className="text-success shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-success">Location set</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">{form.lat}, {form.lng}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={geoLoading}
+                  className="text-xs text-primary font-semibold shrink-0 flex items-center gap-1"
+                >
+                  {geoLoading ? <Loader2 size={12} className="animate-spin" /> : <LocateFixed size={12} />}
+                  {geoLoading ? "..." : "Update"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={detectLocation}
+                  disabled={geoLoading}
+                  className="w-full h-11 rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 text-destructive font-semibold text-sm flex items-center justify-center gap-2 hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                >
+                  {geoLoading ? <Loader2 size={14} className="animate-spin" /> : <LocateFixed size={14} />}
+                  {geoLoading ? "Detecting…" : "⚠ Set my location (required for jobs)"}
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input inputMode="decimal" value={form.lat} onChange={set("lat")} placeholder="Latitude" className="h-10 rounded-xl text-xs" />
+                  <Input inputMode="decimal" value={form.lng} onChange={set("lng")} placeholder="Longitude" className="h-10 rounded-xl text-xs" />
+                </div>
+              </div>
+            )}
           </div>
           <Button type="submit" disabled={update.isPending} className="w-full h-11 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-sm font-semibold">
             {update.isPending ? <Loader2 className="animate-spin" /> : "Save changes"}
