@@ -8,6 +8,18 @@ the existing tables, but a few additions are needed to make it bulletproof.
 - Bid marketplace (`hw_orders`, `hw_merchant_bids`, `hw_order_items`).
 - Wallet with today/yesterday/this-week/this-month + bank linkage card.
 
+## ⚠️ Architecture note — customer app chat vs chats table
+The **customer app** queries `messages` directly via `order_id` — it does **not**
+go through the `chats` table at all. The merchant app uses `chats` (chat_id-based).
+
+Current RLS on `messages` covers both patterns (order_id-based SELECT and
+chat_id-based INSERT/UPDATE), so both apps work.
+
+**If the backend ever tightens `messages` RLS to require `chat_id`-based checks
+only**, the customer app's chat screen will break silently. At that point:
+1. Notify the merchant-app team — no merchant-side change needed (we already use chat_id).
+2. The customer app must be updated to query `chats` first, then `messages` via `chat_id`.
+
 ## 🆕 Needed for the new features
 
 ### 1. Chats + messages RLS
