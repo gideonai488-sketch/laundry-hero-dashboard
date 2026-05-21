@@ -33,9 +33,13 @@ workflows:
       - name: Build Capacitor web assets and sync Android
         script: |
           npm run build:android
-      - name: Install Android build tools
+      - name: Install Android SDK components
         script: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0"
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-35" \
+            "build-tools;35.0.0" \
+            "build-tools;34.0.0" \
+            "platform-tools"
       - name: Create keystore file
         script: |
           echo $ANDROID_KEYSTORE | base64 -d > android/app/highestwash-merchant.keystore
