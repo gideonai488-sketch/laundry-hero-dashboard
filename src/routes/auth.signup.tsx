@@ -248,15 +248,15 @@ function Signup() {
               Code sent to <span className="font-semibold text-foreground">{fullPhone}</span>
             </p>
             <div className="flex justify-center">
-              <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+              <InputOTP maxLength={4} value={otp} onChange={setOtp}>
                 <InputOTPGroup>
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <InputOTPSlot key={i} index={i} className="h-12 w-12 text-lg" />
+                  {[0, 1, 2, 3].map((i) => (
+                    <InputOTPSlot key={i} index={i} className="h-14 w-14 text-xl" />
                   ))}
                 </InputOTPGroup>
               </InputOTP>
             </div>
-            <Button type="submit" disabled={busy || otp.length !== 6} className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
+            <Button type="submit" disabled={busy || otp.length !== 4} className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
               {busy ? <Loader2 className="animate-spin" /> : "Verify & continue"}
             </Button>
             <div className="text-center text-sm text-muted-foreground">
@@ -265,15 +265,6 @@ function Signup() {
             </div>
             <div className="text-center text-sm text-muted-foreground">
               <button type="button" onClick={() => setStep("details")} className="underline">Edit details</button>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/app/onboarding" })}
-                className="text-muted-foreground text-xs underline"
-              >
-                Skip phone verification
-              </button>
             </div>
           </form>
         )}
