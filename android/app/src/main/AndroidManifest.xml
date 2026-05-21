@@ -40,4 +40,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Location is used for merchant radius matching but is not required hardware.
+         Without these, ACCESS_FINE_LOCATION implicitly marks GPS as required and
+         excludes GPS-less tablets and phones from the Play Store listing. -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
 </manifest>
