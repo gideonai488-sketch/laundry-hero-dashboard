@@ -79,7 +79,7 @@ export function useIncomingFeed(myMerchantId: string | undefined) {
       const { data, error } = await supabase
         .from("hw_orders")
         .select("*")
-        .eq("merchant_status", "pending")
+        .eq("status", "broadcast")
         .is("merchant_id", null)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -133,7 +133,7 @@ export function useIncomingFeed(myMerchantId: string | undefined) {
       .channel(`merchant:incoming:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "hw_orders", filter: "merchant_status=eq.pending" },
+        { event: "*", schema: "public", table: "hw_orders", filter: "status=eq.broadcast" },
         (payload: AnyRow) => {
           qc.invalidateQueries({ queryKey: ["incoming-feed"] });
           // Fire a local notification when a NEW order arrives and the tab is hidden
@@ -261,21 +261,28 @@ export function useUpdateDeliveryStatus() {
     mutationFn: async ({
       orderId,
       delivery_status,
+      riderId,
     }: {
       orderId: string;
       delivery_status: string;
+      riderId?: string | null;
     }) => {
       const patch: AnyRow = { delivery_status, updated_at: new Date().toISOString() };
       const { error } = await supabase.from("hw_orders").update(patch).eq("id", orderId);
       if (error) throw error;
 
-      // Optional: when merchant marks ready_for_rider, ping the broadcast fn.
-      if (delivery_status === "ready_for_rider") {
+      if (delivery_status === "ready_for_rider" && riderId) {
         try {
-          await supabase.functions.invoke("broadcast-rider-bids", { body: { order_id: orderId } });
+          await supabase.functions.invoke("notify-rider", {
+            body: {
+              rider_id: riderId,
+              title: "Order ready for pickup 🧺",
+              body: "The laundry is clean and ready — please collect it.",
+              data: { order_id: orderId },
+            },
+          });
         } catch (e) {
-          // The edge function may not be deployed yet — surfaced in BACKEND_TODO.
-          console.warn("broadcast-rider-bids not available:", e);
+          console.warn("notify-rider failed:", e);
         }
       }
     },
@@ -293,23 +300,25 @@ export function useSubmitBid() {
   return useMutation({
     mutationFn: async ({
       orderId,
-      merchantId,
       amount,
+      currency,
+      etaMinutes,
       message,
     }: {
       orderId: string;
-      merchantId: string;
       amount: number;
+      currency: string;
+      etaMinutes: number;
       message?: string;
     }) => {
-      const expires = new Date(Date.now() + 5 * 60_000).toISOString();
-      const { error } = await supabase.from("hw_merchant_bids").insert({
-        order_id: orderId,
-        merchant_id: merchantId,
-        amount,
-        message: message ?? null,
-        status: "pending",
-        expires_at: expires,
+      const { error } = await supabase.functions.invoke("place-merchant-bid", {
+        body: {
+          order_id: orderId,
+          amount,
+          currency,
+          eta_minutes: etaMinutes,
+          message: message ?? null,
+        },
       });
       if (error) throw error;
     },
@@ -323,11 +332,13 @@ export function useSubmitBid() {
 export function useWithdrawBid() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ bidId }: { bidId: string }) => {
-      const { error } = await supabase
-        .from("hw_merchant_bids")
-        .update({ status: "withdrawn" })
-        .eq("id", bidId);
+    mutationFn: async ({ orderId, reason }: { orderId: string; reason?: string }) => {
+      const { error } = await supabase.functions.invoke("merchant-decline-order", {
+        body: {
+          hw_order_id: orderId,
+          reason: reason ?? "Merchant withdrew bid",
+        },
+      });
       if (error) throw error;
     },
     onSuccess: () => {

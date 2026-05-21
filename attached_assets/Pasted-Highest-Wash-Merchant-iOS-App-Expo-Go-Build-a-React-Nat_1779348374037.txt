@@ -1,0 +1,120 @@
+Highest Wash — Merchant iOS App (Expo Go)
+Build a React Native + Expo (SDK 51+) app for laundry merchants. It is the supplier side of the Highest Wash marketplace. Customer app already exists (Lovable Cloud / Supabase backend) — this app must connect to the SAME backend.
+
+1. Backend connection (DO NOT change)
+SUPABASE_URL              = https://jxilnjudduetykuxiehp.supabase.co
+SUPABASE_ANON_KEY         = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4aWxuanVkZHVldHlrdXhpZWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMTQ5NDcsImV4cCI6MjA5Mzc5MDk0N30.iJHSz-8QQ_VoUd25E0890PgBfaC4b8igNSSyy9LZVc4
+EDGE_FUNCTIONS_BASE_URL   = https://jxilnjudduetykuxiehp.functions.supabase.co
+Use @supabase/supabase-js with AsyncStorage for session persistence. Email auto-confirm is ON. Phone OTP via Prelude is supported (send-otp / verify-otp edge fns).
+
+On signup pass user metadata { requested_role: 'merchant', full_name, phone, country, country_code, city, area, currency } — the handle_new_user trigger creates the profile + user_roles row automatically.
+
+2. Tables this app reads/writes
+Table	Use
+profiles	Owner profile (id = auth.uid). RLS: self only
+user_roles	Role rows (merchant). Read-only on signup
+merchants	One row per merchant (owner_id = auth.uid). Fields: business_name, phone, address, country_code, city, area, lat, lng, online, rating, bank_code, bank_account_number, bank_account_name, paystack_subaccount_code
+hw_orders	Incoming jobs. RLS lets merchant read orders where status='broadcast' AND same country_code+city+area, OR merchant_id = me. Update allowed when merchant_id = me
+hw_order_items	Items on each order
+hw_order_status_events	Status timeline (auto-logged by trigger)
+hw_merchant_bids	Merchant's own bids (insert/update via edge function, not direct)
+bids	Mirror table the customer sees (auto-populated by trigger)
+chats / messages	Chat with customer + rider
+notifications	In-app inbox (RLS: own only)
+notification_prefs	User-level prefs (push/sound/vibrate/ringtone_bids/in_app)
+push_tokens	Register Expo push token (platform='ios')
+payouts	Read-only history of payouts to this merchant
+services	Public catalog (read-only, used to label items)
+fx_rates	Live FX (refresh via get-fx-rates)
+disputes	Read disputes opened against this merchant
+Roles enum: customer | rider | merchant. Use has_role(uid, 'merchant') if needed.
+
+3. Edge functions to call
+All POST, JSON body, send Authorization: Bearer <session.access_token>.
+
+Function	Body	Purpose
+send-otp	{ phone }	Send phone OTP via Prelude
+verify-otp	{ phone, code }	Verify code, marks profiles.phone_verified
+place-merchant-bid	{ order_id (hw_orders.id), amount, currency, eta_minutes, message }	Bid on a broadcast order
+merchant-decline-order	{ hw_order_id, reason }	Withdraw / decline assignment, re-opens the order
+register-merchant-subaccount	{ merchant_id, bank_code, account_number }	Create Paystack subaccount for payouts
+request-payout	{ amount, currency }	Request payout from earned balance
+paystack-init-payout	{ payout_id }	Trigger transfer (admin/cron only)
+notify-rider	{ rider_id, title, body, data }	Ping the assigned rider
+geolocate	{ lat, lng }	Reverse geocode → country/city/area
+get-fx-rates / exchange-rates	{}	FX refresh
+delete-account	{}	GDPR-style self-delete
+Edge functions the merchant should NOT call directly (other roles): accept-bid, assign-nearest-rider, auto-reassign-cron, broadcast-rider-bids, calculate-delivery-fee, cancel-order, paystack-init, paystack-verify, simulate-bids, send-push, trending-services.
+
+4. Realtime channels
+supabase.channel('merchant-feed')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'hw_orders' }, refresh)
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'hw_orders' }, refresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'hw_merchant_bids' }, refresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, refresh)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, refresh)
+  .subscribe()
+Use a bid ringtone when a new hw_orders INSERT arrives in the merchant's region (expo-av, looping until tapped).
+
+5. Order lifecycle (must support every state)
+broadcast → accepted → washing → ready_for_rider → assigned → picked_up → delivered (also cancelled)
+
+Merchant transitions:
+
+broadcast → bid (creates hw_merchant_bids; customer accepts via accept-bid which sets status=accepted, picks rider, computes fare)
+accepted → washing (after pickup) — UPDATE hw_orders.status
+washing → ready_for_rider — notify-rider triggers same rider for return delivery
+assigned → picked_up → delivered — handled by rider; merchant just observes
+6. Required screens (Expo Router file layout)
+app/
+  _layout.tsx                 // Auth gate + theme
+  (auth)/
+    sign-in.tsx               // email+password, Google OAuth, "use phone OTP"
+    sign-up.tsx               // includes business onboarding fields
+    forgot.tsx
+    reset.tsx
+  (tabs)/
+    _layout.tsx               // bottom tabs
+    index.tsx                 // Home: today's stats (jobs, earnings, rating), online toggle
+    feed.tsx                  // Live broadcast orders (filter by city/area)
+    jobs.tsx                  // My active jobs (accepted/washing/ready)
+    history.tsx               // Completed + cancelled
+    inbox.tsx                 // Notifications
+    profile.tsx               // Business profile, hours, services, payouts
+  order/[id].tsx              // Job detail: items, customer pickup addr, rider info, status updater, photo upload
+  bid/[id].tsx                // Bid composer (amount, currency, eta_minutes, message)
+  chat/[orderId].tsx          // Realtime messages
+  settings/notifications.tsx  // ringtone, push, sound, vibrate, in_app toggles
+  settings/payouts.tsx        // Bank link → register-merchant-subaccount, request-payout
+  settings/account.tsx        // Edit profile, delete-account
+7. Theme & UX
+Match the customer app: glassy cards, oklch tokens, gradient primary, shadow-glow accents, dark mode default.
+Tailwind via NativeWind v4. Tokens:
+primary oklch(0.66 0.22 268) (indigo-violet)
+accent gradient linear-gradient(135deg, oklch(0.66 0.22 268), oklch(0.74 0.18 320))
+bg oklch(0.08 0.02 270), surface oklch(0.14 0.02 270), glass overlay 8%
+SF Pro / Inter font stack. Rounded-2xl everything. Haptics on every action (expo-haptics).
+Bottom-sheet for bid placement (@gorhom/bottom-sheet).
+Map: react-native-maps for pickup pin + rider live location (riders.lat/lng realtime).
+Push: expo-notifications, store token in push_tokens (platform='ios'), play bid-ringtone.mp3 on incoming order via expo-av.
+8. Money / commission rules (display only — server enforces)
+Fare breakdown on every order: service_fee (your bid) + delivery_fee (rider) + platform_fee (per-country, e.g. 5 GHS / 0.5 USD) = grand_total.
+Merchant payout = 80% of service_fee. Show on history rows: "You earn: GHS X.XX (after 20% platform fee)".
+Currencies: USD, NGN, GHS, KES, ZAR, GBP, EUR, MAD, QAR, SAR, EGP, MYR, AED, AUD, CAD, SGD, PHP, KWD, MXN, XOF, CHF.
+9. Auth + role guard
+After login, check user_roles for the user. If no merchant row, force them into (auth)/sign-up.tsx to complete merchant onboarding (creates merchants row). Block access to feed until: email verified, merchant row exists, country+city+area set, lat/lng set (use device GPS + geolocate).
+
+10. Build / deploy
+Expo prebuild → EAS build for iOS. App identifier com.highestwash.merchant. Add background-fetch + push entitlements. Use Expo Go for dev iteration.
+
+11. Acceptance checklist
+ Sign up as merchant, complete onboarding (incl. lat/lng + bank for payouts)
+ Toggle online → see live broadcast orders matching country+city+area
+ Place bid → customer receives realtime; ringtone plays on new order
+ Customer accepts bid → status becomes accepted; you see assigned rider details
+ Update washing → ready_for_rider → assigned rider gets notified automatically
+ Chat with customer + rider works in realtime
+ History shows correct merchant_payout = 0.8 × service_fee
+ Request payout → row appears in payouts table
+ Notification settings persist in notification_prefs
+ Delete account works

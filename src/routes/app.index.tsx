@@ -28,6 +28,7 @@ import {
   useMyBidsWatcher,
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import { useLocale } from "@/lib/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
@@ -394,32 +395,48 @@ function BidSheet({
   onClose: () => void;
 }) {
   const submit = useSubmitBid();
+  const { currency: localCurrency } = useLocale();
   const suggested = order?.estimated_weight_kg ? Math.round(0.6 * Number(order.estimated_weight_kg) * 25) : 25;
   const [amount, setAmount] = useState("");
+  const [etaMinutes, setEtaMinutes] = useState("60");
+  const [currency, setCurrency] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (order) {
       setAmount(String(suggested));
+      setEtaMinutes("60");
+      setCurrency(order.currency ?? localCurrency.code);
       setMessage("");
     }
-  }, [order, suggested]);
+  }, [order, suggested, localCurrency.code]);
 
   const validate = () => {
     const n = Number(amount);
-    if (!Number.isFinite(n) || n < 5 || n > 500) {
-      toast.error("Amount must be a whole ₵ value between ₵5 and ₵500.");
+    if (!Number.isFinite(n) || n <= 0) {
+      toast.error("Enter a valid bid amount.");
       return null;
     }
-    return Math.round(n);
+    const eta = Number(etaMinutes);
+    if (!Number.isFinite(eta) || eta < 10 || eta > 10080) {
+      toast.error("ETA must be between 10 and 10080 minutes.");
+      return null;
+    }
+    return { amount: Math.round(n), etaMinutes: Math.round(eta) };
   };
 
   const send = () => {
     if (!order || !merchantId) return;
-    const n = validate();
-    if (n == null) return;
+    const vals = validate();
+    if (!vals) return;
     submit.mutate(
-      { orderId: order.id, merchantId, amount: n, message: message.trim() || undefined },
+      {
+        orderId: order.id,
+        amount: vals.amount,
+        currency: currency || localCurrency.code,
+        etaMinutes: vals.etaMinutes,
+        message: message.trim() || undefined,
+      },
       {
         onSuccess: () => {
           toast.success("Bid submitted — good luck!");
@@ -436,32 +453,58 @@ function BidSheet({
         <SheetHeader className="text-left">
           <SheetTitle>Submit your bid</SheetTitle>
           <SheetDescription>
-            Total price in ₵ for the whole basket. Customer picks the bid they like best.
+            Set your price, currency and turnaround time. The customer picks the best offer.
           </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your price</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₵</span>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="col-span-2 space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your price</label>
               <Input
                 type="number"
                 inputMode="numeric"
-                min={5}
-                max={500}
+                min={1}
                 step={1}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="h-14 text-2xl font-bold pl-8 rounded-xl"
+                className="h-14 text-2xl font-bold rounded-xl"
               />
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Suggested: ₵{suggested} (≈₵25 / kg) · range ₵5–₵500
-            </p>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Currency</label>
+              <Input
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value.toUpperCase().slice(0, 3))}
+                placeholder="GHS"
+                className="h-14 text-lg font-bold rounded-xl text-center"
+                maxLength={3}
+              />
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground -mt-2">
+            Suggested: {suggested} (≈25 / kg)
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              ETA (minutes)
+            </label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={10}
+              max={10080}
+              step={10}
+              value={etaMinutes}
+              onChange={(e) => setEtaMinutes(e.target.value)}
+              placeholder="60"
+              className="h-12 rounded-xl"
+            />
+            <p className="text-[11px] text-muted-foreground">How long until the order is ready? (e.g. 60 = 1 hour)</p>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Message (optional)</label>
             <Input
               value={message}

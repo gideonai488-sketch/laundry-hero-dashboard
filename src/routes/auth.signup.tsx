@@ -27,6 +27,7 @@ function Signup() {
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<"details" | "otp">("details");
   const [otp, setOtp] = useState("");
+  const [fullPhone, setFullPhone] = useState("");
   const [form, setForm] = useState({
     full_name: "",
     countryCode: "GH",
@@ -47,10 +48,12 @@ function Signup() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const fullPhone = `${country.dial}${form.phoneLocal.replace(/[^0-9]/g, "")}`;
-
-  const sendOtp = async (e: React.FormEvent) => {
+  const register = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.email.trim()) {
+      toast.error("Email is required.");
+      return;
+    }
     if (!form.phoneLocal.trim()) {
       toast.error("Phone number is required.");
       return;
@@ -60,7 +63,10 @@ function Signup() {
       return;
     }
 
-    // Persist signup locale so onboarding + dashboard pick the same country.
+    const phone = `${country.dial}${form.phoneLocal.replace(/[^0-9]/g, "")}`;
+    setFullPhone(phone);
+
+    // Persist signup locale so onboarding picks the same country/city/area.
     try {
       localStorage.setItem(
         SIGNUP_LOCALE_KEY,
@@ -74,25 +80,47 @@ function Signup() {
     setCountry(country.code);
 
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      phone: fullPhone,
+
+    // 1. Create account with email + password. The handle_new_user trigger
+    //    creates the profile + user_roles row from the metadata.
+    const { error: signUpError } = await supabase.auth.signUp({
+      email: form.email.trim(),
       password: form.password,
       options: {
         data: {
+          requested_role: "merchant",
           full_name: form.full_name,
-          email: form.email,
+          phone,
+          country: country.name,
           country_code: country.code,
           city: form.city.trim(),
           area: form.area.trim(),
+          currency: country.currency,
         },
       },
     });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
+
+    if (signUpError) {
+      setBusy(false);
+      toast.error(signUpError.message);
       return;
     }
-    toast.success("We sent you a 6-digit code.");
+
+    // 2. Send phone OTP via Prelude edge function.
+    const { error: otpError } = await supabase.functions.invoke("send-otp", {
+      body: { phone },
+    });
+
+    setBusy(false);
+
+    if (otpError) {
+      // Account was created — skip phone verification and go straight to onboarding.
+      toast.warning("Account created! Couldn't send SMS code — you can verify your phone later.");
+      navigate({ to: "/app/onboarding" });
+      return;
+    }
+
+    toast.success("Account created! Enter the 6-digit code we texted you.");
     setStep("otp");
   };
 
@@ -100,23 +128,25 @@ function Signup() {
     e.preventDefault();
     if (otp.length !== 6) return;
     setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({
-      phone: fullPhone,
-      token: otp,
-      type: "sms",
+    const { error } = await supabase.functions.invoke("verify-otp", {
+      body: { phone: fullPhone, code: otp },
     });
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(error.message ?? "Invalid code — try again.");
       return;
     }
-    toast.success("Welcome — let's set up your shop.");
+    toast.success("Phone verified! Let's set up your shop.");
     navigate({ to: "/app/onboarding" });
   };
 
   const resend = async () => {
-    const { error } = await supabase.auth.resend({ type: "sms", phone: fullPhone });
-    if (error) toast.error(error.message);
+    setBusy(true);
+    const { error } = await supabase.functions.invoke("send-otp", {
+      body: { phone: fullPhone },
+    });
+    setBusy(false);
+    if (error) toast.error(error.message ?? "Couldn't resend code.");
     else toast.success("Code re-sent.");
   };
 
@@ -140,7 +170,7 @@ function Signup() {
 
       <div className="flex-1 -mt-6 bg-background rounded-t-3xl px-6 pt-8 pb-10">
         {step === "details" ? (
-          <form onSubmit={sendOtp} className="space-y-4 max-w-md mx-auto">
+          <form onSubmit={register} className="space-y-4 max-w-md mx-auto">
             <div className="space-y-2">
               <Label htmlFor="name">Your name</Label>
               <Input id="name" required value={form.full_name} onChange={set("full_name")} placeholder="Full name" className="h-12 rounded-xl" />
@@ -204,12 +234,11 @@ function Signup() {
                   className="h-12 rounded-xl flex-1"
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground">SMS verification is required.</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email (optional)</Label>
-              <Input id="email" type="email" value={form.email} onChange={set("email")} placeholder="you@business.com" className="h-12 rounded-xl" />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" required value={form.email} onChange={set("email")} placeholder="you@business.com" className="h-12 rounded-xl" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="pwd">Password</Label>
@@ -229,7 +258,7 @@ function Signup() {
             </div>
 
             <Button type="submit" disabled={busy} className="w-full h-12 rounded-xl bg-gradient-brand text-primary-foreground border-0 shadow-brand text-base font-semibold">
-              {busy ? <Loader2 className="animate-spin" /> : "Send SMS code"}
+              {busy ? <Loader2 className="animate-spin" /> : "Create account"}
             </Button>
             <p className="text-center text-[11px] text-muted-foreground">
               By signing up you agree to our <Link to="/legal/terms" className="underline">Terms</Link>, <Link to="/legal/privacy" className="underline">Privacy Policy</Link> and <Link to="/legal/merchant" className="underline">Merchant Agreement</Link>.
@@ -240,6 +269,9 @@ function Signup() {
           </form>
         ) : (
           <form onSubmit={verify} className="space-y-5 max-w-md mx-auto">
+            <p className="text-center text-sm text-muted-foreground">
+              Code sent to <span className="font-semibold text-foreground">{fullPhone}</span>
+            </p>
             <div className="flex justify-center">
               <InputOTP maxLength={6} value={otp} onChange={setOtp}>
                 <InputOTPGroup>
@@ -254,10 +286,19 @@ function Signup() {
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Didn't get it?{" "}
-              <button type="button" onClick={resend} className="font-semibold text-primary">Resend code</button>
+              <button type="button" onClick={resend} disabled={busy} className="font-semibold text-primary disabled:opacity-50">Resend code</button>
             </div>
             <div className="text-center text-sm text-muted-foreground">
               <button type="button" onClick={() => setStep("details")} className="underline">Edit details</button>
+            </div>
+            <div className="text-center text-sm text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/app/onboarding" })}
+                className="text-muted-foreground text-xs underline"
+              >
+                Skip phone verification
+              </button>
             </div>
           </form>
         )}

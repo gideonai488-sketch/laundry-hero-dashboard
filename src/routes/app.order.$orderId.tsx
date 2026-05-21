@@ -64,7 +64,7 @@ function OrderDetailPage() {
 
   const advance = (key: string) => {
     update.mutate(
-      { orderId, delivery_status: key },
+      { orderId, delivery_status: key, riderId: order?.rider_id ?? null },
       {
         onSuccess: () => toast.success(`Marked as ${key.replace(/_/g, " ")}`),
         onError: (e: any) => toast.error(e.message ?? "Couldn't update"),

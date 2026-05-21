@@ -50,6 +50,13 @@ function OnboardingPage() {
       console.warn("user_roles insert:", roleErr);
     }
 
+    // Read signup locale so RLS broadcast filter (country_code + city + area) works
+    let signupLocale: { countryCode?: string; city?: string; area?: string } = {};
+    try {
+      const raw = localStorage.getItem("hw-signup-locale-v1");
+      if (raw) signupLocale = JSON.parse(raw);
+    } catch { /* noop */ }
+
     // 2. Insert merchants row
     const { error: mErr } = await supabase.from("merchants").insert({
       owner_id: user.id,
@@ -59,6 +66,9 @@ function OnboardingPage() {
       lat: form.lat ? Number(form.lat) : null,
       lng: form.lng ? Number(form.lng) : null,
       online: false,
+      country_code: signupLocale.countryCode ?? null,
+      city: signupLocale.city ?? null,
+      area: signupLocale.area ?? null,
     });
     if (mErr && mErr.code !== "23505") {
       setBusy(false);
